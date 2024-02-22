@@ -2,7 +2,7 @@
 #include "EditorColors.hpp"
 #include <Engine/Platform/Window.hpp>
 
-namespace mf::editor
+namespace lde::editor
 {
 	// Note:
 	// Window caption color needs to be change in both Themes.
@@ -13,10 +13,10 @@ namespace mf::editor
 		static void DarkTheme(ImGuiStyle& InStyle)
 		{
 			const BOOL bDarkMode{ TRUE };
-			::DwmSetWindowAttribute(mf::Window::GetHWnd(), DWMWA_USE_IMMERSIVE_DARK_MODE, &bDarkMode, sizeof(bDarkMode));
+			::DwmSetWindowAttribute(lde::Window::GetHWnd(), DWMWA_USE_IMMERSIVE_DARK_MODE, &bDarkMode, sizeof(bDarkMode));
 			
 			COLORREF captionColor{ RGB(32, 32, 32) };
-			DwmSetWindowAttribute(mf::Window::GetHWnd(), DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &captionColor, sizeof(captionColor));
+			DwmSetWindowAttribute(lde::Window::GetHWnd(), DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &captionColor, sizeof(captionColor));
 		
 			ImGui::StyleColorsDark();
 			InStyle.WindowRounding		= 0.0f;
@@ -65,10 +65,10 @@ namespace mf::editor
 		static void LightTheme(ImGuiStyle& InStyle)
 		{
 			const BOOL bDarkMode{ FALSE };
-			::DwmSetWindowAttribute(mf::Window::GetHWnd(), DWMWA_USE_IMMERSIVE_DARK_MODE, &bDarkMode, sizeof(bDarkMode));
+			::DwmSetWindowAttribute(lde::Window::GetHWnd(), DWMWA_USE_IMMERSIVE_DARK_MODE, &bDarkMode, sizeof(bDarkMode));
 			
 			COLORREF captionColor{ RGB(255, 236, 225) };
-			DwmSetWindowAttribute(mf::Window::GetHWnd(), DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &captionColor, sizeof(captionColor));
+			DwmSetWindowAttribute(lde::Window::GetHWnd(), DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &captionColor, sizeof(captionColor));
 		
 			ImGui::StyleColorsLight();
 		
@@ -113,4 +113,4 @@ namespace mf::editor
 		
 	};
 
-} // namespace mf::editor
+} // namespace lde::editor

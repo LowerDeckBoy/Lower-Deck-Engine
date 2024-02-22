@@ -4,7 +4,7 @@
 #include "RHI/D3D12/D3D12Context.hpp"
 #include "Scene/Scene.hpp"
 
-namespace mf
+namespace lde
 {
 	GBufferPass::GBufferPass(RHI::D3D12Context* pGfx)
 	{

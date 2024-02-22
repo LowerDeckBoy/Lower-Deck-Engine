@@ -8,7 +8,7 @@
 #include <Psapi.h>
 #include <Core/Logger.hpp>
 
-namespace mf::Utility
+namespace lde::Utility
 {
 	class MemoryUsage
 	{

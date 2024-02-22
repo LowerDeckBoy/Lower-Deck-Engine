@@ -1,6 +1,6 @@
 #pragma once
 
-namespace mf::RHI
+namespace lde::RHI
 {
 
-} // namespace mf::RHI
+} // namespace lde::RHI

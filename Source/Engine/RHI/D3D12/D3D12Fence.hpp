@@ -4,7 +4,7 @@
 #include <Core/CoreMinimal.hpp>
 #include <RHI/RHICommon.hpp>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	class D3D12Device;
 	class D3D12Queue;

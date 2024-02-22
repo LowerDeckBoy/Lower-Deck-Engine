@@ -18,7 +18,7 @@
 
 #include <FontAwesome/IconsFontAwesome6.h>
 
-namespace mf::editor 
+namespace lde::editor 
 {
 	//using namespace RHI;
 
@@ -58,7 +58,7 @@ namespace mf::editor
 		IO.ConfigFlags	|= ImGuiConfigFlags_DockingEnable;
 		IO.ConfigFlags	|= ImGuiConfigFlags_ViewportsEnable;
 
-		ImGui_ImplWin32_Init(mf::Window::GetHWnd());
+		ImGui_ImplWin32_Init(lde::Window::GetHWnd());
 		ImGui_ImplDX12_Init(m_Gfx->Device->GetDevice(),
 			FRAME_COUNT,
 			DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -503,4 +503,4 @@ namespace mf::editor
 		}
 	}
 
-} // namespace mf::editor 
+} // namespace lde::editor 

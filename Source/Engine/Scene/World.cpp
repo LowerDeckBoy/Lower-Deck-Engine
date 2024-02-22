@@ -1,6 +1,6 @@
 #include "World.hpp"
 
-namespace mf
+namespace lde
 {
 
 }

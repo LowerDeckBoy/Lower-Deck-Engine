@@ -2,7 +2,7 @@
 #include "D3D12Device.hpp"
 #include "D3D12Utility.hpp"
 
-namespace mf::RHI
+namespace lde::RHI
 {
 
 	D3D12RootSignature::D3D12RootSignature(D3D12Device* pDevice,
@@ -60,4 +60,4 @@ namespace mf::RHI
 		SAFE_RELEASE(signature);
 		SAFE_RELEASE(error);
 	}
-} // namespace mf::RHI
+} // namespace lde::RHI

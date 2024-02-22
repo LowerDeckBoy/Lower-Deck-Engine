@@ -2,7 +2,7 @@
 
 #include <RHI/Types.hpp>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	enum class BufferUsage
 	{
@@ -61,4 +61,4 @@ namespace mf::RHI
 
 	};
 
-} // namespace mf::RHI
+} // namespace lde::RHI

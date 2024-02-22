@@ -6,7 +6,7 @@
 
 #include <cmath>
 
-namespace mf
+namespace lde
 {
 #define ALIGN(Value, Alignment) (Value + (Alignment - 1)) & ~(Alignment - 1)
 

@@ -10,7 +10,7 @@
 #include <Core/CoreMinimal.hpp>
 #include <RHI/CommandList.hpp>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	enum class CommandType;
 	class D3D12Device;
@@ -46,11 +46,18 @@ namespace mf::RHI
 
 		void PushConstants(uint32 Slot, uint32 Count, void* pData, uint32 Offset = 0) override final;
 
+		void ResourceBarrier(Ref<ID3D12Resource> ppResource, ResourceState Before, ResourceState After);
+		void UploadResource(Ref<ID3D12Resource> ppSrc, Ref<ID3D12Resource> ppDst, D3D12_SUBRESOURCE_DATA& Subresource);
+
 	private:
 		Ref<ID3D12GraphicsCommandList6> m_CommandList; /* Minimal required for Raytracing */
 		std::array<Ref<ID3D12CommandAllocator>, FRAME_COUNT> m_Allocators;
 
 	};
+
+
+	// Helper
+	extern D3D12_RESOURCE_STATES StateEnumToType(ResourceState eState);
 
 	// TODO:
 	class D3D12CommandSignature

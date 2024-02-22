@@ -2,11 +2,11 @@
 
 // TODO:
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	class Resource
 	{
 	public:
 
 	};
-} // namespace mf::RHI
+} // namespace lde::RHI

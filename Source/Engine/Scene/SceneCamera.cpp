@@ -8,7 +8,7 @@
 
 #pragma comment(lib, "dinput8")
 
-namespace mf
+namespace lde
 {
 
 	SceneCamera::SceneCamera(World* pWorld, float AspectRatio)
@@ -221,4 +221,4 @@ namespace mf
 		DxLastMouseState = {};
 	}
 
-} // namespace mf
+} // namespace lde

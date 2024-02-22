@@ -2,7 +2,7 @@
 #include <DirectXMath.h>
 #include <string>
 
-namespace mf
+namespace lde
 {
 	using namespace DirectX;
 
@@ -84,4 +84,4 @@ namespace mf
 	
 	};
 
-} // namespace mf
+} // namespace lde

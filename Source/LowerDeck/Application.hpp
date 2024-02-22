@@ -20,7 +20,7 @@
 #	include <Editor/Editor.hpp>
 #endif
 
-namespace mf
+namespace lde
 {
 	class App : public Window
 	{

@@ -13,7 +13,7 @@
 #include <Core/CoreMinimal.hpp>
 #include <DirectXMath.h>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	class D3D12Context;
 	class D3D12Descriptor;

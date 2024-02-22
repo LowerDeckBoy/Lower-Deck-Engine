@@ -3,7 +3,7 @@
 #include <Core/CoreTypes.hpp>
 #include <DirectXMath.h>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	struct SceneData
 	{
@@ -26,4 +26,4 @@ namespace mf::RHI
 		uint32 VertexBufferOffset;
 	};
 
-} // namespace mf::RHI
+} // namespace lde::RHI

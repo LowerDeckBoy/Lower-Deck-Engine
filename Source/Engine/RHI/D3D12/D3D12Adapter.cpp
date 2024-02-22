@@ -9,7 +9,7 @@
 extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = 611; }
 extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\"; }
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	constexpr auto MINIMUM_FEATURE_LEVEL = D3D_FEATURE_LEVEL_12_0;
 	constexpr auto DESIRED_FEATURE_LEVEL = D3D_FEATURE_LEVEL_12_2;
@@ -161,4 +161,4 @@ namespace mf::RHI
 		m_RTVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 64,   L"RTV Descriptor Heap");
 	}
 	
-} // namespace mf::RHI
+} // namespace lde::RHI

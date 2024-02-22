@@ -6,7 +6,7 @@
 #include <deque>
 #include <functional>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	/**
 	 * @brief Determines some properties used in device creation
@@ -45,4 +45,4 @@ namespace mf::RHI
 		DeviceType		m_GpuType = DeviceType::eUnspecifed;
 
 	};
-} // namespace mf::RHI
+} // namespace lde::RHI

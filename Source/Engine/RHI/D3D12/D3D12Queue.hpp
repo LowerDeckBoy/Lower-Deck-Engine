@@ -9,7 +9,7 @@
 
 #include <Core/CoreMinimal.hpp>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	enum class CommandType;
 	

@@ -8,7 +8,7 @@
 #include <ImGui/imgui_impl_dx12.h>
 #include <ImGui/imgui_impl_win32.h>
 
-namespace mf
+namespace lde
 {
 	class Window;
 	class D3D12Context;
@@ -18,7 +18,7 @@ namespace mf
 	class Entity;
 }
 
-namespace mf::editor
+namespace lde::editor
 {
 	enum class Theme
 	{
@@ -79,4 +79,4 @@ namespace mf::editor
 		static bool bSceneOnly;
 	};
 
-} // namespace mf::editor
+} // namespace lde::editor

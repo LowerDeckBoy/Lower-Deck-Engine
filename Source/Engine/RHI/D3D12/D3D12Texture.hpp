@@ -8,7 +8,7 @@
 #include <Core/CoreMinimal.hpp>
 #include "D3D12Descriptor.hpp"
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	class D3D12Context;
 
@@ -56,4 +56,4 @@ namespace mf::RHI
 		DXGI_FORMAT m_Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	};
 
-} // namespace mf::RHI
+} // namespace lde::RHI

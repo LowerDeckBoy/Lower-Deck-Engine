@@ -15,9 +15,9 @@
 #include <span>
 #include <vector>
 
-//namespace mf { class Shader; }
+//namespace lde { class Shader; }
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	class D3D12Device;
 	class D3D12RootSignature;
@@ -103,4 +103,4 @@ namespace mf::RHI
 		DXGI_FORMAT m_DepthFormat = DXGI_FORMAT_D32_FLOAT;
 	
 	};
-} // namespace mf::RHI
+} // namespace lde::RHI

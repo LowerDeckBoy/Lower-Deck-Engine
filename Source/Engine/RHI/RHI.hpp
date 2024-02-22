@@ -8,7 +8,7 @@
 #include <RHI/PipelineState.hpp>
 #include <RHI/Texture.hpp>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	class RHI
 	{
@@ -28,4 +28,4 @@ namespace mf::RHI
 		virtual SwapChain* GetSwapChain() = 0;
 
 	};
-} // namespace mf::RHI
+} // namespace lde::RHI

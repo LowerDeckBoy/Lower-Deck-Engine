@@ -9,7 +9,7 @@
 #include <array>
 
 
-namespace mf
+namespace lde
 {
 	/// @brief Triple buffering
 	constexpr uint32 FRAME_COUNT = 3;

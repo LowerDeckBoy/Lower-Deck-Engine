@@ -15,7 +15,7 @@
 #include <Core/RefPtr.hpp>
 #include <Core/String.hpp>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 
 // Releasing either ComPtr or (custom) Ref object.

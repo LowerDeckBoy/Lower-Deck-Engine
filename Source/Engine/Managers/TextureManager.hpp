@@ -9,7 +9,7 @@
 #include "ShaderManager.hpp"
 #include <vector>
 
-namespace mf
+namespace lde
 {
 	namespace RHI
 	{
@@ -90,4 +90,4 @@ namespace mf
 	
 	};
 
-} // namespace mf
+} // namespace lde

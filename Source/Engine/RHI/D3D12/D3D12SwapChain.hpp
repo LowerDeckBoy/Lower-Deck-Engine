@@ -15,7 +15,7 @@
 
 #include <wrl/client.h>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	class D3D12Device;
 	class D3D12Queue;

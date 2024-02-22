@@ -4,7 +4,7 @@
 #include <Core/CoreTypes.hpp>
 #include <vector>
 
-namespace mf
+namespace lde
 {
 	struct Meshlet
 	{

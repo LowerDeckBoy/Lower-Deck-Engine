@@ -6,7 +6,7 @@
 #include "D3D12Utility.hpp"
 #include <AgilitySDK/d3dx12/d3dx12.h>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	D3D12DepthBuffer::D3D12DepthBuffer(D3D12Device* pDevice, D3D12DescriptorHeap* pDepthHeap, D3D12Viewport* pViewport, DXGI_FORMAT Format, bool bSRV)
 	{

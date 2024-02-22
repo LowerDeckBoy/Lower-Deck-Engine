@@ -8,7 +8,7 @@
 #pragma comment(lib, "dxcompiler")
 
 
-namespace mf
+namespace lde
 {
 	ShaderManager::ShaderManager()
 	{
@@ -45,7 +45,7 @@ namespace mf
 		RHI::DX_CALL(m_DxcUtils->LoadFile(String::ToWide(Filepath).c_str(), &codePage, &sourceBlob));
 	
 		auto t = RHI::ShaderEnumToType(eType);
-		std::wstring parentPath = String::ToWide(files::GetParentPath(Filepath));
+		std::wstring parentPath = String::ToWide(Files::GetParentPath(Filepath));
 		std::vector<LPCWSTR> arguments = {
 			// Entry point
 			L"-E", EntryPoint.c_str(),
@@ -84,4 +84,4 @@ namespace mf
 		return Shader(blob, eType);
 	}
 
-} // namespace mf
+} // namespace lde

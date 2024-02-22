@@ -8,7 +8,7 @@
 #include <Core/CoreTypes.hpp>
 #include <map>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	class D3D12Context;
 	class D3D12RenderTexture;
@@ -16,7 +16,7 @@ namespace mf::RHI
 	struct D3D12PipelineState;
 }
 
-namespace mf
+namespace lde
 {
 	class Scene;
 

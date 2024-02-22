@@ -8,7 +8,7 @@
 #include <AgilitySDK/d3d12.h>
 #include <Core/CoreTypes.hpp>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	class D3D12Descriptor
 	{

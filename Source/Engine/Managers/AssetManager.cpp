@@ -11,7 +11,7 @@
 #include "Utility/FileSystem.hpp"
 #include "Utility/Utility.hpp"
 
-namespace mf
+namespace lde
 {
 	void AssetManager::Import(
 			RHI::D3D12Context* pGfx, std::string_view Filepath,
@@ -41,7 +41,7 @@ namespace mf
 		ProcessNode(scene, pInMesh, scene->mRootNode, nullptr, XMMatrixIdentity());
 		OutVertices = m_Vertices;
 		OutIndices = m_Indices;
-		timer.End(files::GetFileName(Filepath));
+		timer.End(Files::GetFileName(Filepath));
 	
 	}
 
@@ -203,7 +203,7 @@ namespace mf
 			aiString materialPath;
 			if (material->GetTexture(aiTextureType_DIFFUSE, i, &materialPath) == aiReturn_SUCCESS)
 			{
-				auto texPath{ files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str())) };
+				auto texPath{ Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str())) };
 		
 				newMaterial.BaseColorIndex = textureManager.Create(m_Gfx, texPath);
 	
@@ -218,7 +218,7 @@ namespace mf
 			aiString materialPath;
 			if (material->GetTexture(aiTextureType_NORMALS, i, &materialPath) == aiReturn_SUCCESS)
 			{
-				auto texPath{ files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str())) };
+				auto texPath{ Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str())) };
 	
 				newMaterial.NormalIndex = textureManager.Create(m_Gfx, texPath);
 			}
@@ -229,7 +229,7 @@ namespace mf
 			aiString materialPath{};
 			if (material->GetTexture(aiTextureType_METALNESS, i, &materialPath) == aiReturn_SUCCESS)
 			{
-				auto texPath{ files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str())) };
+				auto texPath{ Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str())) };
 	
 				newMaterial.MetalRoughnessIndex = textureManager.Create(m_Gfx, texPath);
 	
@@ -243,7 +243,7 @@ namespace mf
 			aiString materialPath{};
 			if (material->GetTexture(aiTextureType_EMISSIVE, i, &materialPath) == aiReturn_SUCCESS)
 			{
-				auto texPath = files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
+				auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
 	
 				newMaterial.EmissiveIndex = textureManager.Create(m_Gfx, texPath);
 	
@@ -258,4 +258,4 @@ namespace mf
 		Submesh.Mat = newMaterial;
 	}
 
-} // namespace mf
+} // namespace lde

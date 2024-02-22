@@ -1,6 +1,6 @@
 #include "D3D12Utility.hpp"
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	void VerifyResult(HRESULT hResult, const char* File, int Line, std::string_view Message)
 	{

@@ -18,7 +18,7 @@ struct aiScene;
 struct aiNode;
 struct aiMesh;
 
-namespace mf
+namespace lde
 {
 	namespace RHI { class D3D12Context; }
 

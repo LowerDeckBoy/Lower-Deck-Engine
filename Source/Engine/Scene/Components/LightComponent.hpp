@@ -6,7 +6,7 @@
 
 #include <DirectXMath.h>
 
-namespace mf
+namespace lde
 {
 	using namespace DirectX;
 

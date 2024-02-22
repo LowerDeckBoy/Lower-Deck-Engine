@@ -3,7 +3,7 @@
 
 #pragma comment(lib, "dwmapi")
 
-namespace mf
+namespace lde
 {
 	HINSTANCE Window::s_hInstance = nullptr;
 	HWND Window::s_hWnd			= nullptr;

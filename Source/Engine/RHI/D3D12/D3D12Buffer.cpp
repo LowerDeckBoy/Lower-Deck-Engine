@@ -3,7 +3,7 @@
 #include "D3D12Context.hpp"
 #include "Core/Logger.hpp"
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	D3D12Descriptor D3D12Buffer::Descriptor() const
 	{

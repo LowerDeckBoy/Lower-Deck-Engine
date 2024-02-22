@@ -26,3 +26,23 @@ target_include_directories(${PROJECT_NAME} PUBLIC Editor)
 target_include_directories(${PROJECT_NAME} PUBLIC Engine)
 target_link_libraries(${PROJECT_NAME} PUBLIC Editor)
 target_link_libraries(${PROJECT_NAME} PUBLIC Engine)
+
+
+# Determine which generator is used
+#set(COPY_DESTINATION "")
+
+if (${CMAKE_GENERATOR} MATCHES "Visual Studio 17 2022")
+	set(COPY_DESTINATION "${CMAKE_BINARY_DIR}/Source/LowerDeck/Debug")
+elseif(${CMAKE_GENERATOR} MATCHES "Ninja")
+	lset(COPY_DESTINATION "${CMAKE_BINARY_DIR}/Source/LowerDeck")
+endif()
+
+add_custom_command(TARGET LowerDeck PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Shaders "${COPY_DESTINATION}/Shaders"
+	COMMENT "Copying shaders..."
+)
+
+add_custom_command(TARGET LowerDeck POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/Assets ${COPY_DESTINATION}/Assets
+	COMMENT "Copying assets..."
+)

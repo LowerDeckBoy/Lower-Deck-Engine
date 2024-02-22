@@ -13,7 +13,7 @@
 #include "Model/Model.hpp"
 #include "SceneCamera.hpp"
 
-namespace mf
+namespace lde
 {
 	class D3D12Context;
 
@@ -80,11 +80,11 @@ namespace mf
 		std::vector<Entity> Lights;
 	
 	private:
-		mf::World* m_World = nullptr;
+		lde::World* m_World = nullptr;
 	
 		std::vector<std::unique_ptr<Model>> m_Models;
 	
 		RHI::D3D12Context* m_Gfx = nullptr;
 	};
 
-} // namespace mf
+} // namespace lde

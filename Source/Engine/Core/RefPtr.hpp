@@ -8,7 +8,7 @@
 #include <concepts>
 #include <memory>
 
-namespace mf
+namespace lde
 {
 	template<typename T>
 	concept TInterface = requires(T * Ptr)

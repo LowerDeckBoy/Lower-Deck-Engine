@@ -7,7 +7,7 @@
 
 #include <Platform/Window.hpp>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	D3D12SwapChain::D3D12SwapChain(D3D12Device* pDevice, D3D12Queue* pQueue, uint32 Width, uint32 Height)
 	{
@@ -49,7 +49,7 @@ namespace mf::RHI
 		fullscreenDesc.Windowed = true;
 
 		IDXGISwapChain1* swapChain = nullptr;
-		DX_CALL(pDevice->GetFactory()->CreateSwapChainForHwnd(pQueue->Get(), mf::Window::GetHWnd(), &desc, &fullscreenDesc, nullptr, &swapChain));
+		DX_CALL(pDevice->GetFactory()->CreateSwapChainForHwnd(pQueue->Get(), lde::Window::GetHWnd(), &desc, &fullscreenDesc, nullptr, &swapChain));
 
 		m_SwapChain = static_cast<IDXGISwapChain4*>(swapChain);
 		SAFE_DELETE(swapChain);

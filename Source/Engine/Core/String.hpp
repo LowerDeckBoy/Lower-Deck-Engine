@@ -8,7 +8,7 @@
 #include <format>
 #include <string>
 
-namespace mf::String
+namespace lde::String
 {
 	inline std::wstring ToWide(std::string Text)
 	{

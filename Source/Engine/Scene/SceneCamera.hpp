@@ -12,7 +12,7 @@
 
 #include "Entity.hpp"
 
-namespace mf
+namespace lde
 {
 	using namespace DirectX;
 	
@@ -116,4 +116,4 @@ namespace mf
 		inline static DIMOUSESTATE DxLastMouseState{};
 	};
 
-} // namespace mf
+} // namespace lde

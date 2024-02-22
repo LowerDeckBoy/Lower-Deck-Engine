@@ -1,7 +1,7 @@
 #include "Scene/Scene.hpp"
 #include "Renderer.hpp"
 
-namespace mf
+namespace lde
 {
 	bool Renderer::bVSync = true;
 
@@ -187,4 +187,4 @@ namespace mf
 		return m_GBufferPass->GetRenderTargets().at(GBuffers::eBaseColor).SRV.GetGpuHandle().ptr;
 	}
 
-} // namespace mf
+} // namespace lde

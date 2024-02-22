@@ -1,6 +1,6 @@
 #pragma once
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	struct TextureDesc
 	{
@@ -15,4 +15,4 @@ namespace mf::RHI
 
 	};
 
-} // namespace mf::RHI
+} // namespace lde::RHI

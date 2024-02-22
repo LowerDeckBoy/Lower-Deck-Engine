@@ -4,7 +4,7 @@
 #include "RHI/D3D12/D3D12Buffer.hpp"
 
 
-namespace mf
+namespace lde
 {
 	class D3D12Context;
 	
@@ -36,4 +36,4 @@ namespace mf
 		
 	};
 
-} // namespace mf
+} // namespace lde

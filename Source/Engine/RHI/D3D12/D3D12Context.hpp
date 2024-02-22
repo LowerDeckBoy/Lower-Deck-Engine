@@ -22,7 +22,7 @@
 #include "RHI/RHICommon.hpp"
 #include "RHI/Types.hpp"
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	class Window;
 	class D3D12Buffer;

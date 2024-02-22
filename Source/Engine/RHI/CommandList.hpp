@@ -3,7 +3,7 @@
 #include <RHI/Types.hpp>
 #include <span>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	class Buffer;
 	class ConstantBuffer;
@@ -30,9 +30,9 @@ namespace mf::RHI
 
 		virtual void PushConstants(uint32 Slot, uint32 Count, void* pData, uint32 Offset = 0) = 0;
 
+		//void ResourceBarrier(Ref<ID3D12Resource> ppResource, ResourceState Before, ResourceState After);
+		//void UploadResource(Ref<ID3D12Resource> ppSrc, Ref<ID3D12Resource> ppDst, d3d12Subresource);
 		// TODOs:
-		//virtual void ResourceBarrier(Ref<ID3D12Resource> ppResource, ResourceState Before, ResourceState After);
-		//virtual void UploadResource(Ref<ID3D12Resource> ppSrc, Ref<ID3D12Resource> ppDst, Subresource);
 		// 
 		//virtual void SetRenderTarget(uint64* pHandle) = 0;
 		//virtual void SetRenderTargets(std::span<uint64*> pHandles) = 0;
@@ -45,4 +45,4 @@ namespace mf::RHI
 		CommandType m_Type{};
 
 	};
-} // namespace mf::RHI
+} // namespace lde::RHI

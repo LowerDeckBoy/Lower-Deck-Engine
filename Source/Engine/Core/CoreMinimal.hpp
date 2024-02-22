@@ -12,4 +12,4 @@
 #include <Core/Math.hpp>
 #include <Core/RefPtr.hpp>
 
-using namespace mf;
+using namespace lde;

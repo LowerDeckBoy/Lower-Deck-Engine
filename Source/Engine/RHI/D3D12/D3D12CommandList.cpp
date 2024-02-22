@@ -3,8 +3,9 @@
 #include "D3D12CommandList.hpp"
 #include "D3D12Utility.hpp"
 #include "RHI/Types.hpp"
+#include <AgilitySDK/d3dx12/d3dx12.h>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	D3D12CommandList::D3D12CommandList(D3D12Device* pDevice, CommandType eType, std::string DebugName)
 	{
@@ -104,6 +105,37 @@ namespace mf::RHI
 		}
 	}
 
-	
+	void D3D12CommandList::ResourceBarrier(Ref<ID3D12Resource> ppResource, ResourceState Before, ResourceState After)
+	{
+		D3D12_RESOURCE_BARRIER barrier{};
+		barrier.Type					= D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		barrier.Transition.StateBefore	= StateEnumToType(Before);
+		barrier.Transition.StateAfter	= StateEnumToType(After);
 
-} // namespace mf::RHI
+		m_CommandList->ResourceBarrier(1, &barrier);
+
+	}
+
+	void D3D12CommandList::UploadResource(Ref<ID3D12Resource> ppSrc, Ref<ID3D12Resource> ppDst, D3D12_SUBRESOURCE_DATA& Subresource)
+	{
+		::UpdateSubresources(m_CommandList.Get(), ppDst.Get(), ppSrc.Get(), 0, 0, 1, &Subresource);
+	}
+
+	D3D12_RESOURCE_STATES StateEnumToType(ResourceState eState)
+	{
+		switch (eState)
+		{
+		case lde::RHI::ResourceState::eGeneralUsage:
+			return D3D12_RESOURCE_STATE_GENERIC_READ;
+		case lde::RHI::ResourceState::eRenderTarget:
+			return D3D12_RESOURCE_STATE_RENDER_TARGET;
+		case lde::RHI::ResourceState::ePresent:
+			return D3D12_RESOURCE_STATE_PRESENT;
+		case lde::RHI::ResourceState::eCopySrc:
+			return D3D12_RESOURCE_STATE_COPY_SOURCE;
+		case lde::RHI::ResourceState::eCopyDst:
+			return D3D12_RESOURCE_STATE_COPY_DEST;
+		}
+	}
+
+} // namespace lde::RHI

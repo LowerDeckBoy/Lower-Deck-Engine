@@ -10,18 +10,18 @@
 #include <RHI/Types.hpp>
 #include <RHI/D3D12/D3D12Fence.hpp>
 #include <RHI/D3D12/D3D12Queue.hpp>
+#include <RHI/D3D12/D3D12CommandList.hpp>
 #include <RHI/D3D12/D3D12DescriptorHeap.hpp>
 
 #if DEBUG_MODE
 #	include <dxgidebug.h>
 #endif
 
-namespace mf::RHI
+namespace lde::RHI
 {
-	
 	struct D3D12Debug
 	{
-		Ref<IDXGIDebug1>			DXGIDebug;
+		Ref<IDXGIDebug1>		DXGIDebug;
 		Ref<ID3D12Debug6>		D3DDebug;
 		Ref<ID3D12DebugDevice2>	DebugDevice;
 	};
@@ -63,6 +63,13 @@ namespace mf::RHI
 		void FlushGPU();
 		void IdleGPU();
 
+		/**
+		 * @brief Execute CommandList of a given type
+		 * @param eType 
+		 * @param bResetAllocator 
+		 */
+		void ExecuteCommandList(CommandType eType, bool bResetAllocator = false);
+
 		D3D12Fence* GetFence() { return m_Fence.get(); }
 
 		D3D12Queue* GetGfxQueue()		{ return m_GfxQueue.get(); }
@@ -82,6 +89,10 @@ namespace mf::RHI
 		std::unique_ptr<D3D12Queue> m_ComputeQueue;
 		std::unique_ptr<D3D12Queue> m_UploadQueue;
 
+		std::unique_ptr<D3D12CommandList> m_GfxCommandList;
+		std::unique_ptr<D3D12CommandList> m_ComputeCommandList;
+		std::unique_ptr<D3D12CommandList> m_UploadCommandList;
+
 		std::unique_ptr<D3D12DescriptorHeap> m_SRVHeap;
 		std::unique_ptr<D3D12DescriptorHeap> m_DSVHeap;
 		std::unique_ptr<D3D12DescriptorHeap> m_RTVHeap;
@@ -99,11 +110,8 @@ namespace mf::RHI
 		void CreateQueues();
 		void CreateHeaps();
 
-
-	private:
-
 		DXGI_ADAPTER_DESC3 m_AdapterDesc{};
-
+		
 #if DEBUG_MODE
 		D3D12Debug m_DebugDevices;
 #endif
@@ -114,7 +122,10 @@ namespace mf::RHI
 		ConstantBuffer* CreateConstantBuffer(void* pData, usize Size) override final;
 		Texture*		CreateTexture(TextureDesc Desc) override final;
 
+		//void CreateSRV();
+		//void CreateUAV();
+
 	private:
 
 	};
-} // namespace mf::RHI
+} // namespace lde::RHI

@@ -1,7 +1,7 @@
 #pragma once
 #include <ImGui/imgui.h>
 
-namespace mf::editor
+namespace lde::editor
 {
 	namespace Colors
 	{
@@ -34,4 +34,4 @@ namespace mf::editor
 		constexpr ImVec4 CoralActive	= ImVec4(1.0f, 0.0f, 0.5f, 1.0f);
 	
 	} // namespace Colors
-} // namespace  mf::editor
+} // namespace  lde::editor

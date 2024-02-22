@@ -7,7 +7,7 @@
 #include "Platform.hpp"
 #include <Core/String.hpp>
 
-namespace mf
+namespace lde
 {
 	struct WindowParameters
 	{

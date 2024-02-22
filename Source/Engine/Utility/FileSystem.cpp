@@ -1,6 +1,6 @@
 #include "FileSystem.hpp"
 
-namespace mf::files
+namespace lde::Files
 {
     ImageExtension ImageExtToEnum(std::string_view Filepath)
     {
@@ -23,4 +23,4 @@ namespace mf::files
 		
 		return ImageExtension::eInvalid;
     }
-} // namespace mf::files
+} // namespace lde::Files

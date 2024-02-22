@@ -12,7 +12,7 @@
 #include "RHI/D3D12/D3D12Buffer.hpp"
 #include <Core/CoreTypes.hpp>
 
-namespace mf
+namespace lde
 {
 #define MAX_DIR_LIGHTS		4u
 #define MAX_POINT_LIGHTS	64u

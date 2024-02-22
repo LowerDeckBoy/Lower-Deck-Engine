@@ -5,7 +5,7 @@
 #include "Components/Components.hpp"
 
 
-namespace mf
+namespace lde
 {
 	Scene::Scene(uint32 Width, uint32 Height, RHI::D3D12Context* pGfx)
 	{
@@ -20,7 +20,7 @@ namespace mf
 	
 	void Scene::Initialize(uint32 Width, uint32 Height, RHI::D3D12Context* pGfx)
 	{
-		m_World = new mf::World();
+		m_World = new lde::World();
 		m_Camera = std::make_unique<SceneCamera>(m_World, static_cast<float>((float)Width / (float)Height));
 		m_Camera->InitializeInputs();
 		m_Gfx = pGfx;
@@ -87,4 +87,4 @@ namespace mf
 		m_Models.emplace_back(std::make_unique<Model>(m_Gfx, Filepath, m_World));
 	}
 
-} // namespace mf
+} // namespace lde

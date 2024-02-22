@@ -1,24 +1,24 @@
 #include "Types.hpp"
 
-namespace mf::RHI
+namespace lde::RHI
 {
     std::wstring ShaderEnumToType(ShaderStage eStage)
     {
         switch (eStage)
         {
-        case mf::RHI::ShaderStage::eVertex:
+        case lde::RHI::ShaderStage::eVertex:
             return L"vs_6_6";
-        case mf::RHI::ShaderStage::ePixel:
+        case lde::RHI::ShaderStage::ePixel:
             return L"ps_6_6";
-        case mf::RHI::ShaderStage::eCompute:
+        case lde::RHI::ShaderStage::eCompute:
             return L"cs_6_6";
-        case mf::RHI::ShaderStage::eAmplification:
+        case lde::RHI::ShaderStage::eAmplification:
             return L"as_6_6";
-        case mf::RHI::ShaderStage::eMesh:
+        case lde::RHI::ShaderStage::eMesh:
             return L"ms_6_6";
-        case mf::RHI::ShaderStage::eRaytracing:
+        case lde::RHI::ShaderStage::eRaytracing:
             return L"lib_6_6";
-        case mf::RHI::ShaderStage::eUnspecified:
+        case lde::RHI::ShaderStage::eUnspecified:
             return L"Invalid";
         }
 

@@ -5,7 +5,7 @@
 	Singleton wrapper for manager-like classes.
 */
 
-namespace mf
+namespace lde
 {
 	template<typename T>
 	class Singleton
@@ -30,4 +30,4 @@ namespace mf
 		}
 
 	};
-} // namespace mf
+} // namespace lde

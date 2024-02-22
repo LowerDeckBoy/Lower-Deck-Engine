@@ -7,7 +7,7 @@
 #include <vector>
 #include "String.hpp"
 
-namespace mf
+namespace lde
 {
 	enum class LogLevel
 	{

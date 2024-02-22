@@ -1,7 +1,7 @@
 #pragma once
 #include <filesystem>
 
-namespace mf::files
+namespace lde::Files
 {
 
 	inline bool Exists(std::string_view Filename)
@@ -48,4 +48,4 @@ namespace mf::files
 
 	ImageExtension ImageExtToEnum(std::string_view Filepath);
 
-} // namespace mf::files
+} // namespace lde::Files

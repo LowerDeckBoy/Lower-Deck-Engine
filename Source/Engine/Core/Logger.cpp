@@ -3,7 +3,7 @@
 #include <Core/CoreDefines.hpp>
 #include <Platform/Platform.hpp>
 
-namespace mf
+namespace lde
 {
 	std::vector<std::string> Logger::Logs;
 
@@ -23,4 +23,4 @@ namespace mf
 #endif
 
 	}
-} // namespace mf
+} // namespace lde

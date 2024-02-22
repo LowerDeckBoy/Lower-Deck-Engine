@@ -10,7 +10,7 @@
 #endif
 #include "Timer.hpp"
 
-namespace mf
+namespace lde
 {
 	enum class PlatformType
 	{

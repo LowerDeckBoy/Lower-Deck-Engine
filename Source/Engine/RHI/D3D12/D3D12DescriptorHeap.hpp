@@ -10,7 +10,7 @@
 
 #include "D3D12Descriptor.hpp"
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	enum class HeapType
 	{

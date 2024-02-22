@@ -17,7 +17,7 @@
 
 #include "RenderPass/GBufferPass.hpp"
 
-namespace mf
+namespace lde
 {
 	class Scene;
 
@@ -93,4 +93,4 @@ namespace mf
 		RenderOutput SelectedRenderTarget = RenderOutput::eNormal;
 
 	};
-} // namespace mf
+} // namespace lde

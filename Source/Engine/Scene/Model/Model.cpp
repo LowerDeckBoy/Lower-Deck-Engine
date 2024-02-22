@@ -5,7 +5,7 @@
 #include "Managers/AssetManager.hpp"
 #include "Utility/FileSystem.hpp"
 
-namespace mf
+namespace lde
 {
 	Model::Model(RHI::D3D12Context* pGfx, std::string_view Filepath, World* pWorld)
 	{
@@ -63,4 +63,4 @@ namespace mf
 		ConstBuffer = new RHI::D3D12ConstantBuffer(&cbData, sizeof(cbData));
 	}
 
-} // namespace mf
+} // namespace lde

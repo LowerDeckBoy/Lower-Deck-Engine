@@ -3,7 +3,7 @@
 #include "D3D12Utility.hpp"
 #include "RHI/RHICommon.hpp"
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	D3D12Texture::~D3D12Texture()
 	{

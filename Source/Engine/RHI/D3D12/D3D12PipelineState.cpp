@@ -3,7 +3,7 @@
 #include "D3D12RootSignature.hpp"
 #include "D3D12Utility.hpp"
 
-namespace mf::RHI
+namespace lde::RHI
 {
 
 	D3D12PipelineState::~D3D12PipelineState()
@@ -157,4 +157,4 @@ namespace mf::RHI
 	
 		m_DepthDesc = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	}
-} // namespace mf::RHI
+} // namespace lde::RHI

@@ -8,7 +8,7 @@
 #include <Core/CoreTypes.hpp>
 #include <Core/String.hpp>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 #define GPU_VENDOR_NVIDIA	0x10DE
 #define GPU_VENDOR_AMD		0x1002

@@ -1,6 +1,6 @@
 #include "D3D12RHI.hpp"
 
-namespace mf::RHI
+namespace lde::RHI
 {
 
-} // namespace mf::RHI
+} // namespace lde::RHI

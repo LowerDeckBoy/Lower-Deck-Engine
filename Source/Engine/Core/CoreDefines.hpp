@@ -5,7 +5,7 @@
 	Definitions shared across Engine library content.
 */
 
-namespace mf
+namespace lde
 {
 
 #define DEBUG_MODE (_DEBUG) || (DEBUG)

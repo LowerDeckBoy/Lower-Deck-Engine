@@ -2,7 +2,7 @@
 
 #include <profileapi.h>
 
-namespace mf
+namespace lde
 {
 	class Timer
 	{

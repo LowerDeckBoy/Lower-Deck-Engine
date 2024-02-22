@@ -7,7 +7,7 @@
 //#include <EnTT/entt.hpp>
 #include "World.hpp"
 
-namespace mf
+namespace lde
 {
 //class World;
 
@@ -96,4 +96,4 @@ namespace mf
 	
 	};
 
-} // namespace mf
+} // namespace lde

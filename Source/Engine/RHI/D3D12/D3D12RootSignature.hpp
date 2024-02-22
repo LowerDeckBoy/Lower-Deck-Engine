@@ -11,7 +11,7 @@
 
 #include <span>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	class D3D12Device;
 	
@@ -47,4 +47,4 @@ namespace mf::RHI
 		void Serialize(D3D12Device* pDevice, const CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC& Desc, LPCWSTR DebugName);
 	
 	};
-} // namespace mf::RHI
+} // namespace lde::RHI

@@ -4,7 +4,7 @@
 #include <Platform/Window.hpp>
 #include <Core/Logger.hpp>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	D3D12Context::D3D12Context()
 	{
@@ -61,7 +61,7 @@ namespace mf::RHI
 
 		DX_CALL(D3D12MA::CreateAllocator(&desc, &D3D12Memory::Allocator));
 
-		SwapChain = std::make_unique<D3D12SwapChain>(Device.get(), Device->GetGfxQueue(), mf::Window::Width, mf::Window::Height);
+		SwapChain = std::make_unique<D3D12SwapChain>(Device.get(), Device->GetGfxQueue(), lde::Window::Width, lde::Window::Height);
 
 		GraphicsCommandList = new D3D12CommandList(Device.get(), CommandType::eGraphics, "Graphics Command List");
 
@@ -73,7 +73,7 @@ namespace mf::RHI
 
 		MipMapHeap = new D3D12DescriptorHeap(Device.get(), HeapType::eSRV, 512, L"MipMap Heap");
 
-		SceneViewport = new D3D12Viewport(mf::Window::Width, mf::Window::Height);
+		SceneViewport = new D3D12Viewport(lde::Window::Width, lde::Window::Height);
 
 		SceneDepth = new D3D12DepthBuffer(Device.get(), DepthHeap, SceneViewport);
 

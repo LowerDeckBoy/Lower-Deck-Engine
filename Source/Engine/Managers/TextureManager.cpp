@@ -11,7 +11,7 @@
 
 #include "Utility/FileSystem.hpp"
 
-namespace mf
+namespace lde
 {
 
 	class MipGenerator;
@@ -20,25 +20,25 @@ namespace mf
 	{
 		RHI::D3D12Texture* newTexture = new RHI::D3D12Texture();
 		
-		const auto extension = files::ImageExtToEnum(Filepath);
+		const auto extension = Files::ImageExtToEnum(Filepath);
 	
 		switch (extension)
 		{
-		case files::ImageExtension::eJPG:
-		case files::ImageExtension::eJPEG:
-		case files::ImageExtension::ePNG:
-		case files::ImageExtension::eTGA:
-		case files::ImageExtension::eBMP:
+		case Files::ImageExtension::eJPG:
+		case Files::ImageExtension::eJPEG:
+		case Files::ImageExtension::ePNG:
+		case Files::ImageExtension::eTGA:
+		case Files::ImageExtension::eBMP:
 		{
 			Create2D(pGfx, Filepath, newTexture, bGenerateMipMaps);
 			break;
 		}
-		//case files::ImageExtension::eDDS:
+		//case Files::ImageExtension::eDDS:
 		//{
 		//	//CreateDDS(pGfx, Filepath, newTexture, true);
 		//	break;
 		//}
-		//case files::ImageExtension::eHDR:
+		//case Files::ImageExtension::eHDR:
 		//{
 		//	// TODO: HDR
 		//	break;
@@ -318,4 +318,4 @@ namespace mf
 		
 	}
 
-} // namespace mf
+} // namespace lde

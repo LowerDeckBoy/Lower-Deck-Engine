@@ -8,7 +8,7 @@
 #include <DirectXMath.h>
 #include <vector>
 
-namespace mf
+namespace lde
 {
 
 	class D3D12Texture;

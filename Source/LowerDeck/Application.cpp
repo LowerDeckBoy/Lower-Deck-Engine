@@ -1,7 +1,7 @@
 #include "Application.hpp"
 #include <ImGui/imgui_impl_win32.h>
 
-namespace mf
+namespace lde
 {
 	App::App(HINSTANCE hInstance, WindowParameters StartUp)
 		: Window(hInstance, StartUp)

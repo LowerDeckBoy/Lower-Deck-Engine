@@ -1,7 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
 
-namespace mf
+namespace lde
 {
 	struct CameraComponent
 	{
@@ -22,4 +22,4 @@ namespace mf
 			Sensivity	= 0.1f;
 		}
 	};
-} // namespace mf
+} // namespace lde

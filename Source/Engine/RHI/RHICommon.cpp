@@ -1,6 +1,6 @@
 #include "RHICommon.hpp"
 
-namespace mf
+namespace lde
 {
 	uint32 FRAME_INDEX = 0;
 

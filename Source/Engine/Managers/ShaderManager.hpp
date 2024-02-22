@@ -13,7 +13,7 @@
 #include <RHI/Types.hpp>
 #include <string>
 
-namespace mf
+namespace lde
 {
 	using Microsoft::WRL::ComPtr;
 	
@@ -67,4 +67,4 @@ namespace mf
 	
 	};
 
-} // namespace mf
+} // namespace lde

@@ -10,7 +10,7 @@
 #include <AgilitySDK/d3dx12/d3dx12.h>
 #include <D3D12MA/D3D12MemAlloc.h>
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	class D3D12Device;
 
@@ -75,4 +75,4 @@ namespace mf::RHI
 
 	};
 	
-} // namespace mf::RHI
+} // namespace lde::RHI

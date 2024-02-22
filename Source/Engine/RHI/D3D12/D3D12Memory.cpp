@@ -3,7 +3,7 @@
 #include "D3D12Device.hpp"
 #include "D3D12Utility.hpp"
 
-namespace mf::RHI
+namespace lde::RHI
 {
 	Ref<D3D12MA::Allocator> D3D12Memory::Allocator = {};
 
