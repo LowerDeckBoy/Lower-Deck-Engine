@@ -10,11 +10,51 @@
 #include <stb/stb_image.h>
 
 #include "Utility/FileSystem.hpp"
+#include <Core/Logger.hpp>
 
 namespace lde
 {
+	TextureManager* TextureManager::m_Instance = nullptr;
 
 	class MipGenerator;
+
+	TextureManager::TextureManager()
+	{
+		m_Instance = this;
+		LOG_INFO("TextureManager initialized.");
+	}
+
+	TextureManager::~TextureManager()
+	{
+		LOG_INFO("TextureManager released.");
+	}
+
+	TextureManager& TextureManager::GetInstance()
+	{
+		if (!m_Instance)
+		{
+			m_Instance = new TextureManager();
+			LOG_DEBUG("TextureManager instance recreated!.");
+		}
+
+		return *m_Instance;
+	}
+
+	void TextureManager::Initialize(RHI::D3D12Context* pGfx)
+	{
+		m_Gfx = pGfx;
+		m_MipGenerator = new MipGenerator();
+		m_MipGenerator->Initialize(pGfx);
+	}
+
+	void TextureManager::Release()
+	{
+		for (auto& texture : m_Textures)
+		{
+			delete texture;
+		}
+		m_MipGenerator->Release();
+	}
 
 	int32 TextureManager::Create(RHI::D3D12Context* pGfx, std::string_view Filepath, bool bGenerateMipMaps)
 	{
@@ -121,7 +161,8 @@ namespace lde
 
 		if (bMipMaps)
 		{
-			MipGenerator::GetInstance().Generate2D(pGfx, pTarget);
+			m_MipGenerator->Generate2D(m_Gfx, pTarget);
+			//MipGenerator::GetInstance().Generate2D(pGfx, pTarget);
 		}
 	}
 
@@ -156,7 +197,8 @@ namespace lde
 			srvDesc.TextureCube.MostDetailedMip = 0;
 		}
 	
-		pGfx->Heap->Allocate(pTarget->SRV, 1);
+		//pGfx->Heap->Allocate(pTarget->SRV, 1);
+		((RHI::D3D12Device*)pGfx->GetDevice())->Allocate(RHI::HeapType::eSRV, pTarget->SRV, 1);
 		pGfx->Device->GetDevice()->CreateShaderResourceView(pTarget->Texture.Get(), &srvDesc, pTarget->SRV.GetCpuHandle());
 	}
 
@@ -200,8 +242,7 @@ namespace lde
 		m_RootSignature.Create(pGfx->Device.get(), rootParameters, samplers, rootSignatureFlags, L"MipMap Root Signature");
 		m_RootSignature.Type = RHI::PipelineType::eCompute;
 		m_RootSignature.GetRootSignature()->SetName(L"MipMap Root Signature");
-		//m_ComputeShader = ShaderManager::GetInstance().Compile("../Moonfolk/Shaders/MipMap2D.hlsl", RHI::ShaderStage::eCompute, L"CSmain");
-		m_ComputeShader = ShaderManager::GetInstance().Compile("Shaders/MipMap2D.hlsl", RHI::ShaderStage::eCompute, L"CSmain");
+		m_ComputeShader = ShaderCompiler::GetInstance().Compile("Shaders/MipMap2D.hlsl", RHI::ShaderStage::eCompute, L"CSmain");
 	
 		D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
 		psoDesc.pRootSignature = m_RootSignature.GetRootSignature();
@@ -213,6 +254,8 @@ namespace lde
 		RHI::DX_CALL(pGfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_ComputePipeline.PipelineState)));
 		m_ComputePipeline.Type = RHI::PipelineType::eCompute;
 		m_ComputePipeline.PipelineState->SetName(L"MipMap Compute Pipeline State");
+
+		LOG_DEBUG("MipGenerator initialized.");
 	}
 
 	void MipGenerator::Generate2D(RHI::D3D12Context* pGfx, RHI::D3D12Texture* pTexture)
@@ -247,7 +290,9 @@ namespace lde
 		} mipGenCB{};
 
 		//pGfx->Heap->Allocate(pTexture->SRV, 1);
-		pGfx->Heap->Allocate(pTexture->UAV, pTexture->MipLevels);
+		//pGfx->Heap->Allocate(pTexture->UAV, pTexture->MipLevels);
+		//pGfx->GetDevice()->Allocate(pTexture->UAV, pTexture->MipLevels);
+		((RHI::D3D12Device*)pGfx->GetDevice())->Allocate(RHI::HeapType::eSRV, pTexture->UAV, pTexture->MipLevels);
 
 		pGfx->SetPipeline(&m_ComputePipeline);
 		pGfx->SetRootSignature(&m_RootSignature);

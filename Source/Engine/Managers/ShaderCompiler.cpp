@@ -1,4 +1,4 @@
-#include "ShaderManager.hpp"
+#include "ShaderCompiler.hpp"
 #include "RHI/D3D12/D3D12Utility.hpp"
 #include <Core/String.hpp>
 #include "Utility/FileSystem.hpp"
@@ -10,27 +10,40 @@
 
 namespace lde
 {
-	ShaderManager::ShaderManager()
+	ShaderCompiler* ShaderCompiler::m_Instance = nullptr;
+
+	ShaderCompiler::ShaderCompiler()
 	{
 		Initialize();
+		LOG_INFO("ShaderCompiler initialized.");
 	}
 	
-	ShaderManager::~ShaderManager()
+	ShaderCompiler::~ShaderCompiler()
 	{
 		Release();
-		LOG_INFO("Shader Manager released");
+		LOG_INFO("ShaderCompiler released.");
 	}
 	
-	void ShaderManager::Initialize()
+	ShaderCompiler& ShaderCompiler::GetInstance()
+	{
+		if (!m_Instance)
+		{
+			m_Instance = new ShaderCompiler();
+			LOG_DEBUG("ShaderCompiler instance recreated!");
+		}
+		return *m_Instance;
+	}
+
+	void ShaderCompiler::Initialize()
 	{
 		RHI::DX_CALL(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&m_DxcCompiler)));
 		RHI::DX_CALL(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&m_DxcUtils)));
 		RHI::DX_CALL(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&m_DxcLibrary)));
 		RHI::DX_CALL(m_DxcUtils->CreateDefaultIncludeHandler(&m_DxcIncludeHandler));
-	
+		m_Instance = this;
 	}
 
-	void ShaderManager::Release()
+	void ShaderCompiler::Release()
 	{
 		SAFE_RELEASE(m_DxcLibrary);
 		SAFE_RELEASE(m_DxcIncludeHandler);
@@ -38,7 +51,7 @@ namespace lde
 		SAFE_RELEASE(m_DxcCompiler);
 	}
 
-	Shader ShaderManager::Compile(const std::string_view& Filepath, RHI::ShaderStage eType, std::wstring EntryPoint)
+	Shader ShaderCompiler::Compile(const std::string_view& Filepath, RHI::ShaderStage eType, std::wstring EntryPoint)
 	{
 		uint32_t codePage = DXC_CP_ACP;
 		IDxcBlobEncoding* sourceBlob{};
@@ -83,5 +96,4 @@ namespace lde
 	
 		return Shader(blob, eType);
 	}
-
 } // namespace lde

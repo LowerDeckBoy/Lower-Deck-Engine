@@ -10,9 +10,33 @@
 
 #include "Utility/FileSystem.hpp"
 #include "Utility/Utility.hpp"
+#include "Core/Logger.hpp"
 
 namespace lde
 {
+	AssetManager* AssetManager::m_Instance = nullptr;
+
+	AssetManager::AssetManager()
+	{
+		m_Instance = this;
+		LOG_INFO("AssetManager initialized.");
+	}
+
+	AssetManager::~AssetManager()
+	{	
+		LOG_INFO("AssetManager released.");
+	}
+
+	AssetManager& AssetManager::GetInstance()
+	{
+		if (!m_Instance)
+		{
+			m_Instance = new AssetManager();
+			LOG_DEBUG("AssetManager instance recreated!.");
+		}
+		return *m_Instance;
+	}
+
 	void AssetManager::Import(
 			RHI::D3D12Context* pGfx, std::string_view Filepath,
 			World* pWorld, Mesh* pInMesh, 

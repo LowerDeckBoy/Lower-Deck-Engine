@@ -1,9 +1,9 @@
 #pragma once
 
-// =====================================================================
-// ShaderManager.hpp
-//
-// =====================================================================
+/*
+	ShaderCompiler.hpp
+	Singleton used for compiling and validating HLSL SM6.x shaders.
+*/
 
 #include <AgilitySDK/d3d12shader.h>
 #include <AgilitySDK/d3dx12/d3dx12.h>
@@ -39,28 +39,31 @@ namespace lde
 		RHI::ShaderStage Stage{};
 	private:
 		std::string m_Filepath;
-	
+		
 	};
 
 	/// @brief Singleton
-	class ShaderManager : public Singleton<ShaderManager>
+	class ShaderCompiler
 	{
-		friend class Singleton<ShaderManager>;
 	public:
-		ShaderManager();
-		~ShaderManager();
+		ShaderCompiler();
+		~ShaderCompiler();
 	
 		void Initialize();
 		void Release();
 	
 		Shader Compile(const std::string_view& Filepath, RHI::ShaderStage eType, std::wstring EntryPoint = L"main");
 	
+		static ShaderCompiler& GetInstance();
+
 	private:
 		Ref<IDxcCompiler3>		m_DxcCompiler;
 		Ref<IDxcUtils>			m_DxcUtils;
 		Ref<IDxcIncludeHandler>	m_DxcIncludeHandler;
-		Ref<IDxcLibrary>			m_DxcLibrary;
+		Ref<IDxcLibrary>		m_DxcLibrary;
 	
+		static ShaderCompiler* m_Instance;
+
 		// TODO:
 		//void GetWarning();
 		//void GetError();
