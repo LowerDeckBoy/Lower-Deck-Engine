@@ -68,7 +68,7 @@ namespace lde::RHI
 		 * @param eType 
 		 * @param bResetAllocator 
 		 */
-		void ExecuteCommandList(CommandType eType, bool bResetAllocator = false);
+		//void ExecuteCommandList(CommandType eType, bool bResetAllocator = false);
 
 		D3D12Fence* GetFence() { return m_Fence.get(); }
 
@@ -77,6 +77,16 @@ namespace lde::RHI
 		D3D12Queue* GetComputeQueue()	{ return m_ComputeQueue.get(); }
 		[[maybe_unused]]
 		D3D12Queue* GetUploadQueue()	{ return m_UploadQueue.get(); }
+
+		//D3D12CommandList* GetGfxCommandList() { return m_GfxCommandList.get(); }
+
+		D3D12DescriptorHeap* GetSRVHeap() { return m_SRVHeap.get(); }
+		D3D12DescriptorHeap* GetDSVHeap() { return m_DSVHeap.get(); }
+		D3D12DescriptorHeap* GetRTVHeap() { return m_RTVHeap.get(); }
+
+		D3D12DescriptorHeap* GetMipMapHeap() { return m_MipMapHeap.get(); }
+
+		void Allocate(HeapType eType, D3D12Descriptor& Descriptor, uint32 Count = 1);
 
 	private:
 		Ref<IDXGIFactory7> m_Factory;
@@ -97,6 +107,12 @@ namespace lde::RHI
 		std::unique_ptr<D3D12DescriptorHeap> m_DSVHeap;
 		std::unique_ptr<D3D12DescriptorHeap> m_RTVHeap;
 
+		/**
+		 * @brief Used only for generating texture mipmaps.
+		 * Reason to run this Heap is to avoid polluting of main Shader Resource heap.
+		 */
+		std::unique_ptr<D3D12DescriptorHeap> m_MipMapHeap;
+
 	private:
 		void Create();
 		void Release();
@@ -108,6 +124,7 @@ namespace lde::RHI
 		void QueryFeatures();	/* Gather Device features. */
 
 		void CreateQueues();
+		void CreateCommandLists();
 		void CreateHeaps();
 
 		DXGI_ADAPTER_DESC3 m_AdapterDesc{};

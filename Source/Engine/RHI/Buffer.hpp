@@ -20,6 +20,8 @@ namespace lde::RHI
 		uint32		Count;
 		usize		Size;
 		uint32		Stride;
+		// Use only when allocating Descriptor for Buffer
+		bool		bBindless = false;
 	};
 
 	class Buffer

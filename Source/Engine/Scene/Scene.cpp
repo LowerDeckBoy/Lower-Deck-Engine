@@ -1,9 +1,7 @@
+#include "Components/Components.hpp"
+#include "Managers/AssetManager.hpp"
 #include "RHI/D3D12/D3D12Context.hpp"
 #include "Scene.hpp"
-#include <Core/Logger.hpp>
-#include "Managers/AssetManager.hpp"
-#include "Components/Components.hpp"
-
 
 namespace lde
 {
@@ -50,25 +48,26 @@ namespace lde
 	{
 		m_Gfx->GraphicsCommandList->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		
-		for (uint32 i = 0; i < pModel.ModelMesh->SubMeshes.size(); i++)
+		struct vertex
 		{
-			auto& mesh = pModel.ModelMesh->SubMeshes.at(i);
+			uint32 index;
+			uint32 offset;
+		} vert{ pModel.VertexBuffer->Descriptor().Index(), 0 };
+
+		for (uint32 i = 0; i < pModel.GetMesh()->Submeshes.size(); i++)
+		{
+			auto& mesh = pModel.GetMesh()->Submeshes.at(i);
 			auto& transform = pModel.GetComponent<TransformComponent>();
-			auto WVP = DirectX::XMMatrixTranspose(mesh.Matrix * transform.WorldMatrix * m_Camera->GetViewProjection());
+			auto WVP = mesh.Matrix * transform.WorldMatrix * m_Camera->GetViewProjection();
 			
-			RHI::cbPerObject update = { WVP, DirectX::XMMatrixTranspose(transform.WorldMatrix) };
+			RHI::cbPerObject update = { XMMatrixTranspose(WVP), DirectX::XMMatrixTranspose(transform.WorldMatrix) };
 			pModel.ConstBuffer->Update(&update);
 			m_Gfx->BindConstantBuffer(pModel.ConstBuffer, 0);
 	
-			struct vertex
-			{
-				uint32 index;
-				uint32 offset;
-			} vert{ pModel.VertexBuffer->Descriptor().Index(), mesh.BaseVertex };
-			m_Gfx->GraphicsCommandList->Get()->SetGraphicsRoot32BitConstants(1, 2, &vert, 0);
-	
+			vert.offset = mesh.BaseVertex;
+			m_Gfx->GraphicsCommandList->PushConstants(1, 2, &vert, 0);
 			// Push Material as constants; 64bytes
-			m_Gfx->GraphicsCommandList->Get()->SetGraphicsRoot32BitConstants(2, 16, &mesh.Mat, 0);
+			m_Gfx->GraphicsCommandList->PushConstants(2, 16, &mesh.Mat, 0);
 	
 			if (pModel.IndexBuffer->GetDesc().Count != 0)
 			{
@@ -77,7 +76,7 @@ namespace lde
 			}
 			else /* Draw non-indexed */
 			{
-
+				m_Gfx->Draw(mesh.VertexCount);
 			}
 		}
 	}

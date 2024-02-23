@@ -1,16 +1,13 @@
-#include "SceneCamera.hpp"
-#include "Components/Components.hpp"
 #include "Components/CameraComponent.hpp"
-#include <Platform/Window.hpp>
+#include "Components/Components.hpp"
 #include "RHI/D3D12/D3D12Utility.hpp"
-
-#include <Core/Logger.hpp>
+#include "SceneCamera.hpp"
+#include <Platform/Window.hpp>
 
 #pragma comment(lib, "dinput8")
 
 namespace lde
 {
-
 	SceneCamera::SceneCamera(World* pWorld, float AspectRatio)
 	{
 		Initialize(pWorld, AspectRatio);

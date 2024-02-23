@@ -1,10 +1,11 @@
+#include <AgilitySDK/d3d12.h>
+#include <AgilitySDK/d3dx12/d3dx12.h>
 #include "D3D12RootSignature.hpp"
 #include "D3D12Device.hpp"
 #include "D3D12Utility.hpp"
 
 namespace lde::RHI
 {
-
 	D3D12RootSignature::D3D12RootSignature(D3D12Device* pDevice,
 		const std::span<CD3DX12_ROOT_PARAMETER1>& Parameters,
 		const std::span<D3D12_STATIC_SAMPLER_DESC>& Samplers,

@@ -1,8 +1,8 @@
 #include "D3D12Buffer.hpp"
 #include "D3D12Context.hpp"
 
-#include <Platform/Window.hpp>
 #include <Core/Logger.hpp>
+#include <Platform/Window.hpp>
 
 namespace lde::RHI
 {
@@ -19,9 +19,12 @@ namespace lde::RHI
 	void D3D12Context::BeginFrame()
 	{
 		OpenList(GraphicsCommandList);
-
+		D3D12Memory::SetFrameIndex(FRAME_INDEX);
+		
 		TransitResource(SwapChain->GetBackbuffer(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		SetViewport();
+
+		GraphicsCommandList->Get()->SetDescriptorHeaps(1, Device->GetSRVHeap()->GetAddressOf());
 	}
 
 	void D3D12Context::RecordCommandLists()
@@ -57,28 +60,17 @@ namespace lde::RHI
 
 		D3D12MA::ALLOCATOR_DESC desc{};
 		desc.pAdapter = Device->GetAdapter();
-		desc.pDevice = Device->GetDevice();
+		desc.pDevice  = Device->GetDevice();
 
 		DX_CALL(D3D12MA::CreateAllocator(&desc, &D3D12Memory::Allocator));
 
 		SwapChain = std::make_unique<D3D12SwapChain>(Device.get(), Device->GetGfxQueue(), lde::Window::Width, lde::Window::Height);
 
 		GraphicsCommandList = new D3D12CommandList(Device.get(), CommandType::eGraphics, "Graphics Command List");
-
-		Heap = new D3D12DescriptorHeap(Device.get(), HeapType::eSRV, 16384, L"CPU Heap");
-		StagingHeap = new D3D12DescriptorHeap(Device.get(), HeapType::eSRV, 16384, L"GPU Heap");
-
-		RenderTargetHeap = new D3D12DescriptorHeap(Device.get(), HeapType::eRTV, 128, L"Render Target Heap");
-		DepthHeap = new D3D12DescriptorHeap(Device.get(), HeapType::eDSV, 64, L"Depth Heap");
-
-		MipMapHeap = new D3D12DescriptorHeap(Device.get(), HeapType::eSRV, 512, L"MipMap Heap");
-
+		
 		SceneViewport = new D3D12Viewport(lde::Window::Width, lde::Window::Height);
 
-		SceneDepth = new D3D12DepthBuffer(Device.get(), DepthHeap, SceneViewport);
-
-		// TODO:
-		//GlobalRootSignature.Create(Adapter, {}, {}, D3D12_ROOT_SIGNATURE_FLAG_NONE | D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED | D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED, L"Global HLSL Root Signature");
+		SceneDepth = new D3D12DepthBuffer(Device.get(), Device->GetDSVHeap(), SceneViewport);
 
 		LOG_INFO("Backend: D3D12 initialized.");
 
@@ -87,11 +79,9 @@ namespace lde::RHI
 	void D3D12Context::Release()
 	{
 		delete SceneDepth;
-		delete Heap;
-		delete StagingHeap;
-		delete RenderTargetHeap;
-		delete DepthHeap;
-		delete MipMapHeap;
+		//delete RenderTargetHeap;
+		//delete DepthHeap;
+		//delete MipMapHeap;
 		delete GraphicsCommandList;
 		SwapChain.reset();;
 		SAFE_RELEASE(D3D12Memory::Allocator);
@@ -132,16 +122,16 @@ namespace lde::RHI
 	void D3D12Context::ExecuteCommandList(D3D12CommandList* pCommandList, D3D12Queue* pCommandQueue, bool bResetAllocators)
 	{
 		DX_CALL(pCommandList->Get()->Close());
-
+	
 		std::array<ID3D12CommandList*, 1> commandLists{ pCommandList->Get() };
-
+	
 		pCommandQueue->Get()->ExecuteCommandLists(static_cast<uint32>(commandLists.size()), commandLists.data());
 		
 		if (bResetAllocators)
 		{
 			pCommandList->ResetList();
 		}
-
+	
 		Device->WaitForGPU();
 	}
 	
@@ -154,7 +144,7 @@ namespace lde::RHI
 		Device->GetFence()->OnResize();
 		SceneViewport->Set(Width, Height);
 		SwapChain->OnResize(Width, Height);
-		SceneDepth->OnResize(DepthHeap, SceneViewport);
+		SceneDepth->OnResize(Device->GetDSVHeap(), SceneViewport);
 
 		ExecuteCommandList(GraphicsCommandList, Device->GetGfxQueue(), false);
 
@@ -254,9 +244,9 @@ namespace lde::RHI
 		::UpdateSubresources(GraphicsCommandList->Get(), ppDst.Get(), ppSrc.Get(), 0, 0, 1, &Subresource);
 	}
 
-	void D3D12Context::BindIndexBuffer(D3D12Buffer* pIndexBuffer) const
+	void D3D12Context::BindIndexBuffer(Buffer* pIndexBuffer) const
 	{
-		auto view = GetIndexView(pIndexBuffer);
+		auto view = GetIndexView((D3D12Buffer*)pIndexBuffer);
 		GraphicsCommandList->Get()->IASetIndexBuffer(&view);
 	}
 
@@ -271,19 +261,24 @@ namespace lde::RHI
 		GraphicsCommandList->Get()->IASetVertexBuffers(StartSlot, static_cast<uint32>(views.size()), views.data());
 	}
 
+	void D3D12Context::Draw(uint32 VertexCount) const
+	{
+		GraphicsCommandList->Draw(VertexCount);
+	}
+
 	void D3D12Context::DrawIndexed(uint32 IndexCount, uint32 BaseIndex, uint32 BaseVertex) const
 	{
-		GraphicsCommandList->Get()->DrawIndexedInstanced(IndexCount, 1, BaseIndex, BaseVertex, 0);
+		GraphicsCommandList->DrawIndexedInstanced(1, IndexCount, BaseIndex, BaseVertex);
 	}
 
 	void D3D12Context::DrawIndexedInstanced(uint32 InstanceCount, uint32 IndexCount, uint32 BaseIndex, uint32 BaseVertex) const
 	{
-		GraphicsCommandList->Get()->DrawIndexedInstanced(IndexCount, InstanceCount, BaseIndex, BaseVertex, 0);
+		GraphicsCommandList->DrawIndexedInstanced(IndexCount, InstanceCount, BaseIndex, BaseVertex);
 	}
 
 	void D3D12Context::BindConstantBuffer(D3D12ConstantBuffer* pConstBuffer, uint32 Slot)
 	{
-		GraphicsCommandList->Get()->SetGraphicsRootConstantBufferView(Slot, pConstBuffer->GetBuffer()->GetGPUVirtualAddress());
+		GraphicsCommandList->BindConstantBuffer(Slot, ((D3D12ConstantBuffer*)pConstBuffer));
 	}
 
 }

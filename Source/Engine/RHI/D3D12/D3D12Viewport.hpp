@@ -5,8 +5,6 @@
 
 */
 
-#include <Core/CoreTypes.hpp>
-
 
 namespace lde::RHI
 {

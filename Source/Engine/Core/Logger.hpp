@@ -4,8 +4,8 @@
 
 */
 
-#include <vector>
 #include "String.hpp"
+#include <vector>
 
 namespace lde
 {

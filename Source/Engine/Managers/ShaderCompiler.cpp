@@ -1,12 +1,12 @@
+#include <AgilitySDK/d3d12.h>
 #include "ShaderCompiler.hpp"
-#include "RHI/D3D12/D3D12Utility.hpp"
-#include <Core/String.hpp>
-#include "Utility/FileSystem.hpp"
-#include <vector>
 #include <Core/Logger.hpp>
+#include <Core/String.hpp>
+#include <RHI/D3D12/D3D12Utility.hpp>
+#include <Utility/FileSystem.hpp>
+#include <vector>
 
 #pragma comment(lib, "dxcompiler")
-
 
 namespace lde
 {

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <AgilitySDK/d3d12.h>
-#include <Core/CoreMinimal.hpp>
+#include <Core/RefPtr.hpp>
 
 namespace lde::RHI
 {
@@ -31,9 +30,9 @@ namespace lde::RHI
 		void Release();
 
 	private:
-		D3D12Device* m_Device{ nullptr };
+		D3D12Device* m_Device = nullptr;
 		Ref<ID3D12Resource> m_Resource;
-		DXGI_FORMAT m_Format{ DXGI_FORMAT_D32_FLOAT };
+		DXGI_FORMAT m_Format = DXGI_FORMAT_D32_FLOAT;
 
 		D3D12Descriptor m_DSV;
 		D3D12Descriptor m_SRV;

@@ -1,10 +1,8 @@
 #include "D3D12DescriptorHeap.hpp"
-#include "D3D12SwapChain.hpp"
 #include "D3D12Device.hpp"
 #include "D3D12Queue.hpp"
+#include "D3D12SwapChain.hpp"
 #include "D3D12Utility.hpp"
-#include <AgilitySDK/d3dx12/d3dx12.h>
-
 #include <Platform/Window.hpp>
 
 namespace lde::RHI
@@ -68,8 +66,7 @@ namespace lde::RHI
 	void D3D12SwapChain::CreateBackbuffers()
 	{
 		m_Heap->Reset();
-
-		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_Heap->CpuStartHandle());
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_Heap->CpuStartHandle());
 
 		for (uint32 i = 0; i < FRAME_COUNT; i++)
 		{
@@ -80,7 +77,7 @@ namespace lde::RHI
 			std::wstring debugName{ L"Backbuffer #" + std::to_wstring(i) };
 			m_Backbuffers.at(i).Get()->SetName(debugName.c_str());
 
-			rtvHandle.Offset(1, m_Heap->GetDescriptorSize());
+			rtvHandle.ptr += m_Heap->GetDescriptorSize();
 		}
 
 	}

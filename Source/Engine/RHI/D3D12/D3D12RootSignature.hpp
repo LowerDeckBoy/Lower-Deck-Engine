@@ -4,11 +4,9 @@
 
 */
 
-#include <AgilitySDK/d3d12.h>
-#include <AgilitySDK/d3dx12/d3dx12.h>
+
 #include <Core/CoreMinimal.hpp>
 #include <RHI/Types.hpp>
-
 #include <span>
 
 namespace lde::RHI

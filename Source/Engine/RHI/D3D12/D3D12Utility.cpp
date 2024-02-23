@@ -1,5 +1,11 @@
 #include "D3D12Utility.hpp"
 
+#if defined _DEBUG
+#	include <Windows.h>
+#	include <debugapi.h>
+#	include <comdef.h>
+#endif
+
 namespace lde::RHI
 {
 	void VerifyResult(HRESULT hResult, const char* File, int Line, std::string_view Message)
@@ -32,12 +38,20 @@ namespace lde::RHI
 
 	void D3D12Utility::CreateUAV(ID3D12Device8* pDevice, ID3D12Resource** ppTargetResource, size_t BufferSize, D3D12_RESOURCE_STATES InitialState)
 	{
-		const auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-		const auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+		const D3D12_HEAP_PROPERTIES uploadHeapProperties = HeapDefault;
+		D3D12_RESOURCE_DESC desc{};
+		desc.Width = static_cast<uint64_t>(BufferSize);
+		desc.Height = 1;
+		desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+		desc.DepthOrArraySize = 1;
+		desc.MipLevels = 1;
+		desc.SampleDesc = { 1, 0 };
+
 		DX_CALL(pDevice->CreateCommittedResource(
 			&uploadHeapProperties,
 			D3D12_HEAP_FLAG_NONE,
-			&bufferDesc,
+			&desc,
 			InitialState,
 			nullptr,
 			IID_PPV_ARGS(ppTargetResource)));

@@ -5,14 +5,12 @@
 
 */
 
-#include <RHI/SwapChain.hpp>
 #include <AgilitySDK/d3d12.h>
+#include <RHI/SwapChain.hpp>
 #include <dxgi1_6.h>
-#include "D3D12Viewport.hpp"
-
+//#include "D3D12Viewport.hpp"
 #include <Core/CoreMinimal.hpp>
 #include <RHI/RHICommon.hpp>
-
 #include <wrl/client.h>
 
 namespace lde::RHI

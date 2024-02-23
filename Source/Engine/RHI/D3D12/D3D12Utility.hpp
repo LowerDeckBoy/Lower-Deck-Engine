@@ -1,16 +1,8 @@
 #pragma once
 
-#include <stdexcept>
-#include <string>
-#include <cassert>
 #include <AgilitySDK/d3d12.h>
-#include <AgilitySDK/d3dx12/d3dx12_core.h>
-
-#if defined _DEBUG
-#	include <Windows.h>
-#	include <debugapi.h>
-#	include <comdef.h>
-#endif
+#include <cassert>
+#include <stdexcept>
 
 #include <Core/RefPtr.hpp>
 #include <Core/String.hpp>
@@ -38,9 +30,8 @@ namespace lde::RHI
 	class D3D12Utility
 	{
 	public:
-		inline static CD3DX12_HEAP_PROPERTIES HeapDefault	= CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-		inline static CD3DX12_HEAP_PROPERTIES HeapUpload	= CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-		//inline static CD3DX12_HEAP_PROPERTIES HeapGpuUpload	= CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_GPU_UPLOAD);
+		inline static D3D12_HEAP_PROPERTIES HeapDefault	= D3D12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		inline static D3D12_HEAP_PROPERTIES HeapUpload	= D3D12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 
 		static Ref<ID3D12Resource> CreateUAVBuffer(ID3D12Device8* pDevice, uint64_t Size, D3D12_RESOURCE_FLAGS Flags, D3D12_RESOURCE_STATES InitState, D3D12_HEAP_PROPERTIES& HeapProps, D3D12_HEAP_FLAGS HeapFlags);
 		static void CreateUAVBuffer(ID3D12Device8* pDevice, Ref<ID3D12Resource>& Target, uint64_t Size, D3D12_RESOURCE_FLAGS Flags, D3D12_RESOURCE_STATES InitState, D3D12_HEAP_PROPERTIES& HeapProps, D3D12_HEAP_FLAGS HeapFlags);

@@ -38,7 +38,7 @@ namespace lde
 	
 		const XMMATRIX GetView() const noexcept { return XMLoadFloat4x4(&m_View); }
 		const XMMATRIX GetProjection() const noexcept { return XMLoadFloat4x4(&m_Projection); }
-		const XMMATRIX GetViewProjection() noexcept { return XMMatrixMultiply(XMLoadFloat4x4(&m_View), XMLoadFloat4x4(&m_Projection)); }
+		const XMMATRIX GetViewProjection() const noexcept { return XMMatrixMultiply(XMLoadFloat4x4(&m_View), XMLoadFloat4x4(&m_Projection)); }
 	
 		const XMFLOAT4X4 GetViewFloats() const noexcept { return m_View; }
 		const XMFLOAT4X4 GetProjectionFloats() const noexcept { return m_Projection; }

@@ -5,15 +5,15 @@
 
 */
 
-#include <AgilitySDK/d3d12.h>
+//#include <AgilitySDK/d3d12.h>
 #include <Core/CoreMinimal.hpp>
-
 #include "D3D12Descriptor.hpp"
 
 namespace lde::RHI
 {
 	enum class HeapType
 	{
+		// SRV, CBV, UAV
 		eSRV,
 		eRTV,
 		eDSV,

@@ -1,4 +1,5 @@
 #include <AgilitySDK/d3d12.h>
+#include <Core/CoreTypes.hpp>
 #include "D3D12Viewport.hpp"
 
 namespace lde::RHI

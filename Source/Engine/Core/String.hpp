@@ -28,4 +28,4 @@ namespace lde::String
 		wcstombs_s(&numCharsRead, c_string, len, Text, _TRUNCATE);
 		return c_string;
 	}
-}
+} // namespace lde::String

@@ -1,10 +1,9 @@
 #include "D3D12Device.hpp"
+#include "D3D12DepthBuffer.hpp"
 #include "D3D12Descriptor.hpp"
 #include "D3D12DescriptorHeap.hpp"
-#include "D3D12Viewport.hpp"
-#include "D3D12DepthBuffer.hpp"
 #include "D3D12Utility.hpp"
-#include <AgilitySDK/d3dx12/d3dx12.h>
+#include "D3D12Viewport.hpp"
 
 namespace lde::RHI
 {
@@ -27,7 +26,7 @@ namespace lde::RHI
 		clearValue.DepthStencil.Depth = D3D12_MAX_DEPTH;
 		clearValue.DepthStencil.Stencil = 0;
 
-		const auto heapProperties{ CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT) };
+		D3D12_HEAP_PROPERTIES heapProperties = D3D12Utility::HeapDefault;// CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
 		D3D12_RESOURCE_DESC desc{};
 		desc.Format = m_Format;
@@ -93,16 +92,22 @@ namespace lde::RHI
 		clearValue.DepthStencil.Depth = D3D12_MAX_DEPTH;
 		clearValue.DepthStencil.Stencil = 0;
 
-		const auto heapProperties{ CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT) };
-		const auto heapDesc{ CD3DX12_RESOURCE_DESC::Tex2D(m_Format,
-													static_cast<uint64_t>(pViewport->GetViewport().Width),
-													static_cast<uint32_t>(pViewport->GetViewport().Height),
-													1, 0, 1, 0,
-													D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) };
+		D3D12_HEAP_PROPERTIES heapProperties{};
+		heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+		D3D12_RESOURCE_DESC desc{};
+		desc.Dimension			= D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		desc.Format				= m_Format;
+		desc.Width				= static_cast<uint64_t>(pViewport->GetViewport().Width);
+		desc.Height				= static_cast<uint32_t>(pViewport->GetViewport().Height);
+		desc.MipLevels			= 1;
+		desc.DepthOrArraySize	= 1;
+		desc.Flags				= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+		desc.SampleDesc			= { 1, 0 };
 
 		DX_CALL(m_Device->GetDevice()->CreateCommittedResource(&heapProperties,
 			D3D12_HEAP_FLAG_NONE,
-			&heapDesc,
+			&desc,
 			D3D12_RESOURCE_STATE_DEPTH_WRITE,
 			&clearValue,
 			IID_PPV_ARGS(&m_Resource)

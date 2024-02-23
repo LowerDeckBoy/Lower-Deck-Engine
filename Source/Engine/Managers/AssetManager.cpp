@@ -1,19 +1,20 @@
 #include "RHI/D3D12/D3D12Context.hpp"
-#include "Scene/Model/Model.hpp"
-
 #include "AssetManager.hpp"
+#include "Scene/Model/Model.hpp"
 #include "TextureManager.hpp"
 
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
 #include <assimp/GltfMaterial.h>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 
-#include "Utility/FileSystem.hpp"
-#include "Utility/Utility.hpp"
-#include "Core/Logger.hpp"
+#include <Core/Logger.hpp>
+#include <Utility/FileSystem.hpp>
+#include <Utility/Utility.hpp>
 
 namespace lde
 {
+	using namespace DirectX;
 	AssetManager* AssetManager::m_Instance = nullptr;
 
 	AssetManager::AssetManager()
@@ -37,34 +38,32 @@ namespace lde
 		return *m_Instance;
 	}
 
-	void AssetManager::Import(
-			RHI::D3D12Context* pGfx, std::string_view Filepath,
-			World* pWorld, Mesh* pInMesh, 
-			std::vector<Vertex>& OutVertices, 
-			std::vector<uint32>& OutIndices)
+	void AssetManager::Import(RHI::D3D12Context* pGfx, std::string_view Filepath, Mesh& pInMesh)
 	{
 		m_Gfx = pGfx;
 		Utility::LoadTimer timer;
 		timer.Start();
 	
-		constexpr auto LoadFlags = aiProcess_Triangulate |
+		constexpr auto LoadFlags = 
+			aiProcess_Triangulate |
 			aiProcess_ConvertToLeftHanded |
 			aiProcess_JoinIdenticalVertices |
 			aiProcess_PreTransformVertices;
 	
-		const aiScene* scene = m_Importer.ReadFile(Filepath.data(), LoadFlags);
+		Assimp::Importer importer;
+		const aiScene* scene = importer.ReadFile(Filepath.data(), LoadFlags);
 	
 		if (!scene || !scene->mRootNode || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE)
 		{
-			::MessageBoxA(nullptr, m_Importer.GetErrorString(), "Importer Error", MB_OK);
-			throw std::runtime_error(m_Importer.GetErrorString());
+			::MessageBoxA(nullptr, importer.GetErrorString(), "Importer Error", MB_OK);
+			throw std::runtime_error(importer.GetErrorString());
 		}
 	
 		m_Filepath = Filepath.data();
 	
-		ProcessNode(scene, pInMesh, scene->mRootNode, nullptr, XMMatrixIdentity());
-		OutVertices = m_Vertices;
-		OutIndices = m_Indices;
+		ProcessNode(scene, &pInMesh, scene->mRootNode, nullptr, XMMatrixIdentity());
+		pInMesh.Vertices = m_Vertices;
+		pInMesh.Indices = m_Indices;
 		timer.End(Files::GetFileName(Filepath));
 	
 	}
@@ -124,7 +123,7 @@ namespace lde
 		{
 			for (uint32_t i = 0; i < pNode->mNumMeshes; i++)
 			{
-				pInMesh->SubMeshes.emplace_back(ProcessMesh(pScene, pScene->mMeshes[pNode->mMeshes[i]], next));
+				pInMesh->Submeshes.emplace_back(ProcessMesh(pScene, pScene->mMeshes[pNode->mMeshes[i]], next));
 			}
 		}
 	}

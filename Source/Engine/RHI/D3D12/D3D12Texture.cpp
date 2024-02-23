@@ -56,7 +56,8 @@ namespace lde::RHI
 		rtv.Texture2D.MipSlice = 0;
 		rtv.Texture2D.PlaneSlice = 0;
 
-		RTV = pGfx->RenderTargetHeap->Allocate();
+		//RTV = pGfx->RenderTargetHeap->Allocate();
+		pGfx->Device->GetRTVHeap()->Allocate(RTV);
 		pGfx->Device->GetDevice()->CreateRenderTargetView(Resource.Get(), &rtv, RTV.GetCpuHandle());
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srv{};
@@ -66,7 +67,8 @@ namespace lde::RHI
 		srv.Texture2D.MostDetailedMip = 0;
 		srv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-		SRV = pGfx->Heap->Allocate();
+		//SRV = pGfx->Heap->Allocate();
+		((D3D12Device*)pGfx->GetDevice())->Allocate(HeapType::eSRV, SRV, 1); // SRV = 
 		//SRV = pGfx->StagingHeap->Allocate();
 		pGfx->Device->GetDevice()->CreateShaderResourceView(Resource.Get(), &srv, SRV.GetCpuHandle());
 
@@ -111,7 +113,8 @@ namespace lde::RHI
 		rtv.Texture2D.MipSlice = 0;
 		rtv.Texture2D.PlaneSlice = 0;
 
-		RTV = m_Gfx->RenderTargetHeap->Allocate();
+		//RTV = m_Gfx->RenderTargetHeap->Allocate();
+		m_Gfx->Device->GetRTVHeap()->Allocate(RTV);
 		m_Gfx->Device->GetDevice()->CreateRenderTargetView(Resource.Get(), &rtv, RTV.GetCpuHandle());
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srv{};
@@ -121,8 +124,7 @@ namespace lde::RHI
 		srv.Texture2D.MostDetailedMip = 0;
 		srv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-		SRV = m_Gfx->Heap->Allocate();
-		//SRV = m_Gfx->StagingHeap->Allocate();
+		((D3D12Device*)m_Gfx->GetDevice())->Allocate(HeapType::eSRV, SRV, 1);
 		m_Gfx->Device->GetDevice()->CreateShaderResourceView(Resource.Get(), &srv, SRV.GetCpuHandle());
 	}
 }

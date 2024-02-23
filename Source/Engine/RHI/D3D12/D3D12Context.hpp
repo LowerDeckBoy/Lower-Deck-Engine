@@ -6,28 +6,28 @@
 */
 
 #include <RHI/RHI.hpp>
+#include <RHI/RHICommon.hpp>
+#include <RHI/Types.hpp>
 
-#include "D3D12Utility.hpp"
-#include "D3D12Device.hpp"
-#include "D3D12Memory.hpp"
-#include "D3D12SwapChain.hpp"
-#include "D3D12Queue.hpp"
-#include "D3D12CommandList.hpp"
-#include "D3D12Fence.hpp"
 #include "D3D12DescriptorHeap.hpp"
+#include "D3D12CommandList.hpp"
 #include "D3D12DepthBuffer.hpp"
-#include "D3D12RootSignature.hpp"
+#include "D3D12Device.hpp"
+#include "D3D12Fence.hpp"
+#include "D3D12Memory.hpp"
 #include "D3D12PipelineState.hpp"
+#include "D3D12Queue.hpp"
+#include "D3D12RootSignature.hpp"
+#include "D3D12Viewport.hpp"
+#include "D3D12SwapChain.hpp"
+#include "D3D12Utility.hpp"
 
-#include "RHI/RHICommon.hpp"
-#include "RHI/Types.hpp"
 
 namespace lde::RHI
 {
-	class Window;
 	class D3D12Buffer;
 	class D3D12IndexBuffer;
-	class D3D12ConstantBuffer; //template<typename T> 
+	class D3D12ConstantBuffer;
 
 	class D3D12Context : public RHI
 	{
@@ -52,8 +52,10 @@ namespace lde::RHI
 		 * @brief 
 		 * @return RHI specific SwapChain
 		 */
-		SwapChain* GetSwapChain() override { return this->SwapChain.get(); }
+		SwapChain* GetSwapChain() override { return ((D3D12SwapChain*)SwapChain.get()); }
 
+		//CommandList* GetGfxCommandList() override { return (D3D12CommandList*)Device->GetGfxCommandList()->Get(); }
+		
 		void Initialize();
 		void Release();
 
@@ -63,17 +65,6 @@ namespace lde::RHI
 		std::unique_ptr<D3D12SwapChain> SwapChain;
 
 		D3D12CommandList* GraphicsCommandList = nullptr;
-
-		/// @brief CPU visible
-		D3D12DescriptorHeap* Heap = nullptr;
-		/// @brief GPU visible
-		D3D12DescriptorHeap* StagingHeap = nullptr;
-		/// @brief For allocating Render Targets, GBuffers etc.
-		D3D12DescriptorHeap* RenderTargetHeap = nullptr;
-		/// @brief For allocating Depth Views
-		D3D12DescriptorHeap* DepthHeap = nullptr;
-		/// @brief Used only to create MipMap UAVs; avoids polluting main SRV heap.
-		D3D12DescriptorHeap* MipMapHeap = nullptr;
 
 		/// @brief Scene viewport
 		D3D12Viewport* SceneViewport = nullptr;
@@ -92,10 +83,7 @@ namespace lde::RHI
 		//void CloseList(D3D12CommandList* pCommandList);
 
 		void ExecuteCommandList(D3D12CommandList* pCommandList, D3D12Queue* pCommandQueue, bool bResetAllocators = false);
-
-		//void ExecuteUploadList(bool bResetAllocators = false);
-		//void ExecuteGraphicsList(D3D12CommandList* pCommandList, D3D12Queue* pCommandQueue, bool bResetAllocators = false);
-
+		
 		// Set current Swapchain backbuffer
 		void SetRenderTarget();
 		void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE RtvCpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE DepthCpuHandle);
@@ -117,11 +105,12 @@ namespace lde::RHI
 		void UploadResource(ID3D12Resource** ppDst, ID3D12Resource** ppSrc, D3D12_SUBRESOURCE_DATA& Subresource);
 		void UploadResource(Ref<ID3D12Resource> ppDst, Ref<ID3D12Resource> ppSrc, D3D12_SUBRESOURCE_DATA& Subresource);
 
-		void BindIndexBuffer(D3D12Buffer* pIndexBuffer) const;
+		void BindIndexBuffer(Buffer* pIndexBuffer) const;
 		/* For non-bindless only */
 		void BindVertexBuffers(std::span<D3D12Buffer*> pIndexBuffers, uint32 StartSlot) const;
 		void BindConstantBuffer(D3D12ConstantBuffer* pConstBuffer, uint32 Slot);
 
+		void Draw(uint32 VertexCount) const;
 		void DrawIndexed(uint32 IndexCount, uint32 BaseIndex, uint32 BaseVertex) const;
 		void DrawIndexedInstanced(uint32 InstanceCount, uint32 IndexCount, uint32 BaseIndex, uint32 BaseVertex) const;
 

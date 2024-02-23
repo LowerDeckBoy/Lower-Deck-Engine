@@ -7,11 +7,8 @@
 
 #include <Core/CoreTypes.hpp>
 #include <Core/String.hpp>
-
-#include <assimp/Importer.hpp>
-#include <DirectXMath.h>
-
 #include <vector>
+//#include <DirectXMath.h>
 
 struct aiScene;
 struct aiNode;
@@ -19,6 +16,7 @@ struct aiMesh;
 
 namespace lde
 {
+	using namespace DirectX;
 	namespace RHI { class D3D12Context; }
 
 	struct Vertex;
@@ -42,7 +40,7 @@ namespace lde
 		{
 			m_Gfx = pGfx;
 		}
-		void Import(RHI::D3D12Context* pGfx, std::string_view Filepath, World* pWorld, Mesh* pInMesh, std::vector<Vertex>& OutVertices,		std::vector<uint32>&OutIndices);
+		void Import(RHI::D3D12Context* pGfx, std::string_view Filepath, Mesh& pInMesh);
 	
 	private:
 		//void ImportGLTF(std::string_view Filepath, Model& Target);
@@ -54,9 +52,7 @@ namespace lde
 		void ProcessIndices(SubMesh& Submesh, const aiMesh* pMesh);
 	
 		void ProcessMaterials(const aiScene* pScene, SubMesh& Submesh, const aiMesh* pMesh);
-	
-		Assimp::Importer m_Importer;
-	
+		
 		std::vector<Vertex> m_Vertices{};
 		std::vector<uint32> m_Indices{};
 		

@@ -4,7 +4,7 @@
 	
 */
 
-#include "EnTT/entt.hpp"
+#include <EnTT/entt.hpp>
 
 namespace lde
 {

@@ -17,10 +17,11 @@ namespace lde
 		Singleton operator=(const Singleton&) = delete;
 		Singleton operator=(const Singleton&&) = delete;
 
+		static Singleton* Instance;
 	public:
 		static T& GetInstance()
 		{
-			static T* instance = nullptr;
+			static T* instance; // = nullptr
 			if (!instance)
 			{
 				instance = new T();

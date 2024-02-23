@@ -1,15 +1,8 @@
 #include "RHI/D3D12/D3D12Context.hpp"
-#include "RHI/D3D12/D3D12PipelineState.hpp"
-#include "RHI/D3D12/D3D12RootSignature.hpp"
 #include "TextureManager.hpp"
-#include "Core/String.hpp"
-
-#include <DirectXMath.h>
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
-
-#include "Utility/FileSystem.hpp"
+#include <Utility/FileSystem.hpp>
 #include <Core/Logger.hpp>
 
 namespace lde
@@ -298,7 +291,7 @@ namespace lde
 		pGfx->SetRootSignature(&m_RootSignature);
 
 		mipGenCB.IsSRGB = srcResourceDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB ? 1 : 0;
-
+		auto heap = ((RHI::D3D12Device*)pGfx->GetDevice())->GetMipMapHeap();
 		for (uint32 srcMip = 0; srcMip < (uint32)(pTexture->MipLevels - 1); ++srcMip)
 		{
 			uint64 srcWidth = srcResourceDesc.Width >> srcMip;
@@ -342,11 +335,14 @@ namespace lde
 					uavResource.Get(), nullptr, &uavDesc, 
 					{ pTexture->UAV.GetCpuHandle().ptr + ((srcMip + mip) * pGfx->Device->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)) });
 			}
+			
+			pGfx->GraphicsCommandList->Get()->SetDescriptorHeaps(1, heap->GetAddressOf());
+			//pGfx->GraphicsCommandList->Get()->SetDescriptorHeaps(1, pGfx->MipMapHeap->GetAddressOf());
 
-			pGfx->GraphicsCommandList->Get()->SetDescriptorHeaps(1, pGfx->MipMapHeap->GetAddressOf());
-
-			mipGenCB.SrcMipIndex  = pGfx->MipMapHeap->GetIndexFromOffset(pTexture->SRV, 0);
-			mipGenCB.DestMipIndex = pGfx->MipMapHeap->GetIndexFromOffset(pTexture->UAV, srcMip);
+			//mipGenCB.SrcMipIndex  = pGfx->MipMapHeap->GetIndexFromOffset(pTexture->SRV, 0);
+			//mipGenCB.DestMipIndex = pGfx->MipMapHeap->GetIndexFromOffset(pTexture->UAV, srcMip);
+			mipGenCB.SrcMipIndex  = heap->GetIndexFromOffset(pTexture->SRV, 0);
+			mipGenCB.DestMipIndex = heap->GetIndexFromOffset(pTexture->UAV, srcMip);
 
 			pGfx->GraphicsCommandList->Get()->SetComputeRoot32BitConstants(0, 8, &mipGenCB, 0);
 
@@ -359,7 +355,8 @@ namespace lde
 		pGfx->ExecuteCommandList(pGfx->GraphicsCommandList, pGfx->Device->GetGfxQueue(), true);
 		// Reset UAV; they are not necessary after mip creation for now
 		pTexture->UAV = {};
-		pGfx->MipMapHeap->Reset();
+		//pGfx->MipMapHeap->Reset();
+		heap->Reset();
 		
 	}
 

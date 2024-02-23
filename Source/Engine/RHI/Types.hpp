@@ -84,7 +84,11 @@ namespace lde::RHI
 		eRenderTarget,
 		ePresent,
 		eCopySrc,
-		eCopyDst
+		eCopyDst,
+		eVertexOrConstantBuffer,
+		eIndexBuffer,
+		eAllShaderResource,
+		ePixelShaderResource,
 	};
 
 	std::wstring ShaderEnumToType(ShaderStage eStage);

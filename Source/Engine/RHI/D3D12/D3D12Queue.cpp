@@ -1,7 +1,7 @@
-#include "D3D12Queue.hpp"
 #include "D3D12Device.hpp"
-#include "RHI/Types.hpp"
+#include "D3D12Queue.hpp"
 #include "D3D12Utility.hpp"
+#include "RHI/Types.hpp"
 
 namespace lde::RHI
 {

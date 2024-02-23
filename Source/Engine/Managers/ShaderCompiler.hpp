@@ -5,17 +5,13 @@
 	Singleton used for compiling and validating HLSL SM6.x shaders.
 */
 
-#include <AgilitySDK/d3d12shader.h>
-#include <AgilitySDK/d3dx12/d3dx12.h>
-#include <dxcapi.h>
-
-#include <Core/CoreMinimal.hpp>
+#include <Core/RefPtr.hpp>
 #include <RHI/Types.hpp>
-#include <string>
+#include <dxcapi.h>
 
 namespace lde
 {
-	using Microsoft::WRL::ComPtr;
+	//using Microsoft::WRL::ComPtr;
 	
 	class Shader
 	{
@@ -33,7 +29,7 @@ namespace lde
 		
 		inline void* Data() const { return BinaryData->GetBufferPointer(); }
 		inline usize Size() const { return BinaryData->GetBufferSize(); }
-		inline CD3DX12_SHADER_BYTECODE Bytecode() { return CD3DX12_SHADER_BYTECODE(BinaryData->GetBufferPointer(), BinaryData->GetBufferSize()); }
+		inline D3D12_SHADER_BYTECODE Bytecode() { return D3D12_SHADER_BYTECODE{ BinaryData->GetBufferPointer(), BinaryData->GetBufferSize() }; }
 
 		IDxcBlob* BinaryData = nullptr;
 		RHI::ShaderStage Stage{};

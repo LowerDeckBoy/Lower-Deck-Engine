@@ -26,6 +26,9 @@ namespace lde::RHI
 		virtual Device* GetDevice() = 0;
 		// Return RHI specific SwapChain
 		virtual SwapChain* GetSwapChain() = 0;
+		
+
+		//virtual CommandList* GetGfxCommandList() = 0;
 
 	};
 } // namespace lde::RHI

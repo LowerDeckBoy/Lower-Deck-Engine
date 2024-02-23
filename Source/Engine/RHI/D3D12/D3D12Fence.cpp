@@ -1,3 +1,4 @@
+#include <AgilitySDK/d3d12.h>
 #include "D3D12Fence.hpp"
 #include "D3D12Device.hpp"
 #include "D3D12Queue.hpp"

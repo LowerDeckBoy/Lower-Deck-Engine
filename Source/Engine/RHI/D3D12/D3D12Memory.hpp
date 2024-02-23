@@ -5,14 +5,14 @@
 
 */
 
-#include <Core/CoreMinimal.hpp>
 #include <AgilitySDK/d3d12.h>
-#include <AgilitySDK/d3dx12/d3dx12.h>
+#include <Core/CoreMinimal.hpp>
 #include <D3D12MA/D3D12MemAlloc.h>
 
 namespace lde::RHI
 {
 	class D3D12Device;
+	class D3D12CommandList;
 
 	//https://learn.microsoft.com/en-us/windows/win32/direct3d12/fence-based-resource-management
 
@@ -25,7 +25,7 @@ namespace lde::RHI
 
 	struct AllocatedResource
 	{
-		Ref<ID3D12Resource>		Resource;
+		Ref<ID3D12Resource>			Resource;
 		Ref<D3D12MA::Allocation>	Allocation;
 	};
 
@@ -34,34 +34,48 @@ namespace lde::RHI
 	public:
 		D3D12Memory(D3D12Device* pDevice); /* Creates Allocator */
 		~D3D12Memory();	/* Releases Allocator */
-
-		static void Allocate(AllocatedResource& ToAllocate, 
-			const CD3DX12_RESOURCE_DESC& HeapDesc,
-			AllocType eType,
-			D3D12MA::ALLOCATION_FLAGS AllocationFlags = D3D12MA::ALLOCATION_FLAG_STRATEGY_MIN_MEMORY);
-
-		static void Allocate(ID3D12Resource* pResource,
-			D3D12MA::Allocation* pAllocation,
-			const CD3DX12_RESOURCE_DESC& HeapDesc,
+		
+		static void Allocate(AllocatedResource& ToAllocate,
+			const D3D12_RESOURCE_DESC& ResourceDesc,
 			AllocType eType,
 			D3D12MA::ALLOCATION_FLAGS AllocationFlags = D3D12MA::ALLOCATION_FLAG_STRATEGY_MIN_MEMORY);
 
 		static void Allocate(ID3D12Resource** ppResource,
 			D3D12MA::Allocation** ppAllocation,
-			const CD3DX12_RESOURCE_DESC& HeapDesc,
+			const D3D12_RESOURCE_DESC& HeapDesc,
 			AllocType eType,
 			D3D12MA::ALLOCATION_FLAGS AllocationFlags = D3D12MA::ALLOCATION_FLAG_STRATEGY_MIN_MEMORY);
-	
-		static uint8* Map(Ref<ID3D12Resource>& Resource);
-		void Unmap();
 
-		static void CreateReservedResource();
+		static void SetFrameIndex(uint32 FrameIndex);
 
 		static Ref<D3D12MA::Allocator> Allocator;
 
 	private:
 		Ref<ID3D12Heap1> m_AllocHeap;
 		Ref<ID3D12Heap1> m_Heap;
+	};
+
+	class D3D12UploadHeap
+	{
+	public:
+		D3D12UploadHeap(D3D12Device* pDevice);
+
+		ID3D12Resource* GetHeap() { return m_UploadHeap.Get(); }
+
+		void Suballocate();
+
+		void AddBufferCopy(const void* pData, int32 Size, ID3D12Resource* pBufferDst, D3D12_RESOURCE_STATES State = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		void AddCopy(D3D12_TEXTURE_COPY_LOCATION Src, D3D12_TEXTURE_COPY_LOCATION Dst);
+
+	private:
+		D3D12Device* m_Device = nullptr; /* Parent Device */
+		Ref<ID3D12Resource> m_UploadHeap;
+		//D3D12CommandList* m_HeapCommandList;
+
+		uint8* m_HeapBegin	= nullptr;
+		uint8* m_HeapEnd	= nullptr;
+		uint8* m_CurrentPtr = nullptr;
+
 	};
 
 	// TODO: 
@@ -72,6 +86,11 @@ namespace lde::RHI
 
 	private:
 		Ref<ID3D12LifetimeTracker> m_Tracker;
+
+	};
+
+	struct DeletationQueue
+	{
 
 	};
 	

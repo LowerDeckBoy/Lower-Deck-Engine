@@ -18,11 +18,11 @@ namespace lde
 
 	void Renderer::Initialize()
 	{
-		m_ShaderManager		= std::make_unique<ShaderManager>();
+		m_ShaderCompiler	= std::make_unique<ShaderCompiler>();
 		m_TextureManager	= std::make_unique<TextureManager>();
 		m_AssetManager		= std::make_unique<AssetManager>();
-		m_MipGenerator		= std::make_unique<MipGenerator>();
-		m_MipGenerator->Initialize(m_Gfx);
+
+		m_TextureManager->Initialize(m_Gfx);
 
 		m_GBufferPass = new GBufferPass(m_Gfx);
 
@@ -32,9 +32,7 @@ namespace lde
 	}
 
 	void Renderer::BeginFrame()
-	{
-		m_Gfx->OpenList(m_Gfx->GraphicsCommandList);
-
+	{	
 		//SetViewport();
 		//TransitToRender();
 	}
@@ -45,7 +43,6 @@ namespace lde
 
 	void Renderer::RecordCommands()
 	{
-		SetHeaps();
 		m_Gfx->SetRootSignature(&m_Gfx->GlobalRootSignature);
 
 		m_GBufferPass->Render(m_ActiveScene);
@@ -83,11 +80,6 @@ namespace lde
 		m_Gfx->Present(bVSync);
 	}
 
-	void Renderer::SetHeaps()
-	{
-		m_Gfx->GraphicsCommandList->Get()->SetDescriptorHeaps(1, m_Gfx->Heap->GetAddressOf());
-	}
-
 	void Renderer::SetScene(Scene* pScene)
 	{
 		m_ActiveScene = pScene;
@@ -108,11 +100,8 @@ namespace lde
 
 		// Release gathered Textures
 		TextureManager::GetInstance().Release();
-		MipGenerator::GetInstance().Release();
-		m_MipGenerator.reset();
-		//m_TextureManager->Release();
 		m_AssetManager.reset();
-		m_ShaderManager.reset();
+		m_ShaderCompiler.reset();
 	}
 
 	void Renderer::BuildRootSignatures()
@@ -170,18 +159,7 @@ namespace lde
 			return m_GBufferPass->GetRenderTargets().at(GBuffers::eEmissive).SRV.GetGpuHandle().ptr;
 		case RenderOutput::eWorldPosition:
 			return m_GBufferPass->GetRenderTargets().at(GBuffers::eWorldPosition).SRV.GetGpuHandle().ptr;
-		//case RenderOutput::eShadows:
-		//	break;
-		//case RenderOutput::eAmbientOcclusion:
-		//	break;
-		//case RenderOutput::eRaytracing:
-		//	break;
-		//case RenderOutput::eScene:
-		//	break;
-		//case RenderOutput::Count:
-		//	break;
-		//default:
-		//	break;
+
 		}
 
 		return m_GBufferPass->GetRenderTargets().at(GBuffers::eBaseColor).SRV.GetGpuHandle().ptr;

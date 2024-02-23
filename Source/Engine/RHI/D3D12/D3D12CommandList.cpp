@@ -55,12 +55,12 @@ namespace lde::RHI
 	 
 	void D3D12CommandList::DrawIndexed(uint32 IndexCount, uint32 BaseIndex, uint32 BaseVertex)
 	{
-		m_CommandList->DrawIndexedInstanced(1, IndexCount, BaseIndex, BaseVertex, 0);
+		m_CommandList->DrawIndexedInstanced(IndexCount, 1, BaseIndex, BaseVertex, 0);
 	}
 
 	void D3D12CommandList::DrawIndexedInstanced(uint32 Instances, uint32 IndexCount, uint32 BaseIndex, uint32 BaseVertex)
 	{
-		m_CommandList->DrawIndexedInstanced(Instances, IndexCount, BaseIndex, BaseVertex, 0);
+		m_CommandList->DrawIndexedInstanced(IndexCount, Instances, BaseIndex, BaseVertex, 0);
 	}
 
 	void D3D12CommandList::Draw(uint32 VertexCount)
@@ -97,11 +97,11 @@ namespace lde::RHI
 	{
 		if (m_Type == CommandType::eGraphics)
 		{
-			m_CommandList->SetGraphicsRoot32BitConstants(Slot, Count, &pData, Offset);
+			m_CommandList->SetGraphicsRoot32BitConstants(Slot, Count, pData, Offset);
 		}
 		else if (m_Type == CommandType::eCompute)
 		{
-			m_CommandList->SetComputeRoot32BitConstants(Slot, Count, &pData, Offset);
+			m_CommandList->SetComputeRoot32BitConstants(Slot, Count, pData, Offset);
 		}
 	}
 
@@ -109,6 +109,7 @@ namespace lde::RHI
 	{
 		D3D12_RESOURCE_BARRIER barrier{};
 		barrier.Type					= D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		barrier.Transition.pResource	= ppResource.Get();
 		barrier.Transition.StateBefore	= StateEnumToType(Before);
 		barrier.Transition.StateAfter	= StateEnumToType(After);
 
@@ -135,7 +136,17 @@ namespace lde::RHI
 			return D3D12_RESOURCE_STATE_COPY_SOURCE;
 		case lde::RHI::ResourceState::eCopyDst:
 			return D3D12_RESOURCE_STATE_COPY_DEST;
+		case lde::RHI::ResourceState::eVertexOrConstantBuffer:
+			return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+		case lde::RHI::ResourceState::eIndexBuffer:
+			return D3D12_RESOURCE_STATE_INDEX_BUFFER;
+		case lde::RHI::ResourceState::eAllShaderResource:
+			return D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+		case lde::RHI::ResourceState::ePixelShaderResource:
+			return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 		}
+
+		return D3D12_RESOURCE_STATE_GENERIC_READ;
 	}
 
 } // namespace lde::RHI

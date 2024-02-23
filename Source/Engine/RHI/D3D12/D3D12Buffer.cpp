@@ -1,7 +1,6 @@
 #include "D3D12Buffer.hpp"
-#include "D3D12Memory.hpp"
 #include "D3D12Context.hpp"
-#include "Core/Logger.hpp"
+#include <Core/Logger.hpp>
 
 namespace lde::RHI
 {
@@ -22,8 +21,8 @@ namespace lde::RHI
 
 	void D3D12Buffer::Create(D3D12Context* pGfx, BufferDesc Desc, bool bSRV)
 	{
-		const auto desc = CD3DX12_RESOURCE_DESC::Buffer(Desc.Size);
-		
+		D3D12_RESOURCE_DESC desc = CreateBufferDesc(Desc);
+
 		D3D12Memory::Allocate(m_Buffer, desc, AllocType::eCopyDst);
 
 		AllocatedResource uploadBuffer;
@@ -32,7 +31,7 @@ namespace lde::RHI
 		D3D12_SUBRESOURCE_DATA subresource{};
 		subresource.pData = Desc.pData;
 		subresource.RowPitch = static_cast<LONG_PTR>(Desc.Size);
-		subresource.SlicePitch = static_cast<LONG_PTR>(Desc.Size);
+		subresource.SlicePitch = subresource.RowPitch;
 
 		pGfx->UploadResource(m_Buffer.Resource, uploadBuffer.Resource, subresource);
 
@@ -51,7 +50,7 @@ namespace lde::RHI
 		}
 		
 		pGfx->ExecuteCommandList(pGfx->GraphicsCommandList, pGfx->Device->GetGfxQueue(), true);
-
+		
 		SAFE_RELEASE(uploadBuffer.Allocation);
 		SAFE_RELEASE(uploadBuffer.Resource);
 
@@ -59,7 +58,8 @@ namespace lde::RHI
 
 		if (bSRV)
 		{
-			pGfx->Heap->Allocate(m_Descriptor);
+			//pGfx->Heap->Allocate(m_Descriptor);
+			((D3D12Device*)pGfx->GetDevice())->GetSRVHeap()->Allocate(m_Descriptor);
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 			srvDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -89,7 +89,7 @@ namespace lde::RHI
 		return uint64();
 	}
 
-	void D3D12Buffer::Map(void* pMappedData)
+	void D3D12Buffer::Map(void* /* pMappedData */)
 	{
 	}
 
@@ -128,6 +128,36 @@ namespace lde::RHI
 			pBuffer->Get()->GetGPUVirtualAddress(),
 			static_cast<uint32>(pBuffer->GetDesc().Size),
 			pBuffer->GetDesc().Stride);
+	}
+
+	D3D12_RESOURCE_DESC CreateBufferDesc(BufferDesc Desc, D3D12_RESOURCE_FLAGS Flag)
+	{
+		D3D12_RESOURCE_DESC desc{};
+		desc.Dimension			= D3D12_RESOURCE_DIMENSION_BUFFER;
+		desc.Format				= DXGI_FORMAT_UNKNOWN;
+		desc.Width				= static_cast<uint64>(Desc.Size);
+		desc.Height				= 1;
+		desc.DepthOrArraySize	= 1;
+		desc.MipLevels			= 1;
+		desc.Alignment			= D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+		desc.Layout				= D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+		desc.SampleDesc			= { 1, 0 };
+		desc.Flags				= Flag;
+
+		return desc;
+	}
+
+	D3D12ConstantBuffer::D3D12ConstantBuffer(void* pData, usize Size)
+	{
+		Create(pData, Size);
+	}
+
+	D3D12ConstantBuffer::~D3D12ConstantBuffer()
+	{
+		for (uint32 i = 0; i < FRAME_COUNT; i++)
+		{
+			SAFE_RELEASE(m_Buffers.at(i));
+		}
 	}
 
 	void D3D12ConstantBuffer::Create(void* pData, usize Size)

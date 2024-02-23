@@ -46,7 +46,8 @@ namespace lde::RHI
 
 		m_Fence = std::make_unique<D3D12Fence>(this);
 		CreateQueues();
-		//CreateHeaps();
+		CreateCommandLists();
+		CreateHeaps();
 
 	}
 
@@ -56,6 +57,12 @@ namespace lde::RHI
 		m_ComputeQueue.reset();
 		m_UploadQueue.reset();
 
+		m_MipMapHeap.reset();
+		m_RTVHeap.reset();
+		m_DSVHeap.reset();
+		m_SRVHeap.reset();
+
+		m_GfxCommandList.reset();
 		m_Fence.reset();
 
 		SAFE_RELEASE(m_Device);
@@ -66,7 +73,7 @@ namespace lde::RHI
 		// Release debug adapters. They have to be relased at the end, otherwise there will be false-positive RLO detected.
 		SAFE_RELEASE(m_DebugDevices.DebugDevice);
 		SAFE_RELEASE(m_DebugDevices.D3DDebug);
-		m_DebugDevices.DXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_SUMMARY);
+		m_DebugDevices.DXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, (DXGI_DEBUG_RLO_FLAGS)(DXGI_DEBUG_RLO_DETAIL | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
 		SAFE_RELEASE(m_DebugDevices.DXGIDebug);
 #endif
 	}
@@ -154,11 +161,19 @@ namespace lde::RHI
 		m_UploadQueue	= std::make_unique<D3D12Queue>(this, CommandType::eUpload,   L"Upload Queue");
 	}
 
+	void D3D12Device::CreateCommandLists()
+	{
+		m_GfxCommandList = std::make_unique<D3D12CommandList>(this, CommandType::eGraphics, "Graphics Command List");
+
+	}
+
 	void D3D12Device::CreateHeaps()
 	{
 		m_SRVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 4096, L"SRV Descriptor Heap");
-		m_SRVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 64,   L"DSV Descriptor Heap");
-		m_RTVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 64,   L"RTV Descriptor Heap");
+		m_DSVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eDSV, 64,   L"DSV Descriptor Heap");
+		m_RTVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eRTV, 64,   L"RTV Descriptor Heap");
+
+		m_MipMapHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 1024,   L"MipMap Descriptor Heap");
 	}
 	
 } // namespace lde::RHI

@@ -1,6 +1,6 @@
 #include "Logger.hpp"
-#include <Core/String.hpp>
 #include <Core/CoreDefines.hpp>
+#include <Core/String.hpp>
 #include <Platform/Platform.hpp>
 
 namespace lde

@@ -4,9 +4,9 @@
 	
 */
 
-#include <chrono>
-#include <Psapi.h>
 #include <Core/Logger.hpp>
+#include <Psapi.h>
+#include <chrono>
 
 namespace lde::Utility
 {

@@ -61,7 +61,7 @@ namespace lde
 	struct Mesh
 	{
 		Mesh() {}
-		std::vector<SubMesh> SubMeshes;
+		std::vector<SubMesh> Submeshes;
 		std::vector<Vertex> Vertices;
 		std::vector<uint32> Indices;
 	};
@@ -74,7 +74,7 @@ namespace lde
 		void ProcessMaterials();
 
 	private:
-		std::vector<SubMesh> SubMeshes;
+		std::vector<SubMesh> Submeshes;
 		std::vector<Material> Materials;
 
 	};

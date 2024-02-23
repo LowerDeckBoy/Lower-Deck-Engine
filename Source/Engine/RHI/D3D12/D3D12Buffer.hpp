@@ -5,18 +5,16 @@
 */
 
 #include <RHI/Buffer.hpp>
-
 #include "D3D12Descriptor.hpp"
 #include "D3D12Memory.hpp"
-#include "D3D12Utility.hpp"
 #include "RHI/RHICommon.hpp"
 #include <Core/CoreMinimal.hpp>
 #include <DirectXMath.h>
 
 namespace lde::RHI
 {
+	class D3D12Device;
 	class D3D12Context;
-	class D3D12Descriptor;
 	
 	// Single class for Vertex, Index and Structured.
 	// Get Index View when binding buffer in order to avoid unnecessary member here
@@ -25,9 +23,11 @@ namespace lde::RHI
 	public:
 		D3D12Buffer() = default;
 		D3D12Buffer(D3D12Context* pGfx, BufferDesc Desc, bool bSRV = false);
+		//D3D12Buffer(D3D12Device* pDevice, BufferDesc Desc, bool bSRV = false);
 		~D3D12Buffer();
 
 		void Create(D3D12Context* pGfx, BufferDesc Desc, bool bSRV = false);
+		//void Create(D3D12Device* pDevice, BufferDesc Desc, bool bSRV = false);
 
 		D3D12Descriptor Descriptor() const;
 
@@ -68,36 +68,34 @@ namespace lde::RHI
 	*/
 	extern D3D12_VERTEX_BUFFER_VIEW GetVertexView(D3D12Buffer* pBuffer);
 
+	/**
+	 * @brief Creates Resource Desc for Buffer
+	 * @param Desc 
+	 * @return D3D12_RESOURCE_DESC built on given BufferDesc
+	 */
+	extern D3D12_RESOURCE_DESC CreateBufferDesc(BufferDesc Desc, D3D12_RESOURCE_FLAGS Flag = D3D12_RESOURCE_FLAG_NONE);
+
 	struct cbPerObject
 	{
 		DirectX::XMMATRIX WVP   = DirectX::XMMatrixIdentity();
 		DirectX::XMMATRIX World = DirectX::XMMatrixIdentity();
 	};
 
-	class D3D12ConstantBuffer
+	class D3D12ConstantBuffer : public ConstantBuffer
 	{
 	public:
 		D3D12ConstantBuffer() = default;
-		D3D12ConstantBuffer(void* pData, usize Size)
-		{
-			Create(pData, Size);
-		}
-		~D3D12ConstantBuffer()
-		{
-			for (uint32 i = 0; i < FRAME_COUNT; i++)
-			{
-				SAFE_RELEASE(m_Buffers.at(i));
-			}
-		}
+		D3D12ConstantBuffer(void* pData, usize Size);
+		~D3D12ConstantBuffer();
 
 		void Create(void* pData, usize Size);
 
 		// TODO: needs improvement
-		void Update(void* pUpdate);
+		void Update(void* pUpdate) override;
 
 		ID3D12Resource* GetBuffer() { return m_Buffers.at(FRAME_INDEX).Get(); }
 
-		void Release();
+		void Release() override;
 
 		std::array<uint8_t*, FRAME_COUNT> pDataBegin{};
 

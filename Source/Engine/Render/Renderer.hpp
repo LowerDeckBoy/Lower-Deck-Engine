@@ -9,7 +9,7 @@
 #include "RHI/D3D12/D3D12Context.hpp"
 
 #include "Scene/Model/Model.hpp"
-#include "Managers/ShaderManager.hpp"
+#include "Managers/ShaderCompiler.hpp"
 #include "Managers/AssetManager.hpp"
 #include "Managers/TextureManager.hpp"
 
@@ -39,9 +39,8 @@ namespace lde
 		COUNT
 	};
 
-	class Renderer : public Singleton<Renderer>
+	class Renderer
 	{
-		friend class Singleton<Renderer>;
 	public:
 		Renderer(RHI::D3D12Context* pGfx);
 		~Renderer();
@@ -59,8 +58,6 @@ namespace lde
 		void Render();
 		void Present();
 		
-		void SetHeaps();
-
 		void SetScene(Scene* pScene);
 
 		static bool bVSync;
@@ -70,10 +67,9 @@ namespace lde
 		//RHI::RHI* m_Gfx = nullptr;
 		Scene* m_ActiveScene = nullptr;
 
-		std::unique_ptr<ShaderManager>	m_ShaderManager;
+		std::unique_ptr<ShaderCompiler>	m_ShaderCompiler;
 		std::unique_ptr<TextureManager> m_TextureManager;
 		std::unique_ptr<AssetManager>	m_AssetManager;
-		std::unique_ptr<MipGenerator>	m_MipGenerator;
 
 		RHI::D3D12RootSignature m_BaseRootSignature;
 		RHI::D3D12PipelineState m_BasePipeline;

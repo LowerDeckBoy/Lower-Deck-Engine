@@ -4,9 +4,8 @@
 
 */
 
-#include <stb/stb_image.h>
-#include <Core/CoreMinimal.hpp>
 #include "D3D12Descriptor.hpp"
+#include <Core/CoreMinimal.hpp>
 
 namespace lde::RHI
 {

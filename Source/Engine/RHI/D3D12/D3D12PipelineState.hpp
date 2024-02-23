@@ -6,11 +6,9 @@
 
 #include <AgilitySDK/d3d12.h>
 #include <AgilitySDK/d3dx12/d3dx12.h>
-
 #include <Core/CoreMinimal.hpp>
+#include <Managers/ShaderCompiler.hpp>
 #include <RHI/Types.hpp>
-
-#include "Managers/ShaderManager.hpp"
 
 #include <span>
 #include <vector>

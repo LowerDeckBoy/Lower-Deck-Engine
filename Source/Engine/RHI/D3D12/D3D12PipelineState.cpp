@@ -3,6 +3,7 @@
 #include "D3D12RootSignature.hpp"
 #include "D3D12Utility.hpp"
 
+
 namespace lde::RHI
 {
 
@@ -21,7 +22,7 @@ namespace lde::RHI
 		Reset();
 	}
 
-	HRESULT D3D12PipelineStateBuilder::Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature, const std::string& DebugName)
+	HRESULT D3D12PipelineStateBuilder::Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature, const std::string& /* DebugName */)
 	{
 		//D3D12_PIPELINE_STATE_STREAM_DESC streamDesc{};
 		////streamDesc.pPipelineStateSubobjectStream
@@ -83,16 +84,16 @@ namespace lde::RHI
 
 	void D3D12PipelineStateBuilder::SetVertexShader(std::string_view Filepath, std::wstring EntryPoint)
 	{
-		auto& shaderManager = Singleton<ShaderManager>::GetInstance();
+		auto& shaderCompiler = ShaderCompiler::GetInstance();
 		if (m_VertexShader) m_VertexShader = nullptr;
-		m_VertexShader = new Shader(shaderManager.Compile(Filepath, ShaderStage::eVertex, EntryPoint));
+		m_VertexShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eVertex, EntryPoint));
 	}
 	
 	void D3D12PipelineStateBuilder::SetPixelShader(std::string_view Filepath, std::wstring EntryPoint)
 	{
-		auto& shaderManager = Singleton<ShaderManager>::GetInstance();
+		auto& shaderCompiler = ShaderCompiler::GetInstance();
 		if (m_PixelShader) m_PixelShader = nullptr;
-		m_PixelShader = new Shader(shaderManager.Compile(Filepath, ShaderStage::ePixel, EntryPoint));
+		m_PixelShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::ePixel, EntryPoint));
 	}
 
 	void D3D12PipelineStateBuilder::SetInputLayout(const std::span<D3D12_INPUT_ELEMENT_DESC>& InputLayout)
