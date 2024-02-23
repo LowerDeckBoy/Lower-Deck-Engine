@@ -9,10 +9,10 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
 # MSVC is a preferable compiler
 if (MSVC)
-	target_compile_options(${PROJECT_NAME} PUBLIC /fp:fast /GA /MP /TP /Ot)
 	# Can't set /W4 directly without getting a heck lot of warnings
 	string(REGEX REPLACE "/W[1-3]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-	string(REGEX REPLACE "[/|-]RTC(su|[1su])" "/O2" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+	string(REGEX REPLACE "/RTC(su|[1su])" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+	target_compile_options(${PROJECT_NAME} PRIVATE /fp:fast /GA /MP /TP /O2 /Ot)
 elseif (CLANG) # Add Clang specific compiler flag
 	target_compile_options(${PROJECT_NAME} PUBLIC -W4 -fp:fast -GA -MP -TP -fexceptions)
 endif()
