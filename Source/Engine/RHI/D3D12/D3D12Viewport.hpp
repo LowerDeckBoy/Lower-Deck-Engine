@@ -5,7 +5,6 @@
 
 */
 
-
 namespace lde::RHI
 {
 	class D3D12Viewport

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Core/CoreMinimal.hpp>
+#include <Core/CoreTypes.hpp>
+#include <Core/RefPtr.hpp>
 #include <RHI/RHICommon.hpp>
 
 namespace lde::RHI
@@ -21,13 +22,17 @@ namespace lde::RHI
 		void Wait();
 
 		bool IsValueCompleted(uint64 Value);
-
-		/// @brief 
-		/// @return Fence value for current frame.
+	
+		/**
+		 * @brief 
+		 * @return Fence value for current frame.
+		 */
 		uint64 GetValue() const;
-		/// @brief 
-		/// @param AtIndex 
-		/// @return Fence value at desired index.
+		/**
+		 * @brief 
+		 * @param AtIndex 
+		 * @return Fence value at desired index.
+		 */
 		uint64 GetValue(uint32 AtIndex) const;
 
 		void UpdateValue(uint64 Value);

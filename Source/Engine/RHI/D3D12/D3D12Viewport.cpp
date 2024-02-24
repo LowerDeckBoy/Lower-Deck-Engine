@@ -12,7 +12,6 @@ namespace lde::RHI
 	void D3D12Viewport::Set(uint32 Width, uint32 Height)
 	{
 		SetViewport(Width, Height);
-
 		SetScissor(Width, Height);
 	}
 
@@ -33,5 +32,4 @@ namespace lde::RHI
 		m_Scissor.right = static_cast<uint64>(Width);
 		m_Scissor.bottom = static_cast<uint64>(Height);
 	}
-
-}
+} // namespace lde::RHI

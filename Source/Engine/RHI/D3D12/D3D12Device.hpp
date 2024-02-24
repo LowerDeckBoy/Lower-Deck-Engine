@@ -68,7 +68,7 @@ namespace lde::RHI
 		 * @param eType 
 		 * @param bResetAllocator 
 		 */
-		//void ExecuteCommandList(CommandType eType, bool bResetAllocator = false);
+		void ExecuteCommandList(CommandType eType, bool bResetAllocator = false);
 
 		D3D12Fence* GetFence() { return m_Fence.get(); }
 
@@ -78,7 +78,11 @@ namespace lde::RHI
 		[[maybe_unused]]
 		D3D12Queue* GetUploadQueue()	{ return m_UploadQueue.get(); }
 
-		//D3D12CommandList* GetGfxCommandList() { return m_GfxCommandList.get(); }
+		D3D12CommandList* GetGfxCommandList() { return m_GfxCommandList.get(); }
+		[[maybe_unused]]
+		D3D12CommandList* GetComputeCommandList() { return m_ComputeCommandList.get(); }
+		[[maybe_unused]]
+		D3D12CommandList* GetUploadCommandList() { return m_UploadCommandList.get(); }
 
 		D3D12DescriptorHeap* GetSRVHeap() { return m_SRVHeap.get(); }
 		D3D12DescriptorHeap* GetDSVHeap() { return m_DSVHeap.get(); }
@@ -120,8 +124,14 @@ namespace lde::RHI
 		void CreateAdapter();
 		void CreateDevice();
 
-		void QueryShaderModel() /* Check if desired SM6.6 is supported. */;
-		void QueryFeatures();	/* Gather Device features. */
+		/**
+		 * @brief Check if SM6.6 is supported.
+		 */
+		void QueryShaderModel();
+		/**
+		 * @brief  Gather Device features
+		 */
+		void QueryFeatures();
 
 		void CreateQueues();
 		void CreateCommandLists();

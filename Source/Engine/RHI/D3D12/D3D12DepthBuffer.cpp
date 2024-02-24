@@ -1,6 +1,5 @@
 #include "D3D12Device.hpp"
 #include "D3D12DepthBuffer.hpp"
-#include "D3D12Descriptor.hpp"
 #include "D3D12DescriptorHeap.hpp"
 #include "D3D12Utility.hpp"
 #include "D3D12Viewport.hpp"
@@ -26,17 +25,17 @@ namespace lde::RHI
 		clearValue.DepthStencil.Depth = D3D12_MAX_DEPTH;
 		clearValue.DepthStencil.Stencil = 0;
 
-		D3D12_HEAP_PROPERTIES heapProperties = D3D12Utility::HeapDefault;// CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		D3D12_HEAP_PROPERTIES heapProperties = D3D12Utility::HeapDefault;
 
 		D3D12_RESOURCE_DESC desc{};
-		desc.Format = m_Format;
-		desc.MipLevels = 1;
-		desc.DepthOrArraySize = 1;
-		desc.Width  = static_cast<uint64>(pViewport->GetViewport().Width);
-		desc.Height = static_cast<uint32>(pViewport->GetViewport().Height);
-		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		desc.SampleDesc = { 1, 0 };
+		desc.Dimension			= D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		desc.Width				= static_cast<uint64>(pViewport->GetViewport().Width);
+		desc.Height				= static_cast<uint32>(pViewport->GetViewport().Height);
+		desc.Format				= m_Format;
+		desc.MipLevels			= 1;
+		desc.DepthOrArraySize	= 1;
+		desc.Flags				= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+		desc.SampleDesc			= { 1, 0 };
 
 		DX_CALL(pDevice->GetDevice()->CreateCommittedResource(
 			&heapProperties,
@@ -69,10 +68,9 @@ namespace lde::RHI
 			else if (m_Format == DXGI_FORMAT_D24_UNORM_S8_UINT)
 				srvDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 
-			//D3D12Context::GetMainHeap()->Allocate(m_SRV);
+			//D3D12RHI::GetMainHeap()->Allocate(m_SRV);
 			//g_Device.Get()->CreateShaderResourceView(m_Resource.Get(), &srvDesc, m_SRV.GetCPU());
 		}
-
 	}
 
 	void D3D12DepthBuffer::Clear()
@@ -84,7 +82,6 @@ namespace lde::RHI
 		if (m_Resource.Get())
 		{
 			SAFE_RELEASE(m_Resource);
-			//m_Resource.Reset();
 		}
 
 		D3D12_CLEAR_VALUE clearValue{};

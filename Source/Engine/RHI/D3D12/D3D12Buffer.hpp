@@ -14,7 +14,7 @@
 namespace lde::RHI
 {
 	class D3D12Device;
-	class D3D12Context;
+	class D3D12RHI;
 	
 	// Single class for Vertex, Index and Structured.
 	// Get Index View when binding buffer in order to avoid unnecessary member here
@@ -22,12 +22,10 @@ namespace lde::RHI
 	{
 	public:
 		D3D12Buffer() = default;
-		D3D12Buffer(D3D12Context* pGfx, BufferDesc Desc, bool bSRV = false);
-		//D3D12Buffer(D3D12Device* pDevice, BufferDesc Desc, bool bSRV = false);
+		D3D12Buffer(D3D12Device* pDevice, BufferDesc Desc);
 		~D3D12Buffer();
 
-		void Create(D3D12Context* pGfx, BufferDesc Desc, bool bSRV = false);
-		//void Create(D3D12Device* pDevice, BufferDesc Desc, bool bSRV = false);
+		void Create(D3D12Device* pDevice, BufferDesc Desc);
 
 		D3D12Descriptor Descriptor() const;
 
@@ -70,10 +68,10 @@ namespace lde::RHI
 
 	/**
 	 * @brief Creates Resource Desc for Buffer
-	 * @param Desc 
-	 * @return D3D12_RESOURCE_DESC built on given BufferDesc
+	 * @param usize 
+	 * @return D3D12_RESOURCE_DESC built on given Size
 	 */
-	extern D3D12_RESOURCE_DESC CreateBufferDesc(BufferDesc Desc, D3D12_RESOURCE_FLAGS Flag = D3D12_RESOURCE_FLAG_NONE);
+	extern D3D12_RESOURCE_DESC CreateBufferDesc(usize Size, D3D12_RESOURCE_FLAGS Flag = D3D12_RESOURCE_FLAG_NONE);
 
 	struct cbPerObject
 	{

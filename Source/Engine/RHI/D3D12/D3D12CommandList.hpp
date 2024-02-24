@@ -5,10 +5,10 @@
 	Command Allocators, Lists and Signatures.
 */
 
-#include "RHI/RHICommon.hpp"
 #include <AgilitySDK/d3d12.h>
 #include <Core/CoreMinimal.hpp>
 #include <RHI/CommandList.hpp>
+#include <RHI/RHICommon.hpp>
 
 namespace lde::RHI
 {
@@ -28,6 +28,7 @@ namespace lde::RHI
 		[[maybe_unused]]
 		std::array<Ref<ID3D12CommandAllocator>, FRAME_COUNT> GetAllocators() { return m_Allocators; }
 		
+		// TODO: rename these methods
 		// Reset both List and Allocator
 		void Reset() override final;
 		// Reset Allocator only
@@ -54,23 +55,22 @@ namespace lde::RHI
 		std::array<Ref<ID3D12CommandAllocator>, FRAME_COUNT> m_Allocators;
 
 	};
-
-
+	
 	// Helper
 	extern D3D12_RESOURCE_STATES StateEnumToType(ResourceState eState);
 
 	// TODO:
-	class D3D12CommandSignature
-	{
-	public:
-		D3D12CommandSignature(D3D12Device* pDevice, D3D12RootSignature* pRootSignature);
-
-		inline ID3D12CommandSignature* Get() const
-		{
-			return m_Signature.Get();
-		}
-
-	private:
-		Ref<ID3D12CommandSignature> m_Signature;
-	};
+	//class D3D12CommandSignature
+	//{
+	//public:
+	//	D3D12CommandSignature(D3D12Device* pDevice, D3D12RootSignature* pRootSignature);
+	//
+	//	inline ID3D12CommandSignature* Get() const
+	//	{
+	//		return m_Signature.Get();
+	//	}
+	//
+	//private:
+	//	Ref<ID3D12CommandSignature> m_Signature;
+	//};
 }

@@ -1,5 +1,5 @@
 #include "D3D12Buffer.hpp"
-#include "D3D12Context.hpp"
+#include "D3D12RHI.hpp"
 #include <Core/Logger.hpp>
 
 namespace lde::RHI
@@ -9,9 +9,9 @@ namespace lde::RHI
 		return m_Descriptor;
 	}
 
-	D3D12Buffer::D3D12Buffer(D3D12Context* pGfx, BufferDesc Desc, bool bSRV)
+	D3D12Buffer::D3D12Buffer(D3D12Device* pDevice, BufferDesc Desc)
 	{
-		Create(pGfx, Desc, bSRV);
+		Create(pDevice, Desc);
 	}
 
 	D3D12Buffer::~D3D12Buffer()
@@ -19,9 +19,15 @@ namespace lde::RHI
 		//Release();
 	}
 
-	void D3D12Buffer::Create(D3D12Context* pGfx, BufferDesc Desc, bool bSRV)
+	void D3D12Buffer::Create(D3D12Device* pDevice, BufferDesc Desc)
 	{
-		D3D12_RESOURCE_DESC desc = CreateBufferDesc(Desc);
+		if (m_Buffer.Resource.Get())
+		{
+			SAFE_RELEASE(m_Buffer.Resource);
+			SAFE_RELEASE(m_Buffer.Allocation);
+		}
+
+		D3D12_RESOURCE_DESC desc = CreateBufferDesc(Desc.Size);
 
 		D3D12Memory::Allocate(m_Buffer, desc, AllocType::eCopyDst);
 
@@ -33,33 +39,35 @@ namespace lde::RHI
 		subresource.RowPitch = static_cast<LONG_PTR>(Desc.Size);
 		subresource.SlicePitch = subresource.RowPitch;
 
-		pGfx->UploadResource(m_Buffer.Resource, uploadBuffer.Resource, subresource);
+		auto* commandList = pDevice->GetGfxCommandList();
+
+		commandList->UploadResource(uploadBuffer.Resource, m_Buffer.Resource, subresource);
 
 		switch (Desc.eType)
 		{
 		case BufferUsage::eVertex:
 		case BufferUsage::eConstant:
-			pGfx->TransitResource(m_Buffer.Resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+			commandList->ResourceBarrier(m_Buffer.Resource, ResourceState::eCopyDst, ResourceState::eVertexOrConstantBuffer);
 			break;
 		case BufferUsage::eIndex:
-			pGfx->TransitResource(m_Buffer.Resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER);
+			commandList->ResourceBarrier(m_Buffer.Resource, ResourceState::eCopyDst, ResourceState::eIndexBuffer);
 			break;
 		case BufferUsage::eStructured:
-			pGfx->TransitResource(m_Buffer.Resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+			commandList->ResourceBarrier(m_Buffer.Resource, ResourceState::eCopyDst, ResourceState::eAllShaderResource);
 			break;
 		}
-		
-		pGfx->ExecuteCommandList(pGfx->GraphicsCommandList, pGfx->Device->GetGfxQueue(), true);
-		
+
+		pDevice->ExecuteCommandList(CommandType::eGraphics, true);
+
 		SAFE_RELEASE(uploadBuffer.Allocation);
 		SAFE_RELEASE(uploadBuffer.Resource);
 
 		m_Desc = Desc;
 
-		if (bSRV)
+		if (Desc.bBindless)
 		{
 			//pGfx->Heap->Allocate(m_Descriptor);
-			((D3D12Device*)pGfx->GetDevice())->GetSRVHeap()->Allocate(m_Descriptor);
+			pDevice->GetSRVHeap()->Allocate(m_Descriptor);
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 			srvDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -68,9 +76,8 @@ namespace lde::RHI
 			srvDesc.Buffer.NumElements = Desc.Count;
 			srvDesc.Buffer.StructureByteStride = Desc.Stride;
 			srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-			pGfx->Device->GetDevice()->CreateShaderResourceView(m_Buffer.Resource.Get(), &srvDesc, m_Descriptor.GetCpuHandle());
+			pDevice->GetDevice()->CreateShaderResourceView(m_Buffer.Resource.Get(), &srvDesc, m_Descriptor.GetCpuHandle());
 		}
-		
 	}
 
 	void D3D12Buffer::Release()
@@ -130,12 +137,12 @@ namespace lde::RHI
 			pBuffer->GetDesc().Stride);
 	}
 
-	D3D12_RESOURCE_DESC CreateBufferDesc(BufferDesc Desc, D3D12_RESOURCE_FLAGS Flag)
+	D3D12_RESOURCE_DESC CreateBufferDesc(usize Size, D3D12_RESOURCE_FLAGS Flag)
 	{
 		D3D12_RESOURCE_DESC desc{};
 		desc.Dimension			= D3D12_RESOURCE_DIMENSION_BUFFER;
 		desc.Format				= DXGI_FORMAT_UNKNOWN;
-		desc.Width				= static_cast<uint64>(Desc.Size);
+		desc.Width				= static_cast<uint64>(Size);
 		desc.Height				= 1;
 		desc.DepthOrArraySize	= 1;
 		desc.MipLevels			= 1;
@@ -154,19 +161,15 @@ namespace lde::RHI
 
 	D3D12ConstantBuffer::~D3D12ConstantBuffer()
 	{
-		for (uint32 i = 0; i < FRAME_COUNT; i++)
-		{
-			SAFE_RELEASE(m_Buffers.at(i));
-		}
+		Release();
 	}
 
 	void D3D12ConstantBuffer::Create(void* pData, usize Size)
 	{
 		// Align data to 256 bytes
-		const usize dataSize = ALIGN(Size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-		m_Size = dataSize;
-
-		const auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(dataSize);
+		m_Size = ALIGN(Size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);;
+		
+		D3D12_RESOURCE_DESC desc = CreateBufferDesc(m_Size);
 
 		for (uint32 i = 0; i < FRAME_COUNT; i++)
 		{
@@ -174,7 +177,7 @@ namespace lde::RHI
 
 			const auto flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_COMMITTED | D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_STRATEGY_MIN_MEMORY;
 			Ref<D3D12MA::Allocation> allocation;
-			D3D12Memory::Allocate(&m_Buffers.at(i), &allocation, bufferDesc, AllocType::eDefault, flags);
+			D3D12Memory::Allocate(&m_Buffers.at(i), &allocation, desc, AllocType::eDefault, flags);
 
 			//D3D12_CONSTANT_BUFFER_VIEW_DESC bufferView{};
 			//bufferView.BufferLocation = m_Buffers.at(i).Get()->GetGPUVirtualAddress();
@@ -183,7 +186,7 @@ namespace lde::RHI
 			// Persistent mapping
 			const CD3DX12_RANGE readRange(0, 0);
 			DX_CALL(m_Buffers.at(i)->Map(0, &readRange, reinterpret_cast<void**>(&pDataBegin.at(i))));
-			std::memcpy(pDataBegin.at(i), &pData, dataSize);
+			std::memcpy(pDataBegin.at(i), &pData, m_Size);
 
 			SAFE_RELEASE(allocation);
 

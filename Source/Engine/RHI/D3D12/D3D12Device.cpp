@@ -41,42 +41,42 @@ namespace lde::RHI
 		FlushGPU();
 	}
 
-	//void D3D12Device::ExecuteCommandList(CommandType eType, bool bResetAllocator)
-	//{
-	//	D3D12CommandList* commandList = nullptr;
-	//	ID3D12CommandQueue* commandQueue = nullptr;
-	//
-	//	switch (eType)
-	//	{
-	//	case lde::RHI::CommandType::eGraphics:
-	//		commandList = m_GfxCommandList.get();
-	//		commandQueue = m_GfxQueue->Get();
-	//		break;
-	//	case lde::RHI::CommandType::eCompute:
-	//		commandList = m_ComputeCommandList.get();
-	//		commandQueue = m_ComputeQueue->Get();
-	//		break;
-	//	case lde::RHI::CommandType::eUpload:
-	//		commandList = m_UploadCommandList.get();
-	//		commandQueue = m_UploadQueue->Get();
-	//		break;
-	//	case lde::RHI::CommandType::eBundle:
-	//		break;
-	//	}
-	//
-	//	DX_CALL(commandList->Get()->Close());
-	//	
-	//	std::array<ID3D12CommandList*, 1> commandLists{ commandList->Get() };
-	//	
-	//	commandQueue->ExecuteCommandLists(static_cast<uint32>(commandLists.size()), commandLists.data());
-	//	
-	//	if (bResetAllocator)
-	//	{
-	//		commandList->ResetList();
-	//	}
-	//	
-	//	WaitForGPU();
-	//}
+	void D3D12Device::ExecuteCommandList(CommandType eType, bool bResetAllocator)
+	{
+		D3D12CommandList* commandList = nullptr;
+		ID3D12CommandQueue* commandQueue = nullptr;
+	
+		switch (eType)
+		{
+		case lde::RHI::CommandType::eGraphics:
+			commandList = m_GfxCommandList.get();
+			commandQueue = m_GfxQueue->Get();
+			break;
+		case lde::RHI::CommandType::eCompute:
+			commandList = m_ComputeCommandList.get();
+			commandQueue = m_ComputeQueue->Get();
+			break;
+		case lde::RHI::CommandType::eUpload:
+			commandList = m_UploadCommandList.get();
+			commandQueue = m_UploadQueue->Get();
+			break;
+		case lde::RHI::CommandType::eBundle:
+			break;
+		}
+	
+		DX_CALL(commandList->Get()->Close());
+		
+		std::array<ID3D12CommandList*, 1> commandLists{ commandList->Get() };
+		
+		commandQueue->ExecuteCommandLists(static_cast<uint32>(commandLists.size()), commandLists.data());
+		
+		if (bResetAllocator)
+		{
+			commandList->ResetList();
+		}
+		
+		WaitForGPU();
+	}
 
 	void D3D12Device::Allocate(HeapType eType, D3D12Descriptor& Descriptor, uint32 Count)
 	{
@@ -94,14 +94,14 @@ namespace lde::RHI
 		}
 	}
 
-    Buffer* D3D12Device::CreateBuffer(BufferDesc /* Desc */)
+    Buffer* D3D12Device::CreateBuffer(BufferDesc Desc)
     {
-        return nullptr;
+        return new D3D12Buffer(this, Desc);
     }
 
-    ConstantBuffer* D3D12Device::CreateConstantBuffer(void* /* pData */, usize /* Size */)
+    ConstantBuffer* D3D12Device::CreateConstantBuffer(void* pData, usize Size)
     {
-        return nullptr;
+        return new D3D12ConstantBuffer(pData, Size);
     }
 
     Texture* D3D12Device::CreateTexture(TextureDesc /* Desc */)
