@@ -55,14 +55,18 @@ float2 SampleSphericalMap(float3 v)
 
 float4 PSmain(VS_OUTPUT pin) : SV_TARGET
 {
-	float3 skyTexture = float3(0.0f, 0.0f, 0.0f);
+	float3 skyTexture = float3(0.0f, 0.0f, 1.0f);
 	if (Textures.SkyboxTexture != -1)
 	{
 		// Note: normalize TexCoords in pixel shader. Normalizing only in Vertex shader will not do.
 		float2 uv = SampleSphericalMap(normalize(pin.TexCoord));
-		Texture2D<float4> skyboxTex = ResourceDescriptorHeap[Textures.SkyboxTexture];
-		skyTexture = skyboxTex.Sample(texSampler, uv, 0.0f).rgb;
+		//Texture2D<float4> skyboxTex = ResourceDescriptorHeap[Textures.SkyboxTexture];
+		//skyTexture = skyboxTex.Sample(texSampler, uv, 0.0f).rgb;
 		
+		TextureCube<float4> skyboxTex = ResourceDescriptorHeap[Textures.SkyboxTexture];
+		skyTexture = skyboxTex.Sample(texSampler, pin.TexCoord).rgb;
+		
+		// Gamma correction
 		skyTexture = skyTexture / (skyTexture + float3(1.0f, 1.0f, 1.0f));
 		skyTexture = pow(skyTexture, float3(1.0f / 2.2f, 1.0f / 2.2f, 1.0f / 2.2f));
 	}
