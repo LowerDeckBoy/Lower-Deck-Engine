@@ -5,6 +5,7 @@
 #include "TextureManager.hpp"
 #include "ShaderCompiler.hpp"
 #include <DirectXTex.h>
+#include <directxtk12/ResourceUploadBatch.h>
 
 namespace lde
 {
@@ -78,7 +79,7 @@ namespace lde
 		desc.Format = metadata.format;
 		desc.Width = static_cast<uint64>(metadata.width);
 		desc.Height = static_cast<uint32>(metadata.height);
-		desc.MipLevels = 1;
+		desc.MipLevels = 6;
 		desc.DepthOrArraySize = 1;
 		desc.SampleDesc = { 1, 0 };
 		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
@@ -116,13 +117,26 @@ namespace lde
 			nullptr,
 			IID_PPV_ARGS(&uploadResource)));
 
+		DirectX::ScratchImage outMipChain{};
+		DirectX::ResourceUploadBatch upload(m_Gfx->Device->GetDevice());
+		upload.Begin();
+		upload.Upload(pSkybox->Texture->Texture.Get(), 0, &subresource, 1);
+		upload.Transition(pSkybox->Texture->Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		upload.GenerateMips(pSkybox->Texture->Texture.Get());
 
-		m_Gfx->UploadResource(pSkybox->Texture->Texture, uploadResource, subresource);
-		m_Gfx->TransitResource(pSkybox->Texture->Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
+		//m_Gfx->UploadResource(pSkybox->Texture->Texture, uploadResource, subresource);
+		//m_Gfx->TransitResource(pSkybox->Texture->Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		//m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
 		//textureManager.Generate2D(pSkybox->Texture);
 
+		pSkybox->Texture->Width = desc.Width;
+		pSkybox->Texture->Height = desc.Height;
+		pSkybox->Texture->Format = desc.Format;
+		pSkybox->Texture->MipLevels = desc.MipLevels;
 		m_Gfx->Device->CreateSRV(pSkybox->Texture->Texture.Get(), pSkybox->Texture->SRV);
+
+		auto finish{ upload.End(m_Gfx->Device->GetGfxQueue()->Get()) };
+		finish.wait();
 
 		SAFE_RELEASE(uploadResource);
 	}
@@ -136,6 +150,18 @@ namespace lde
 		RHI::D3D12Descriptor cubeDescriptor;
 
 		uint32 cubeResolution = 1024;
+		if (pSkybox->Texture->Width < 1024)
+		{
+			cubeResolution = 512;
+		}
+		else if (pSkybox->Texture->Width >= 2048 && pSkybox->Texture->Width < 4096)
+		{
+			cubeResolution = 2048;
+		}
+		else if (pSkybox->Texture->Width >= 4096)
+		{
+			cubeResolution = 4096;
+		}
 
 		// Used for transforming texture
 		D3D12_RESOURCE_DESC uavDesc{};
@@ -156,7 +182,7 @@ namespace lde
 			IID_PPV_ARGS(&tempCube)
 		));
 		tempCube->SetName(L"[Image Based Lighting] Environment Texture - pretransformed");
-		m_Gfx->Device->CreateUAV(tempCube.Get(), cubeDescriptor, 6);
+		m_Gfx->Device->CreateUAV(tempCube.Get(), cubeDescriptor, 6 * 6); // * 6
 		m_Gfx->TransitResource(tempCube, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		
 		auto dispatch([&](RHI::D3D12CommandList* pCmdList) {
@@ -182,6 +208,7 @@ namespace lde
 		textureCubeDesc.MipLevels = 6;
 		textureCubeDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		textureCubeDesc.SampleDesc = { 1, 0 };
+		textureCubeDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 		RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
 			&RHI::D3D12Utility::HeapDefault, D3D12_HEAP_FLAG_NONE,
 			&textureCubeDesc, D3D12_RESOURCE_STATE_COMMON,
@@ -191,25 +218,54 @@ namespace lde
 		m_Gfx->TransitResource(tempCube, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE);
 		m_Gfx->TransitResource(pSkybox->TextureCube->Texture, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
 
-		m_Gfx->CopyResource(pSkybox->TextureCube->Texture, tempCube);
+		//m_Gfx->CopyResource(pSkybox->TextureCube->Texture, tempCube);
 
 		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
-		for (UINT arraySlice = 0; arraySlice < 6; ++arraySlice)
+			
+		for (uint32 arraySlice = 0; arraySlice < 6; ++arraySlice)
 		{
 			const UINT subresourceIndex = D3D12CalcSubresource(0, arraySlice, 0, 6, 6);
 			auto dst = CD3DX12_TEXTURE_COPY_LOCATION{ pSkybox->TextureCube->Texture.Get(), subresourceIndex };
 			auto src = CD3DX12_TEXTURE_COPY_LOCATION{ tempCube.Get(), subresourceIndex };
 			m_Gfx->Device->GetGfxCommandList()->Get()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 		}
+		
 
+		pSkybox->TextureCube->Width = textureCubeDesc.Width;
+		pSkybox->TextureCube->Height = textureCubeDesc.Height;
+		pSkybox->TextureCube->MipLevels = textureCubeDesc.MipLevels;
+		
 		m_Gfx->TransitResource(pSkybox->TextureCube->Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+		//m_Gfx->TransitResource(pSkybox->TextureCube->Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
-		m_Gfx->Device->CreateSRV(pSkybox->TextureCube->Texture.Get(), pSkybox->TextureCube->SRV, 1);
-
-		auto desc = pSkybox->TextureCube->Texture->GetDesc();
+		m_Gfx->Device->CreateSRV(pSkybox->TextureCube->Texture.Get(), pSkybox->TextureCube->SRV, 1, 1);
+		TextureManager::GetInstance().Generate3D(pSkybox->TextureCube);
+		
+		//m_Gfx->TransitResource(pSkybox->TextureCube->Texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
 
 		SAFE_RELEASE(tempCube);
+
+	}
+
+	void ImageBasedLighting::CreateDiffuseTexture()
+	{
+		const uint32 cubeResolution = 256;
+		const uint32 mipLevels = 6;
+
+		RHI::D3D12Descriptor uavDescriptor;
+		m_Gfx->Device->Allocate(RHI::HeapType::eSRV, uavDescriptor, 6 * mipLevels);
+
+		{
+			auto desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R16G16B16A16_FLOAT, cubeResolution, cubeResolution, 6, mipLevels);
+			m_Gfx->Device->GetDevice()->CreateCommittedResource(&RHI::D3D12Utility::HeapDefault, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&SpecularTexture->Texture));
+			m_Gfx->Device->Allocate(RHI::HeapType::eSRV, SpecularTexture->SRV, 1);
+
+
+
+
+		}
+
 
 	}
 } // namespace lde
