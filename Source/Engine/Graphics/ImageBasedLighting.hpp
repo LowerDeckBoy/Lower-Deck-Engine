@@ -42,15 +42,30 @@ namespace lde
 		// Load HDRi texture from file
 		void CreateHDRTexture(std::string_view Filepath, Skybox* pSkybox);
 		// Transform HDRi equirectangular map into TextureCube
-		void CreateTextureCube(std::string_view Filepath, Skybox* pSkybox);
+		void CreateTextureCube(Skybox* pSkybox);
 		
-		void CreateDiffuseTexture();
-		void CreateSpecularTexture();
+		void CreateDiffuseTexture(Skybox* pSkybox);
+		void CreateSpecularTexture(Skybox* pSkybox);
 
-		Ref<ID3D12RootSignature> m_ComputeRS;
-		Ref<ID3D12PipelineState> m_ComputePSO;
+		struct
+		{
+			Ref<ID3D12RootSignature> ComputeRS;
+			Ref<ID3D12PipelineState> ComputePSO;
 
-		Shader* m_Equirect2CubeCS = nullptr;
+			Ref<ID3D12PipelineState> DiffusePSO;
+			Ref<ID3D12PipelineState> SpecularPSO;
+			Ref<ID3D12PipelineState> BRDFLookUpPSO;
+		} m_Pipelines;
+
+		struct
+		{
+			Shader* Equirect2CubeCS = nullptr;
+			Shader* DiffuseIrradianceCS = nullptr;
+			Shader* SpecularCS = nullptr;
+		} m_Shaders;
+		
+
+		
 
 	};
 } // namespace lde

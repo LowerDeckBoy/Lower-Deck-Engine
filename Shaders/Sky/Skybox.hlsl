@@ -37,7 +37,7 @@ VS_OUTPUT VSmain(uint VertexID : SV_VertexID)
 	};
 	
 	output.Position = mul(WVP, float4(vertices[VertexID], 1.0f)).xyzw;
-	output.TexCoord = vertices[VertexID];
+	output.TexCoord = normalize(vertices[VertexID]);
 	
 	return output;
 }
@@ -59,7 +59,7 @@ float4 PSmain(VS_OUTPUT pin) : SV_TARGET
 	if (Textures.SkyboxTexture != -1)
 	{
 		// Note: normalize TexCoords in pixel shader. Normalizing only in Vertex shader will not do.
-		float2 uv = SampleSphericalMap(normalize(pin.TexCoord));
+		//float2 uv = SampleSphericalMap(normalize(pin.TexCoord));
 		//Texture2D<float4> skyboxTex = ResourceDescriptorHeap[Textures.SkyboxTexture];
 		//skyTexture = skyboxTex.Sample(texSampler, uv, 0.0f).rgb;
 		
