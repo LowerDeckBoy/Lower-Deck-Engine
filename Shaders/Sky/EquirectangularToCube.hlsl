@@ -1,7 +1,10 @@
 #ifndef EQUIRECTANGULARTOCUBE_HLSL
 #define EQUIRECTANGULARTOCUBE_HLSL
 
+// ==================================================
+// Shaders/Sky/EquirectangularToCube.hlsl
 // Transform HDRi map into TextureCube
+// ==================================================
 
 static const float PI = 3.141592f;
 

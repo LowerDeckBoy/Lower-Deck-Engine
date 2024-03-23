@@ -38,7 +38,7 @@ namespace lde
 		RHI::D3D12RHI* m_Gfx = nullptr;
 
 		// Create RootSignature and PSO for executing compute shaders
-		void CreateComputeState();
+		void CreateComputeStates();
 		// Load HDRi texture from file
 		void CreateHDRTexture(std::string_view Filepath, Skybox* pSkybox);
 		// Transform HDRi equirectangular map into TextureCube
@@ -46,6 +46,7 @@ namespace lde
 		
 		void CreateDiffuseTexture(Skybox* pSkybox);
 		void CreateSpecularTexture(Skybox* pSkybox);
+		void CreateBRDFTexture(Skybox* pSkybox);
 
 		struct
 		{
@@ -62,6 +63,7 @@ namespace lde
 			Shader* Equirect2CubeCS = nullptr;
 			Shader* DiffuseIrradianceCS = nullptr;
 			Shader* SpecularCS = nullptr;
+			Shader* BRDFLookUpCS = nullptr;
 		} m_Shaders;
 		
 

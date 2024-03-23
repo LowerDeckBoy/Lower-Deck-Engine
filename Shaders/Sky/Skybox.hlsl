@@ -1,6 +1,11 @@
 #ifndef SKYBOX_HLSL
 #define SKYBOX_HLSL
 
+// ==================================================
+// Shaders/Sky/Skybox.hlsl
+// Samples Sky TextureCube from given index.
+// ==================================================
+
 struct VS_OUTPUT
 {
 	float4 Position : SV_POSITION;
