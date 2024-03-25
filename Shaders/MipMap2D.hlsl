@@ -1,5 +1,11 @@
 #ifndef MIPMAP2D_HLSL
 #define MIPMAP2D_HLSL
+
+// https://github.com/mateeeeeee/Adria-DX12/blob/master/Adria/Resources/Shaders/Other/GenerateMips.hlsl
+// https://github.com/CHCTW/DirectX12-Framework-/blob/master/GraphicsTechniques/ImageBasedLighting/ImagedBasedLighting.cpp#L626
+// https://github.com/Eclmist/Ether/tree/develop/include
+// https://github.com/pkurth/D3D12Renderer/blob/master/shaders/post_processing/blit_cs.hlsl
+
 #define BLOCK_SIZE 8
 #define GROUP_SIZE BLOCK_SIZE * BLOCK_SIZE
 
@@ -20,9 +26,6 @@ struct MipGenerationData
 };
 
 ConstantBuffer<MipGenerationData> MipGenData : register(b0);
-
-//Texture2D Texture2DTable[] : register(t0);
-//RWTexture2D<float4> RWTexture2DTable[] : register(u0);
 
 SamplerState SampLinearClamp : register(s0);
 
@@ -89,7 +92,6 @@ void CSmain(ComputeShaderInput IN)
 				float2 uv = MipGenData.TexelSize * (IN.DispatchThreadID.xy + 0.5f);
 				//uv.y *= -1.0f;
 				src1 = srcTex.SampleLevel(SampLinearClamp, uv, MipGenData.SrcMipLevel);
-				//src1 = Texture2DTable[MipGenData.SrcMipIndex].SampleLevel(SampLinearClamp, uv, MipGenData.SrcMipLevel);
 			}
 			break;
 		case WIDTH_ODD_HEIGHT_EVEN:

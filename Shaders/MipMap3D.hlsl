@@ -59,9 +59,9 @@ float3 ToSRGB(float3 lin)
 
 float4 PackColor(float4 color)
 {
-	//if (MipGenData.IsSRGB)
-	//	return float4(ToSRGB(color.rgb), color.a);
-	//else
+	if (MipGenData.IsSRGB)
+		return float4(ToSRGB(color.rgb), color.a);
+	else
 		return color;
 }
 
