@@ -2,29 +2,12 @@
 #define GBUFFER_HLSL
 
 #include "RootSignatures.hlsli"
-
-#define INVALID_INDEX -1
+#include "Material.hlsli"
 
 cbuffer cbPerObject : register(b0, space0)
 {
 	row_major float4x4 WVP;
 	row_major float4x4 World;
-};
-
-struct Material
-{
-	int BaseColorIndex;
-	int NormalIndex;
-	int MetalRoughnessIndex;
-	int EmissiveIndex;
-	
-	float MetallicFactor;
-	float RoughnessFactor;
-	float AlphaCutoff;
-	int bDoubleSided;
-	
-	float4 BaseColorFactor;
-	float4 EmissiveFactor;
 };
 
 struct Vertex
@@ -100,16 +83,21 @@ GBufferOutput PSmain(VSOutput pin)
 {
 	GBufferOutput output = (GBufferOutput) 0;
 
-	if (material.BaseColorIndex > -1)
+	// TexCoords
+	//output.TexCoords = float4(pin.TexCoord, 0.0f, 1.0f);
+	// Gradient UVs
+	float3 grandients = abs(float3(ddx(pin.TexCoord), ddy(pin.TexCoord).x)) * 64.0f;
+	output.TexCoords = normalize(float4(grandients, 1.0f));
+	
+	if (material.BaseColorIndex > INVALID_INDEX)
 	{
-		Texture2D<float4> tex = ResourceDescriptorHeap[material.BaseColorIndex];
-		float4 baseColor = tex.Sample(texSampler, pin.TexCoord);
-		output.BaseColor = baseColor;
-		clip(baseColor.a - material.AlphaCutoff);
+		Texture2D<float4> texture = ResourceDescriptorHeap[material.BaseColorIndex];
+		output.BaseColor = texture.Sample(texSampler, pin.TexCoord) * material.BaseColorFactor;
+		clip(output.BaseColor.a - material.AlphaCutoff);
 	}
 	else
 	{
-		output.BaseColor = float4(0.5f, 0.5f, 0.5f, 1.0f);
+		output.BaseColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	
 	// Load and transform Normal texture
@@ -139,12 +127,14 @@ GBufferOutput PSmain(VSOutput pin)
 	}
 	
 	// Load Emissive texture.
-	// If available: add it's output right to BaseColor
 	if (material.EmissiveIndex > INVALID_INDEX)
 	{
 		Texture2D<float4> emissiveTex = ResourceDescriptorHeap[material.EmissiveIndex];
-		output.BaseColor += (emissiveTex.Sample(texSampler, pin.TexCoord) * material.EmissiveFactor);
 		output.Emissive = emissiveTex.Sample(texSampler, pin.TexCoord) * material.EmissiveFactor;
+	}
+	else
+	{
+		output.Emissive = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	
 	// Depth Buffer and WorldPositions
@@ -155,9 +145,6 @@ GBufferOutput PSmain(VSOutput pin)
 		output.WorldPosition = pin.WorldPosition;
 	}
 	
-	// TexCoords
-	output.TexCoords = float4(pin.TexCoord, 0.0f, 1.0f);
-
 	return output;
 }
 
