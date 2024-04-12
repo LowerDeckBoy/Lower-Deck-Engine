@@ -1,33 +1,30 @@
 // Forwards
 #include <Engine/Platform/Window.hpp>
-#include <Engine/Scene/Scene.hpp>
-#include <Engine/RHI/RHICommon.hpp>
-#include <Engine/RHI/D3D12/D3D12Context.hpp>
+#include <Engine/RHI/D3D12/D3D12RHI.hpp>
 #include <Engine/Render/Renderer.hpp>
-//
+#include <Engine/Scene/Scene.hpp>
 #include "Editor.hpp"
 #include "EditorColors.hpp"
 #include "EditorTheme.hpp"
+#include "Components/Components.hpp"
+#include <Engine/RHI/RHICommon.hpp>
 #include <ImGui/imgui_internal.h>
-
 #include <Engine/Core/Logger.hpp>
 #include <Engine/Utility/Utility.hpp>
-
 #include <Engine/Scene/Components/Components.hpp>
 #include <Engine/Scene/Components/CameraComponent.hpp>
-
 #include <FontAwesome/IconsFontAwesome6.h>
 
 namespace lde::editor 
 {
 	//using namespace RHI;
 
-	bool Editor::bSceneOnly = false;
+	bool Editor::bSceneOnly = true;
 
 	constexpr auto EDITOR_FONT	= "Assets/Fonts/CascadiaCode-Bold.ttf";
 	constexpr auto ICONS_FONT	= "Assets/Fonts/fa-solid-900.ttf";
 
-	Editor::Editor(RHI::D3D12Context* pGfx, Renderer* pRenderer, Timer* pTimer)
+	Editor::Editor(RHI::D3D12RHI* pGfx, Renderer* pRenderer, Timer* pTimer)
 		: m_Gfx(pGfx), m_Renderer(pRenderer), m_Timer(pTimer)
 	{
 		Initialize(pGfx, pTimer);
@@ -38,7 +35,7 @@ namespace lde::editor
 		Release();
 	}
 
-	void Editor::Initialize(RHI::D3D12Context* pGfx, Timer* pTimer)
+	void Editor::Initialize(RHI::D3D12RHI* pGfx, Timer* pTimer)
 	{
 		m_Gfx = pGfx;
 		m_Timer = pTimer;
@@ -57,14 +54,14 @@ namespace lde::editor
 		IO.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;
 		IO.ConfigFlags	|= ImGuiConfigFlags_DockingEnable;
 		IO.ConfigFlags	|= ImGuiConfigFlags_ViewportsEnable;
-
+		
 		ImGui_ImplWin32_Init(lde::Window::GetHWnd());
 		ImGui_ImplDX12_Init(m_Gfx->Device->GetDevice(),
 			FRAME_COUNT,
 			DXGI_FORMAT_R8G8B8A8_UNORM,
-			m_Gfx->Heap->Get(),
-			m_Gfx->Heap->Get()->GetCPUDescriptorHandleForHeapStart(),
-			m_Gfx->Heap->Get()->GetGPUDescriptorHandleForHeapStart());
+			((RHI::D3D12Device*)m_Gfx->GetDevice())->GetSRVHeap()->Get(),
+			((RHI::D3D12Device*)m_Gfx->GetDevice())->GetSRVHeap()->Get()->GetCPUDescriptorHandleForHeapStart(),
+			((RHI::D3D12Device*)m_Gfx->GetDevice())->GetSRVHeap()->Get()->GetGPUDescriptorHandleForHeapStart());
 
 		// Main font
 		{
@@ -88,7 +85,7 @@ namespace lde::editor
 		m_EditorViewport->Flags |= ImGuiViewportFlags_TopMost;
 		m_EditorViewport->Flags |= ImGuiViewportFlags_OwnedByApp;
 		
-		LOG_INFO("Editor initialized.");
+		LOG_INFO("Editor: Editor layer initialized.");
 	}
 
 	void Editor::Release()
@@ -103,7 +100,7 @@ namespace lde::editor
 		ImGui_ImplWin32_Shutdown();
 		ImGui::DestroyContext();
 
-		LOG_INFO("Editor released.");
+		LOG_INFO("Editor: Editor layer released.");
 	}
 
 	void Editor::DrawNode(Entity& Entity)
@@ -128,7 +125,7 @@ namespace lde::editor
 			ImGui::Bullet();
 			ImGui::Text("Extended");
 			flags = ImGuiTreeNodeFlags_OpenOnArrow;
-
+		
 			ImGui::TreePop();
 		}
 	}
@@ -190,6 +187,22 @@ namespace lde::editor
 						Component.Reset();
 				}
 			});
+
+		//DrawProperties<DirectionalLightComponent>(Entity, [&](auto& Component)
+		//	{
+		//		ImGui::Text("Test");
+		//		//if (ImGui::CollapsingHeader("Transforms", ImGuiTreeNodeFlags_DefaultOpen))
+		//		//{
+		//		//	//DrawFloat3("Position",  (XMFLOAT3*)Component.Position);
+		//		//	//DrawFloat3("Direction", (XMFLOAT3*)Component.Direction);
+		//		//	//ImColor("Scale", Component.Scale, 1.0f);
+		//		//	// TODO: Gotta add checking for update call
+		//		//	//Component.Update();
+		//		//
+		//		//	//if (ImGui::Button("Reset"))
+		//		//	//	Component.Reset();
+		//		//}
+		//	});
 	}
 
 	template<typename T, typename UI>
@@ -198,7 +211,7 @@ namespace lde::editor
 		if (!Entity.HasComponent<T>())
 			return;
 
-		auto& component{ Entity.GetComponent<T>() };
+		auto& component = Entity.GetComponent<T>();
 
 		ui(component);
 	}
@@ -299,7 +312,6 @@ namespace lde::editor
 			DrawScene();
 		}
 		
-
 		// End editor
 		ImGui::PopFont();
 		ImGui::EndFrame();
@@ -311,7 +323,7 @@ namespace lde::editor
 			ImGui::RenderPlatformWindowsDefault();
 		}
 
-		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_Gfx->GraphicsCommandList->Get());
+		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_Gfx->Device->GetGfxCommandList()->Get());
 	}
 
 	void Editor::SetScene(Scene* pScene)
@@ -380,6 +392,9 @@ namespace lde::editor
 			// Render Outputs; GBuffer etc
 			if (ImGui::BeginMenu(ICON_FA_IMAGES" Render Target"))
 			{
+				if (ImGui::MenuItem("Shaded"))
+					m_Renderer->SelectedRenderTarget = RenderOutput::eShaded;
+
 				if (ImGui::MenuItem("Depth"))
 					m_Renderer->SelectedRenderTarget = RenderOutput::eDepth;
 
@@ -401,18 +416,10 @@ namespace lde::editor
 				if (ImGui::MenuItem("World Position"))
 					m_Renderer->SelectedRenderTarget = RenderOutput::eWorldPosition;
 
-				if (ImGui::MenuItem("Shadows"))
-				{
+				if (ImGui::MenuItem("Skybox"))
+					m_Renderer->SelectedRenderTarget = RenderOutput::eSkybox;
 
-				}
-				if (ImGui::MenuItem("Ambient Occlusion"))
-				{
-
-				}
-				if (ImGui::MenuItem("Raytracing"))
-				{
-					
-				}
+				
 
 				ImGui::EndMenu();
 			}
@@ -427,9 +434,11 @@ namespace lde::editor
 		ImGui::Checkbox("##V-Sync", &Renderer::bVSync);
 
 		ImGui::SetNextItemWidth(350.0f);
-		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 355.0f);
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 350.0f);
 		ImGui::Text("%d FPS %.2f ms", m_Timer->FPS, m_Timer->Miliseconds);
-		ImGui::Text("memory: %.2fMB", Utility::MemoryUsage::ReadRAM());
+		ImGui::Separator();
+		ImGui::Text("RAM: %.2fMB", Utility::MemoryUsage::ReadRAM());
+		ImGui::Separator();
 		ImGui::Text("VRAM: %d MB", m_Gfx->QueryAdapterMemory());
 
 		ImGui::EndMainMenuBar();
@@ -456,6 +465,12 @@ namespace lde::editor
 			DrawNode(e);
 			ImGui::Separator();
 		}
+
+		// Scene Lighting here
+
+		//m_ActiveScene->Registry()->view<DirectionalLightComponent>();
+		//m_ActiveScene->Registry()->view<PointLightComponent>();
+		//m_ActiveScene->Registry()->view<SpotLightComponent>();
 
 		ImGui::End();
 	}

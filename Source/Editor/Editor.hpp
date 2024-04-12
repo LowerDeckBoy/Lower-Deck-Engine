@@ -11,7 +11,7 @@
 namespace lde
 {
 	class Window;
-	class D3D12Context;
+	class D3D12RHI;
 	class Renderer;
 	class Timer;
 	class Scene;
@@ -29,7 +29,7 @@ namespace lde::editor
 	class Editor
 	{
 	public:
-		Editor(RHI::D3D12Context* pGfx, Renderer* pRenderer, Timer* pTimer);
+		Editor(RHI::D3D12RHI* pGfx, Renderer* pRenderer, Timer* pTimer);
 		~Editor();
 	
 		/// @brief Called before Renderer BeginFrame()
@@ -48,7 +48,7 @@ namespace lde::editor
 		void DrawLogs();
 	
 	private:
-		void Initialize(RHI::D3D12Context* pGfx, Timer* pTimer);
+		void Initialize(RHI::D3D12RHI* pGfx, Timer* pTimer);
 		void Release();
 	
 		void DrawNode(Entity& Entity);
@@ -63,7 +63,7 @@ namespace lde::editor
 		void ClearLogs();
 
 	private:
-		RHI::D3D12Context* m_Gfx = nullptr;
+		RHI::D3D12RHI* m_Gfx = nullptr;
 		Timer* m_Timer			 = nullptr;
 		Renderer* m_Renderer	 = nullptr;
 		Scene* m_ActiveScene	 = nullptr;
