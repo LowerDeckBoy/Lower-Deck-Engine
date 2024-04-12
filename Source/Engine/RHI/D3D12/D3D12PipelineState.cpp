@@ -25,12 +25,13 @@ namespace lde::RHI
 	HRESULT D3D12PipelineStateBuilder::Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature, const std::string& /* DebugName */)
 	{
 		//D3D12_PIPELINE_STATE_STREAM_DESC streamDesc{};
-		////streamDesc.pPipelineStateSubobjectStream
+		//streamDesc.pPipelineStateSubobjectStream
+		//streamDesc.SizeInBytes
 		//DX_CALL(m_Device->Device->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&OutPipeline.PipelineState)));
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC desc{};
 		desc.NodeMask = 0;
-		desc.pRootSignature = pRootSignature->GetRootSignature();
+		desc.pRootSignature = pRootSignature->Get();
 
 		// Not required for bindless
 		//desc.InputLayout = { m_InputLayout.data(), static_cast<uint32>(m_InputLayout.size()) };
@@ -41,6 +42,9 @@ namespace lde::RHI
 		desc.RasterizerState.CullMode = m_CullMode;
 		desc.RasterizerState.FillMode = m_FillMode;
 		desc.RasterizerState.MultisampleEnable = true;
+		desc.RasterizerState.AntialiasedLineEnable = false;
+		//desc.RasterizerState.DepthBias = 1;
+		//desc.RasterizerState.DepthBiasClamp = 1.0f;
 		// Depth
 		desc.DepthStencilState = m_DepthDesc;
 		desc.DSVFormat = m_DepthFormat;
@@ -58,6 +62,10 @@ namespace lde::RHI
 		if (m_PixelShader)
 		{
 			desc.PS = m_PixelShader->Bytecode();
+		}
+		if (m_GeometryShader)
+		{
+			desc.GS = m_GeometryShader->Bytecode();
 		}
 
 		// Render Targets
@@ -94,6 +102,13 @@ namespace lde::RHI
 		auto& shaderCompiler = ShaderCompiler::GetInstance();
 		if (m_PixelShader) m_PixelShader = nullptr;
 		m_PixelShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::ePixel, EntryPoint));
+	}
+
+	void D3D12PipelineStateBuilder::SetGeometryShader(std::string_view Filepath, std::wstring EntryPoint)
+	{
+		auto& shaderCompiler = ShaderCompiler::GetInstance();
+		if (m_GeometryShader) m_GeometryShader = nullptr;
+		m_GeometryShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eGeometry, EntryPoint));
 	}
 
 	void D3D12PipelineStateBuilder::SetInputLayout(const std::span<D3D12_INPUT_ELEMENT_DESC>& InputLayout)

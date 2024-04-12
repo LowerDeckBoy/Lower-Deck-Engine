@@ -64,24 +64,24 @@ namespace lde
 		}
 	};
 
-	struct DirectLightComponent
-	{
-		XMFLOAT3 Direction;
-		XMFLOAT4 Ambient;
-		XMFLOAT4 Diffuse;
-	};
+	//struct DirectLightComponent
+	//{
+	//	XMFLOAT3 Direction;
+	//	XMFLOAT4 Ambient;
+	//	XMFLOAT4 Diffuse;
+	//};
+	//
+	//struct PointLightComponent
+	//{
+	//	XMFLOAT3 Position;
+	//	XMFLOAT4 Ambient;
+	//	XMFLOAT4 Diffuse;
+	//	float Radius;
+	//};
 	
-	struct PointLightComponent
-	{
-		XMFLOAT3 Position;
-		XMFLOAT4 Ambient;
-		XMFLOAT4 Diffuse;
-		float Radius;
-	};
-	
-	struct SpotLightComponent
-	{
-	
-	};
+	//struct SpotLightComponent
+	//{
+	//
+	//};
 
 } // namespace lde

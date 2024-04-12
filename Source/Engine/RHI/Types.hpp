@@ -10,9 +10,9 @@
 
 namespace lde::RHI
 {
-#define GPU_VENDOR_NVIDIA	0x10DE
-#define GPU_VENDOR_AMD		0x1002
-#define GPU_VENDOR_INTEL	0x8086
+	constexpr auto GPU_VENDOR_NVIDIA = 0x10DE;
+	constexpr auto GPU_VENDOR_AMD	 = 0x1002;
+	constexpr auto GPU_VENDOR_INTEL  = 0x8086;
 
 	enum class DeviceVendor
 	{
@@ -35,9 +35,13 @@ namespace lde::RHI
 		eVertex,
 		ePixel,
 		eCompute,
+		eGeometry,
 		eAmplification,
 		eMesh,
-		eRaytracing, /* Fall-through to the same target */
+		eRaytracing,
+		eClosestHit,
+		eMiss,
+		eIntersection,
 		eUnspecified,
 		COUNT
 	};
@@ -75,6 +79,7 @@ namespace lde::RHI
 		// Depth
 		eD32_FLOAT,
 		eD24S8_FLOAT,
+
 		COUNT
 	};
 

@@ -17,6 +17,15 @@ cbuffer TextureInput : register(b1, space0)
 	uint InputIndex;
 }
 
+static const uint NumSamples = 1024;
+static const float InvNumSamples = 1.0f / float(NumSamples);
+
+// Sample i-th point from Hammersley point set of NumSamples points total.
+float2 SampleHammersley(uint i)
+{
+	return float2(i * InvNumSamples, RadicalInverse_VdC(i));
+}
+
 [numthreads(DISPATCH_X, DISPATCH_Y, DISPATCH_Z)]
 void CSmain(uint2 ThreadID : SV_DispatchThreadID)
 {
@@ -66,9 +75,9 @@ void CSmain(uint2 ThreadID : SV_DispatchThreadID)
 			DFG2 += Fc * Gv;
 		}
 	}
-
+	
 	LUT[ThreadID] = float2(DFG1, DFG2) * InvNumSamples;
-
+	//LUT[float2(ThreadID.x, 255 - ThreadID.y)] = float2(DFG1, DFG2) * InvNumSamples;
 }
 
 #endif // SPECULAR_BRDF_CS

@@ -1,17 +1,19 @@
 #pragma once
 
-#include <RHI/Device.hpp>
 #include <AgilitySDK/d3d12.h>
 #include <AgilitySDK/d3d12sdklayers.h>
+#include <RHI/Device.hpp>
 #include <dxgi1_6.h>
 
 #include <Core/CoreMinimal.hpp>
 
-#include <RHI/Types.hpp>
-#include <RHI/D3D12/D3D12Fence.hpp>
-#include <RHI/D3D12/D3D12Queue.hpp>
 #include <RHI/D3D12/D3D12CommandList.hpp>
 #include <RHI/D3D12/D3D12DescriptorHeap.hpp>
+#include <RHI/D3D12/D3D12Fence.hpp>
+#include <RHI/D3D12/D3D12Memory.hpp>
+#include <RHI/D3D12/D3D12Queue.hpp>
+#include <RHI/Types.hpp>
+#include <unordered_map>
 
 #if DEBUG_MODE
 #	include <dxgidebug.h>
@@ -19,6 +21,8 @@
 
 namespace lde::RHI
 {
+	class D3D12RootSignature;
+
 	struct D3D12Debug
 	{
 		Ref<IDXGIDebug1>		DXGIDebug;
@@ -47,19 +51,19 @@ namespace lde::RHI
 	class D3D12Device : public Device
 	{
 	public:
-		D3D12Device() { Create(); }
+		D3D12Device()  { Create();  }
 		~D3D12Device() { Release(); }
 
 		D3D12Features		Features;
 		D3D12Capabilities	Capabilities;
-
-		uint32 CommandQueuePriority = 0;
-
+		
 		IDXGIFactory7* GetFactory() { return m_Factory.Get(); }
 		IDXGIAdapter4* GetAdapter() { return m_Adapter.Get(); }
 		ID3D12Device8* GetDevice()  { return m_Device.Get();  }
-
+		
+		// Default; Graphics Queue
 		void WaitForGPU();
+		void WaitForGPU(CommandType eType);
 		void FlushGPU();
 		void IdleGPU();
 
@@ -70,28 +74,45 @@ namespace lde::RHI
 		 */
 		void ExecuteCommandList(CommandType eType, bool bResetAllocator = false);
 
-		D3D12Fence* GetFence() { return m_Fence.get(); }
+		D3D12Fence* GetFence()						{ return m_Fence.get(); }
 
-		D3D12Queue* GetGfxQueue()		{ return m_GfxQueue.get(); }
-		[[maybe_unused]]
-		D3D12Queue* GetComputeQueue()	{ return m_ComputeQueue.get(); }
-		[[maybe_unused]]
-		D3D12Queue* GetUploadQueue()	{ return m_UploadQueue.get(); }
+		/**
+		 * @brief 
+		 */
+		struct FrameResources
+		{
+			D3D12CommandList*	GraphicsCommandList;
+			D3D12Queue*			GraphicsQueue;
+			uint64				FrameFenceValue = 0;
 
-		D3D12CommandList* GetGfxCommandList() { return m_GfxCommandList.get(); }
-		[[maybe_unused]]
-		D3D12CommandList* GetComputeCommandList() { return m_ComputeCommandList.get(); }
-		[[maybe_unused]]
-		D3D12CommandList* GetUploadCommandList() { return m_UploadCommandList.get(); }
+			D3D12CommandList*	ComputeCommandList;
+			D3D12Queue*			ComputeQueue;
+			uint64				ComputeFenceValue = 0;
 
-		D3D12DescriptorHeap* GetSRVHeap() { return m_SRVHeap.get(); }
-		D3D12DescriptorHeap* GetDSVHeap() { return m_DSVHeap.get(); }
-		D3D12DescriptorHeap* GetRTVHeap() { return m_RTVHeap.get(); }
+			D3D12CommandList*	UploadCommandList;
+			D3D12Queue*			UploadQueue;
+			uint64				UploadFenceValue = 0;
+		} m_FrameResources{};
 
-		D3D12DescriptorHeap* GetMipMapHeap() { return m_MipMapHeap.get(); }
+		FrameResources& GetFrameResources() { return m_FrameResources; }
 
+		D3D12Queue*			GetGfxQueue()			{ return m_FrameResources.GraphicsQueue;		}
+
+		D3D12CommandList*	GetGfxCommandList()		{ return m_FrameResources.GraphicsCommandList;	}
+
+		D3D12DescriptorHeap* GetSRVHeap()			{ return m_SRVHeap.get();		}
+		D3D12DescriptorHeap* GetDSVHeap()			{ return m_DSVHeap.get();		}
+		D3D12DescriptorHeap* GetRTVHeap()			{ return m_RTVHeap.get();		}
+
+
+		/**
+		 * @brief Allocate given Descriptor from the Heap of given enum type.
+		 * @param eType 
+		 * @param Descriptor 
+		 * @param Count 
+		 */
 		void Allocate(HeapType eType, D3D12Descriptor& Descriptor, uint32 Count = 1);
-
+		
 	private:
 		Ref<IDXGIFactory7> m_Factory;
 		Ref<IDXGIAdapter4> m_Adapter;
@@ -99,23 +120,21 @@ namespace lde::RHI
 
 		std::unique_ptr<D3D12Fence> m_Fence;
 
-		std::unique_ptr<D3D12Queue> m_GfxQueue;
-		std::unique_ptr<D3D12Queue> m_ComputeQueue;
-		std::unique_ptr<D3D12Queue> m_UploadQueue;
+		//std::unique_ptr<D3D12Queue> m_GfxQueue;
+		//std::unique_ptr<D3D12Queue> m_ComputeQueue;
+		//std::unique_ptr<D3D12Queue> m_UploadQueue;
 
-		std::unique_ptr<D3D12CommandList> m_GfxCommandList;
-		std::unique_ptr<D3D12CommandList> m_ComputeCommandList;
-		std::unique_ptr<D3D12CommandList> m_UploadCommandList;
+		//std::unique_ptr<D3D12CommandList> m_GfxCommandList;
+		//std::unique_ptr<D3D12CommandList> m_ComputeCommandList;
+		//std::unique_ptr<D3D12CommandList> m_UploadCommandList;
 
 		std::unique_ptr<D3D12DescriptorHeap> m_SRVHeap;
 		std::unique_ptr<D3D12DescriptorHeap> m_DSVHeap;
 		std::unique_ptr<D3D12DescriptorHeap> m_RTVHeap;
 
-		/**
-		 * @brief Used only for generating texture mipmaps.
-		 * Reason to run this Heap is to avoid polluting of main Shader Resource heap.
-		 */
-		std::unique_ptr<D3D12DescriptorHeap> m_MipMapHeap;
+		
+
+		void CreateFrameResources();
 
 	private:
 		void Create();
@@ -128,6 +147,7 @@ namespace lde::RHI
 		 * @brief Check if SM6.6 is supported.
 		 */
 		void QueryShaderModel();
+
 		/**
 		 * @brief  Gather Device features
 		 */
@@ -145,12 +165,20 @@ namespace lde::RHI
 
 	public:
 
+
+		//std::vector<D3D12Buffer*>	Buffers;
+		//std::vector<D3D12Texture*>	Textures;
+
+		/* ======================== RHI implementations ======================== */
+
 		Buffer*			CreateBuffer(BufferDesc Desc) override final;
 		ConstantBuffer* CreateConstantBuffer(void* pData, usize Size) override final;
 		Texture*		CreateTexture(TextureDesc Desc) override final;
 
-		//void CreateSRV();
-		//void CreateUAV();
+		void CreateSRV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 Count = 1);
+		void CreateSRV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 Mips, uint32 Count);
+		void CreateUAV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 Count = 1);
+		void CreateUAV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 MipSlice, uint32 Count = 1);
 
 	private:
 

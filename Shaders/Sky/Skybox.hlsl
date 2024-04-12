@@ -73,7 +73,8 @@ float4 PSmain(VS_OUTPUT pin) : SV_TARGET
 		
 		// Gamma correction
 		skyTexture = skyTexture / (skyTexture + float3(1.0f, 1.0f, 1.0f));
-		skyTexture = pow(skyTexture, float3(1.0f / 2.2f, 1.0f / 2.2f, 1.0f / 2.2f));
+		skyTexture = lerp(skyTexture, pow(skyTexture, 1.0f / 2.2f), 0.4f);
+		//skyTexture = pow(skyTexture, float3(1.0f / 2.2f, 1.0f / 2.2f, 1.0f / 2.2f));
 	}
 	
 	return float4(skyTexture, 1.0f);

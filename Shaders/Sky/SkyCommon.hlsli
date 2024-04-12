@@ -14,8 +14,8 @@ static const float PI = 3.141592f;
 static const float TwoPI = 2.0f * PI;
 static const float Epsilon = 0.001f;
 
-static const uint NumSamples = 1024;
-static const float InvNumSamples = 1.0f / float(NumSamples);
+//static const uint NumSamples = 64 * 1024;
+//static const float InvNumSamples = 1.0f / float(NumSamples);
 
 // Compute Van der Corput radical inverse
 // Reference: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
@@ -27,12 +27,6 @@ float RadicalInverse_VdC(uint bits)
 	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
 	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
 	return float(bits) * 2.3283064365386963e-10f; // / 0x100000000
-}
-
-// Sample i-th point from Hammersley point set of NumSamples points total.
-float2 SampleHammersley(uint i)
-{
-	return float2(i * InvNumSamples, RadicalInverse_VdC(i));
 }
 
 // Uniformly sample point on a hemisphere.
@@ -67,35 +61,35 @@ float3 TangentToWorld(const float3 V, const float3 N, const float3 S, const floa
 // this particular fragment in a cubemap.
 float3 GetSamplingVector(uint3 ThreadID, in RWTexture2DArray<float4> OutputTexture)
 {
-	float width = 0.0f;
+	float width  = 0.0f;
 	float height = 0.0f;
-	float depth = 0.0f;
+	float depth  = 0.0f;
 	OutputTexture.GetDimensions(width, height, depth);
 
 	float2 st = ThreadID.xy / float2(width, height);
-	float2 uv = 2.0 * float2(st.x, 1.0 - st.y) - 1.0;
+	float2 uv = 2.0 * float2(st.x, 1.0f - st.y) - 1.0f;
 
 	// Select vector based on cubemap face index.
 	float3 result = float3(0.0f, 0.0f, 0.0f);
 	switch (ThreadID.z)
 	{
 		case 0:
-			result = float3(1.0, uv.y, -uv.x);
+			result = float3(1.0f, uv.y, -uv.x);
 			break;
 		case 1:
-			result = float3(-1.0, uv.y, uv.x);
+			result = float3(-1.0f, uv.y, uv.x);
 			break;
 		case 2:
-			result = float3(uv.x, 1.0, -uv.y);
+			result = float3(uv.x, 1.0f, -uv.y);
 			break;
 		case 3:
-			result = float3(uv.x, -1.0, uv.y);
+			result = float3(uv.x, -1.0f, uv.y);
 			break;
 		case 4:
-			result = float3(uv.x, uv.y, 1.0);
+			result = float3(uv.x, uv.y, 1.0f);
 			break;
 		case 5:
-			result = float3(-uv.x, uv.y, -1.0);
+			result = float3(-uv.x, uv.y, -1.0f);
 			break;
 	}
 	return normalize(result);
@@ -108,8 +102,8 @@ float3 SampleGGX(float u1, float u2, float Roughness)
 {
 	float alpha = Roughness * Roughness;
 
-	float cosTheta = sqrt((1.0 - u2) / (1.0 + (alpha * alpha - 1.0) * u2));
-	float sinTheta = sqrt(1.0 - cosTheta * cosTheta); // Trig. identity
+	float cosTheta = sqrt((1.0f - u2) / (1.0f + (alpha * alpha - 1.0f) * u2));
+	float sinTheta = sqrt(1.0f - cosTheta * cosTheta); // Trig. identity
 	float phi = TwoPI * u1;
 
 	// Convert to Cartesian upon return.
@@ -119,13 +113,13 @@ float3 SampleGGX(float u1, float u2, float Roughness)
 // Single term for separable Schlick-GGX below.
 float gaSchlickG1(float cosTheta, float k)
 {
-	return cosTheta / (cosTheta * (1.0 - k) + k);
+	return cosTheta / (cosTheta * (1.0f - k) + k);
 }
 
 // Schlick-GGX approximation of geometric attenuation function using Smith's method (IBL version).
 float gaSchlickGGX_IBL(float cosLi, float cosLo, float Roughness)
 {
-	float k = (Roughness * Roughness) / 2.0; // Epic suggests using this roughness remapping for IBL lighting.
+	float k = (Roughness * Roughness) / 2.0f; // Epic suggests using this roughness remapping for IBL lighting.
 	return gaSchlickG1(cosLi, k) * gaSchlickG1(cosLo, k);
 }
 

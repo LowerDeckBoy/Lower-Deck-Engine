@@ -8,15 +8,17 @@
 
 #include "SkyCommon.hlsli"
 
-struct Input
-{
-	uint InputIndex;
-	uint OutputIndex;
-};
-
 cbuffer InputTexture	: register(b0, space0) { uint InputIndex;  }
 cbuffer OutputTexture	: register(b1, space0) { uint OutputIndex; }
-//ConstantBuffer<Input> InputData : register(b0, space0);
+
+static const uint NumSamples = 32 * 1024; // * 64
+static const float InvNumSamples = 1.0f / float(NumSamples);
+
+// Sample i-th point from Hammersley point set of NumSamples points total.
+float2 SampleHammersley(uint i)
+{
+	return float2(i * InvNumSamples, RadicalInverse_VdC(i));
+}
 
 SamplerState texSampler : register(s0);
 

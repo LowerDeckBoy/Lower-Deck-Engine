@@ -12,11 +12,16 @@ namespace lde::RHI
             return L"ps_6_6";
         case lde::RHI::ShaderStage::eCompute:
             return L"cs_6_6";
+        case lde::RHI::ShaderStage::eGeometry:
+            return L"gs_6_6";
         case lde::RHI::ShaderStage::eAmplification:
             return L"as_6_6";
         case lde::RHI::ShaderStage::eMesh:
             return L"ms_6_6";
-        case lde::RHI::ShaderStage::eRaytracing:
+        case lde::RHI::ShaderStage::eRaytracing:    [[fallthrough]];
+        case lde::RHI::ShaderStage::eClosestHit:    [[fallthrough]];
+        case lde::RHI::ShaderStage::eMiss:          [[fallthrough]];
+        case lde::RHI::ShaderStage::eIntersection:
             return L"lib_6_6";
         case lde::RHI::ShaderStage::eUnspecified:
             return L"Invalid";

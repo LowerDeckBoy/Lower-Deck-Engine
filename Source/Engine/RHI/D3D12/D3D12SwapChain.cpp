@@ -10,7 +10,7 @@ namespace lde::RHI
 	D3D12SwapChain::D3D12SwapChain(D3D12Device* pDevice, D3D12Queue* pQueue, uint32 Width, uint32 Height)
 	{
 		m_Device = pDevice;
-		m_Heap = std::make_unique<D3D12DescriptorHeap>(pDevice, HeapType::eRTV, FRAME_COUNT, L"SwapChain RTV Heap");
+		m_Heap = std::make_unique<D3D12DescriptorHeap>(pDevice, HeapType::eRTV, FRAME_COUNT, "SwapChain RTV Heap");
 		Initialize(pDevice, pQueue, Width, Height);
 	}
 

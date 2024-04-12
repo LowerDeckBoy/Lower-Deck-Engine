@@ -13,7 +13,7 @@
 
 namespace lde
 {
-	class D3D12Context;
+	class D3D12RHI;
 
 	struct SceneData
 	{
@@ -30,10 +30,10 @@ namespace lde
 	class Scene
 	{
 	public:
-		Scene(uint32 Width, uint32 Height, RHI::D3D12Context* pContext);
+		Scene(uint32 Width, uint32 Height, RHI::D3D12RHI* pContext);
 		~Scene();
 	
-		void Initialize(uint32 Width, uint32 Height, RHI::D3D12Context* pContext);
+		void Initialize(uint32 Width, uint32 Height, RHI::D3D12RHI* pContext);
 	
 		void OnResize(float AspectRatio);
 	
@@ -51,8 +51,7 @@ namespace lde
 		{
 			return Entity(m_World);
 		}
-	
-		/// @brief 
+		
 		void DrawScene();
 	
 		void DrawModel(Model& pModel);
@@ -72,7 +71,7 @@ namespace lde
 		//std::shared_ptr<SceneCamera> Camera;
 	
 		//ECS::Entity m_CameraEntity;
-		std::string SceneName{ "Default scene" };
+		std::string SceneName = "Default scene";
 		std::unique_ptr<SceneCamera> m_Camera;
 		
 		std::vector<Entity> Lights;
@@ -82,7 +81,10 @@ namespace lde
 	
 		std::vector<std::unique_ptr<Model>> m_Models;
 	
-		RHI::D3D12Context* m_Gfx = nullptr;
+		RHI::D3D12RHI* m_Gfx = nullptr;
+
+		
+
 	};
 
 } // namespace lde

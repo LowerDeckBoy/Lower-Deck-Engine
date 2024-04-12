@@ -16,31 +16,26 @@ namespace lde
 	void App::Initialize()
 	{
 		Window::Create();
-
 		
-		m_Gfx = std::make_shared<RHI::D3D12Context>();
-
-		//m_RHI = std::make_unique<RHI::D3D12Context>();
+		m_Gfx = std::make_unique<RHI::D3D12RHI>();
 
 		m_ActiveScene = std::make_unique<Scene>(Window::Width, Window::Height, m_Gfx.get());
-		m_Renderer = std::make_unique<Renderer>(m_Gfx.get());
-		m_Renderer->SetScene(m_ActiveScene.get());
+		m_Renderer = std::make_unique<Renderer>(m_Gfx.get(), m_ActiveScene.get());
 
 #if EDITOR_MODE
 		m_Editor = std::make_unique<editor::Editor>(m_Gfx.get(), m_Renderer.get(), m_AppTimer.get());
 		m_Editor->SetScene(m_ActiveScene.get());
 #endif
-
+		
 		m_ActiveScene->AddModel("Assets/Models/sponza/Sponza.gltf");
+		m_ActiveScene->AddModel("Assets/Models/DamagedHelmet/DamagedHelmet.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/SciFiHelmet/SciFiHelmet.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/MetalRoughSpheres/MetalRoughSpheres.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/SunTemple/SunTemple.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/cube/Cube.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/Bistro-gltf/BistroExterior.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/scifi_girl/scene.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/nara/scene.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/DamagedHelmet/DamagedHelmet.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/SciFiHelmet/SciFiHelmet.gltf");
 
-		
-		m_Gfx->ExecuteCommandList(m_Gfx->GraphicsCommandList, m_Gfx->Device->GetGfxQueue(), false);
+		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, false);
 	}
 
 	void App::Run()

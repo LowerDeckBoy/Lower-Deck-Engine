@@ -11,11 +11,11 @@ namespace lde
 
 	void Log(LogLevel eLevel, const char* Message)
 	{
-		const auto prefix = PREFIXES[(size_t)eLevel];
+		const auto prefix = PREFIXES[static_cast<size_t>(eLevel)];
 
 		std::string message = std::format("{} {}\n", prefix, Message);
 #if PLATFORM_WIN64
-		::OutputDebugStringA(message.c_str());//
+		::OutputDebugStringA(message.c_str());
 		Logger::Logs.push_back(message);
 #else // SDL2 TODO
 		std::cout << message;

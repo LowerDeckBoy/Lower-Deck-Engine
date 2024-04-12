@@ -1,9 +1,9 @@
 #include "D3D12Utility.hpp"
 
 #if defined _DEBUG
-#	include <Windows.h>
-#	include <debugapi.h>
-#	include <comdef.h>
+	#include <Windows.h>
+	#include <debugapi.h>
+	#include <comdef.h>
 #endif
 
 namespace lde::RHI
@@ -31,7 +31,7 @@ namespace lde::RHI
 		throw std::exception();
 	}
 
-	void SetName(ID3D12Object* pDxObject, std::string Name)
+	void SetD3D12Name(ID3D12Object* pDxObject, std::string Name)
 	{
 		pDxObject->SetName(String::ToWide(Name).c_str());
 	}
@@ -101,9 +101,9 @@ namespace lde::RHI
 		sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
 		sampler.ComparisonFunc = ComparsionFunc;
 		sampler.Filter = Filter;
-		sampler.MaxAnisotropy = 0;
+		sampler.MaxAnisotropy = D3D12_MAX_MAXANISOTROPY;
 		sampler.MinLOD = 0.0f;
-		sampler.MaxLOD = static_cast<float>(UINT32_MAX);
+		sampler.MaxLOD = D3D12_FLOAT32_MAX;
 		sampler.ShaderRegister = ShaderRegister;
 		sampler.RegisterSpace = RegisterSpace;
 		sampler.ShaderVisibility = Visibility;

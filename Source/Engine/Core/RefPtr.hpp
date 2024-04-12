@@ -11,7 +11,7 @@
 namespace lde
 {
 	template<typename T>
-	concept TInterface = requires(T * Ptr)
+	concept TInterface = requires(T* Ptr)
 	{
 		Ptr->AddRef();
 		Ptr->Release();
@@ -47,11 +47,17 @@ namespace lde
 			return m_Ptr;
 		}
 
+		//Ref& operator=(std::nullptr_t) noexcept
+		//{
+		//	InternalRelease();
+		//	return *this;
+		//}
+		
 		Ref& operator=(T* Ptr) noexcept
 		{
 			if (this->m_Ptr != Ptr)
 			{
-				Ref(m_Ptr).Swap(*this);
+				Ref(Ptr).Swap(*this);
 			}
 			return *this;
 		}
@@ -71,6 +77,13 @@ namespace lde
 		Ref& operator=(Ref&& Other) noexcept
 		{
 			Ref(std::forward<Ref>(Other)).Swap(*this);
+			return *this;
+		}
+
+		template<TInterface U>
+		Ref& operator=(U* Ptr) noexcept
+		{
+			Ref(Ptr).Swap(*this);
 			return *this;
 		}
 
@@ -101,6 +114,11 @@ namespace lde
 		T** operator&()
 		{
 			return &m_Ptr;
+		}
+
+		T* operator*()
+		{
+			return *this;
 		}
 
 		void Swap(Ref& Other)

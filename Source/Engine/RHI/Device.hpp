@@ -8,12 +8,20 @@
 
 namespace lde::RHI
 {
+	enum class BackendAPI
+	{
+		eDefault,
+		eD3D12,
+		eVulkan
+	};
+
 	/**
 	 * @brief Determines some properties used in device creation
 	 * Device can be created with debug flags and validation even if debug mode is off.
 	*/
 	struct DeviceDesc
 	{
+		BackendAPI Backend = BackendAPI::eD3D12;
 		bool bDebugMode = true;
 		bool bEnableValidation = true;
 		bool bRaytracing = false;
@@ -23,9 +31,9 @@ namespace lde::RHI
 	class Device
 	{
 	public:
-		DeviceDesc& GetDeviceDesc() { return m_DeviceDesc; }
-		DeviceVendor& GetGpuVendor() { return m_GpuVendor; }
-		DeviceType& GetGpuType() { return m_GpuType; }
+		DeviceDesc&		GetDeviceDesc() { return m_DeviceDesc;	}
+		DeviceVendor&	GetGpuVendor()	{ return m_GpuVendor;	}
+		DeviceType&		GetGpuType()	{ return m_GpuType;		}
 
 		bool IsDebugMode() const { return m_DeviceDesc.bDebugMode; }
 

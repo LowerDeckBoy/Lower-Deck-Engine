@@ -5,7 +5,8 @@
 
 namespace lde::RHI
 {
-	D3D12Queue::D3D12Queue(D3D12Device* pDevice, CommandType eType, LPCWSTR DebugName)
+	
+	D3D12Queue::D3D12Queue(D3D12Device* pDevice, CommandType eType, std::string_view DebugName)
 	{
 		D3D12_COMMAND_QUEUE_DESC desc{};
 		desc.NodeMask = 0;
@@ -32,15 +33,13 @@ namespace lde::RHI
 		Type = eType;
 
 		DX_CALL(pDevice->GetDevice()->CreateCommandQueue(&desc, IID_PPV_ARGS(&m_Queue)));
-
-		if (DebugName)
-			m_Queue->SetName(DebugName);
-
+		SET_D3D12_NAME(m_Queue, DebugName);
+		
 	}
 
 	D3D12Queue::~D3D12Queue()
 	{
 		SAFE_RELEASE(m_Queue);
 	}
-
+	
 }

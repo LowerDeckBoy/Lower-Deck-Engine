@@ -1,11 +1,11 @@
 #include "Components/Components.hpp"
-#include "Managers/AssetManager.hpp"
-#include "RHI/D3D12/D3D12Context.hpp"
+#include "Graphics/AssetManager.hpp"
+#include "RHI/D3D12/D3D12RHI.hpp"
 #include "Scene.hpp"
 
 namespace lde
 {
-	Scene::Scene(uint32 Width, uint32 Height, RHI::D3D12Context* pGfx)
+	Scene::Scene(uint32 Width, uint32 Height, RHI::D3D12RHI* pGfx)
 	{
 		Initialize(Width, Height, pGfx);
 	}
@@ -16,7 +16,7 @@ namespace lde
 			model.reset();
 	}
 	
-	void Scene::Initialize(uint32 Width, uint32 Height, RHI::D3D12Context* pGfx)
+	void Scene::Initialize(uint32 Width, uint32 Height, RHI::D3D12RHI* pGfx)
 	{
 		m_World = new lde::World();
 		m_Camera = std::make_unique<SceneCamera>(m_World, static_cast<float>((float)Width / (float)Height));
@@ -24,8 +24,9 @@ namespace lde
 		m_Gfx = pGfx;
 	
 		Lights.emplace_back(Entity(m_World));
-		Lights.at(0).AddComponent<DirectLightComponent>();
+		//Lights.at(0).AddComponent<DirectLightComponent>();
 	
+		
 	}
 
 	void Scene::OnResize(float AspectRatio)
@@ -46,13 +47,14 @@ namespace lde
 
 	void Scene::DrawModel(Model& pModel)
 	{
-		m_Gfx->GraphicsCommandList->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		auto* commandList = m_Gfx->Device->GetGfxCommandList();
+		commandList->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		
 		struct vertex
 		{
 			uint32 index;
 			uint32 offset;
-		} vert{ pModel.VertexBuffer->Descriptor().Index(), 0 };
+		} vert{ pModel.VertexBuffer->GetSRVIndex(), 0 };
 
 		for (uint32 i = 0; i < pModel.GetMesh()->Submeshes.size(); i++)
 		{
@@ -65,9 +67,9 @@ namespace lde
 			m_Gfx->BindConstantBuffer(pModel.ConstBuffer, 0);
 	
 			vert.offset = mesh.BaseVertex;
-			m_Gfx->GraphicsCommandList->PushConstants(1, 2, &vert, 0);
+			commandList->PushConstants(1, 2, &vert, 0);
 			// Push Material as constants; 64bytes
-			m_Gfx->GraphicsCommandList->PushConstants(2, 16, &mesh.Mat, 0);
+			commandList->PushConstants(2, 16, &mesh.Mat, 0);
 	
 			if (pModel.IndexBuffer->GetDesc().Count != 0)
 			{

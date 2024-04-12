@@ -29,6 +29,8 @@ namespace lde
 		window = this;
 
 		m_Parameters = StartUpParams;
+		Width = StartUpParams.Width;
+		Height = StartUpParams.Height;
 		m_Title.append(std::format(" - {} {}", BACKEND, ENGINE_VERSION));
 
 	}

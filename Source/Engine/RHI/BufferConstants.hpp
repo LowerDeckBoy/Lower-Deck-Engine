@@ -7,6 +7,7 @@ namespace lde::RHI
 {
 	struct SceneData
 	{
+		DirectX::XMVECTOR CameraPosition;
 		DirectX::XMMATRIX View;
 		DirectX::XMMATRIX Projection;
 		DirectX::XMMATRIX InversedView;

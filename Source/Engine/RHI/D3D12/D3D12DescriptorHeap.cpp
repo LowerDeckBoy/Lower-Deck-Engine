@@ -4,7 +4,7 @@
 
 namespace lde::RHI
 {
-	D3D12DescriptorHeap::D3D12DescriptorHeap(D3D12Device* pDevice, HeapType eType, uint32 MaxCapacity, const LPCWSTR& DebugName)
+	D3D12DescriptorHeap::D3D12DescriptorHeap(D3D12Device* pDevice, HeapType eType, uint32 MaxCapacity, std::string_view DebugName)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC desc{};
 		desc.NodeMask = 0;
@@ -32,8 +32,8 @@ namespace lde::RHI
 
 		DX_CALL(pDevice->GetDevice()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_Heap)));
 
-		if (DebugName)
-			m_Heap->SetName(DebugName);
+		if (!DebugName.empty())
+			m_Heap->SetName(String::ToWide(DebugName).c_str());
 
 		// First handle
 		m_AvailableCpuPtr = static_cast<uint64>(m_Heap->GetCPUDescriptorHandleForHeapStart().ptr) + m_DescriptorSize;

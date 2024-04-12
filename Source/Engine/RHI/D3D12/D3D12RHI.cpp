@@ -19,7 +19,7 @@ namespace lde::RHI
 	void D3D12RHI::BeginFrame()
 	{
 		OpenList(Device->GetGfxCommandList());
-		D3D12Memory::SetFrameIndex(FRAME_INDEX);
+		//D3D12Memory::SetFrameIndex(FRAME_INDEX);
 		
 		TransitResource(SwapChain->GetBackbuffer(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		SetViewport();
@@ -129,17 +129,17 @@ namespace lde::RHI
 		Device->IdleGPU();
 	}
 
-	void D3D12RHI::SetRenderTarget()
+	void D3D12RHI::SetMainRenderTarget() const
 	{
 		const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
 			SwapChain->RTVHeap()->CpuStartHandle(),
 			FRAME_INDEX,
 			SwapChain->RTVHeap()->GetDescriptorSize());
-		const auto depthHandle{ SceneDepth->DSV().GetCpuHandle() };
+		const auto& depthHandle{ SceneDepth->DSV().GetCpuHandle() };
 		Device->GetGfxCommandList()->Get()->OMSetRenderTargets(1, &rtvHandle, FALSE, &depthHandle);
 	}
 
-	void D3D12RHI::ClearRenderTarget()
+	void D3D12RHI::ClearMainRenderTarget() const
 	{
 		const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
 			SwapChain->RTVHeap()->CpuStartHandle(),
@@ -150,11 +150,11 @@ namespace lde::RHI
 
 	void D3D12RHI::ClearDepthStencil()
 	{
-		auto depthHandle{ SceneDepth->DSV().GetCpuHandle() };
+		auto& depthHandle = SceneDepth->DSV().GetCpuHandle();
 		Device->GetGfxCommandList()->Get()->ClearDepthStencilView(depthHandle, D3D12_CLEAR_FLAG_DEPTH, D3D12_MAX_DEPTH, 0, 0, nullptr);
 	}
 
-	void D3D12RHI::SetViewport()
+	void D3D12RHI::SetViewport() const
 	{
 		auto viewport = SceneViewport->GetViewport();
 		auto scissor  = SceneViewport->GetScissor();
@@ -162,9 +162,9 @@ namespace lde::RHI
 		Device->GetGfxCommandList()->Get()->RSSetScissorRects(1, &scissor);
 	}
 
-	void D3D12RHI::SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE RtvCpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE DepthCpuHandle)
+	void D3D12RHI::SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE RtvCpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE* DepthCpuHandle)
 	{
-		Device->GetGfxCommandList()->Get()->OMSetRenderTargets(1, &RtvCpuHandle, FALSE, &DepthCpuHandle);
+		Device->GetGfxCommandList()->Get()->OMSetRenderTargets(1, &RtvCpuHandle, FALSE, DepthCpuHandle);
 	}
 
 	void D3D12RHI::SetRenderTargets(std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>& RtvCpuHandles, D3D12_CPU_DESCRIPTOR_HANDLE DepthCpuHandle)
@@ -181,12 +181,17 @@ namespace lde::RHI
 	{
 		if (pRootSignature->Type == PipelineType::eGraphics)
 		{
-			Device->GetGfxCommandList()->Get()->SetGraphicsRootSignature(pRootSignature->GetRootSignature());
+			Device->GetGfxCommandList()->Get()->SetGraphicsRootSignature(pRootSignature->Get());
 		}
 		else
 		{
-			Device->GetGfxCommandList()->Get()->SetComputeRootSignature(pRootSignature->GetRootSignature());
+			Device->GetGfxCommandList()->Get()->SetComputeRootSignature(pRootSignature->Get());
 		}
+	}
+
+	void D3D12RHI::SetRootSignature(ID3D12RootSignature* pRootSignature) const
+	{
+		Device->GetGfxCommandList()->Get()->SetGraphicsRootSignature(pRootSignature);
 	}
 
 	void D3D12RHI::SetPipeline(D3D12PipelineState* pPipelineState) const
@@ -206,6 +211,18 @@ namespace lde::RHI
 		Device->GetGfxCommandList()->Get()->ResourceBarrier(1, &barrier);
 	}
 
+	void D3D12RHI::TransitResource(Ref<ID3D12Resource> pResource, D3D12_RESOURCE_STATES Before, D3D12_RESOURCE_STATES After)
+	{
+		D3D12_RESOURCE_BARRIER barrier{};
+		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		barrier.Transition.pResource = pResource.Get();
+		barrier.Transition.StateBefore = Before;
+		barrier.Transition.StateAfter = After;
+
+		Device->GetGfxCommandList()->Get()->ResourceBarrier(1, &barrier);
+	}
+
 	void D3D12RHI::UploadResource(ID3D12Resource* pDst, ID3D12Resource* pSrc, D3D12_SUBRESOURCE_DATA& Subresource)
 	{
 		::UpdateSubresources(Device->GetGfxCommandList()->Get(), pDst, pSrc, 0, 0, 1, &Subresource);
@@ -214,12 +231,16 @@ namespace lde::RHI
 	void D3D12RHI::UploadResource(ID3D12Resource** ppDst, ID3D12Resource** ppSrc, D3D12_SUBRESOURCE_DATA& Subresource)
 	{
 		::UpdateSubresources(Device->GetGfxCommandList()->Get(), (*ppDst), (*ppSrc), 0, 0, 1, &Subresource);
-
 	}
 
-	void D3D12RHI::UploadResource(Ref<ID3D12Resource> ppDst, Ref<ID3D12Resource> ppSrc, D3D12_SUBRESOURCE_DATA& Subresource)
+	void D3D12RHI::UploadResource(Ref<ID3D12Resource> ppDst, Ref<ID3D12Resource> ppSrc, D3D12_SUBRESOURCE_DATA Subresource)
 	{
 		::UpdateSubresources(Device->GetGfxCommandList()->Get(), ppDst.Get(), ppSrc.Get(), 0, 0, 1, &Subresource);
+	}
+
+	void D3D12RHI::CopyResource(Ref<ID3D12Resource> ppDst, Ref<ID3D12Resource> ppSrc)
+	{
+		Device->GetGfxCommandList()->Get()->CopyResource(ppDst.Get(), ppSrc.Get());
 	}
 
 	void D3D12RHI::BindIndexBuffer(Buffer* pIndexBuffer) const

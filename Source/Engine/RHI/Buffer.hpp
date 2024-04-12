@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BufferConstants.hpp"
 #include <RHI/Types.hpp>
 
 namespace lde::RHI
@@ -29,7 +30,6 @@ namespace lde::RHI
 	public:
 		~Buffer() { }
 
-
 		virtual void Release() = 0;
 
 		virtual void*  GetCpuAddress() const = 0;
@@ -48,8 +48,6 @@ namespace lde::RHI
 
 	protected:
 		BufferDesc m_Desc{};
-
-
 
 	};
 

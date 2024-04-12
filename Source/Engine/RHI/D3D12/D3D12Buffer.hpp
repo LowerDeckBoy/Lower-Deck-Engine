@@ -15,6 +15,7 @@ namespace lde::RHI
 {
 	class D3D12Device;
 	class D3D12RHI;
+	class D3D12UploadHeap;
 	
 	// Single class for Vertex, Index and Structured.
 	// Get Index View when binding buffer in order to avoid unnecessary member here
@@ -23,9 +24,11 @@ namespace lde::RHI
 	public:
 		D3D12Buffer() = default;
 		D3D12Buffer(D3D12Device* pDevice, BufferDesc Desc);
+		D3D12Buffer(D3D12Device* pDevice, D3D12UploadHeap* pUploadHeap, BufferDesc Desc);
 		~D3D12Buffer();
 
 		void Create(D3D12Device* pDevice, BufferDesc Desc);
+		void Create(D3D12Device* pDevice, D3D12UploadHeap* pUploadHeap, BufferDesc Desc);
 
 		D3D12Descriptor Descriptor() const;
 

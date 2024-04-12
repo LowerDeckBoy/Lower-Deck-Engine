@@ -1,4 +1,3 @@
-#include "RHI/D3D12/D3D12Buffer.hpp"
 #include "Scene/SceneCamera.hpp"
 #include "Skybox.hpp"
 #include <array>
@@ -13,7 +12,11 @@ namespace lde
 {
     Skybox::~Skybox()
     {
-        m_VertexBuffer->Release();
+        delete BRDFTexture;
+        delete SpecularTexture;
+        delete DiffuseTexture;
+        delete TextureCube;
+        delete Texture;
         m_IndexBuffer->Release();
         m_ConstBuffer->Release();
     }
@@ -24,20 +27,8 @@ namespace lde
 
         Entity::Create(pWorld);
         AddComponent<TransformComponent>();
-        
-        std::array<DirectX::XMFLOAT3, 8> vertices =
-        {
-            DirectX::XMFLOAT3(-1.0f, +1.0f, +1.0f),
-            DirectX::XMFLOAT3(+1.0f, +1.0f, +1.0f),
-            DirectX::XMFLOAT3(+1.0f, -1.0f, +1.0f),
-            DirectX::XMFLOAT3(-1.0f, -1.0f, +1.0f),
-            DirectX::XMFLOAT3(+1.0f, +1.0f, -1.0f),
-            DirectX::XMFLOAT3(-1.0f, +1.0f, -1.0f),
-            DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f),
-            DirectX::XMFLOAT3(+1.0f, -1.0f, -1.0f),
-        };
-
-        std::array<uint16, 36> indices =
+     
+        std::array<uint32, 36> indices =
         {
              0, 1, 2, 2, 3, 0,   // Front
              1, 4, 7, 7, 2, 1,   // Right
@@ -46,17 +37,6 @@ namespace lde
              5, 4, 1, 1, 0, 5,   // Top
              3, 2, 7, 7, 6, 3    // Bottom
         };
-
-        m_VertexBuffer = pRHI->GetDevice()->CreateBuffer(
-            RHI::BufferDesc{
-                .eType = RHI::BufferUsage::eStructured,
-                .pData = vertices.data(),
-                .Count = static_cast<uint32>(vertices.size()),
-                .Size = vertices.size() * sizeof(vertices.at(0)),
-                .Stride = sizeof(vertices.at(0)),
-                .bBindless = true
-            }
-        );
 
         m_IndexBuffer = pRHI->GetDevice()->CreateBuffer(
             RHI::BufferDesc{
@@ -72,16 +52,16 @@ namespace lde
 
         //m_TextureIndex = TextureManager::GetInstance().Create((RHI::D3D12RHI*)pRHI, Filepath, false);
 
-        // check for texture extension
-        // if is .hdr - transform from equi to cube
     }
 
     void Skybox::Draw(int32 TextureID, SceneCamera* pCamera)
     {
         auto* commandList = m_Device->GetGfxCommandList();
+        commandList->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         commandList->BindIndexBuffer(m_IndexBuffer);
 
         auto& transforms = Entity::GetComponent<TransformComponent>();
+        transforms.Scale = XMFLOAT3(50.0f, 50.0f, 50.0f);
         // Set Skybox position to current Camera position
         XMStoreFloat3(&transforms.Translation, pCamera->GetPosition());
         transforms.Update();
@@ -91,10 +71,12 @@ namespace lde
         m_cbPerObject.World = XMMatrixTranspose(transforms.WorldMatrix);
         m_ConstBuffer->Update(&m_cbPerObject);
         commandList->BindConstantBuffer(0, m_ConstBuffer);
-        struct indices { int32 index; } textures{ m_TextureIndex };
+
+        struct indices { uint32 index; } textures{ TextureCube->SRV.Index() };
+        //struct indices { uint32 index; } textures{ TextureID };
         commandList->PushConstants(1, 1, &textures);
-
+  
         commandList->DrawIndexed(m_IndexBuffer->GetDesc().Count, 0, 0);
-
+        
     }
 } // namespace lde

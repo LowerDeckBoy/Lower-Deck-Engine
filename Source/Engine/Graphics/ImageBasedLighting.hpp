@@ -29,10 +29,6 @@ namespace lde
 		ImageBasedLighting(RHI::D3D12RHI* pRHI, Skybox* pSkybox, std::string_view Filepath);
 		~ImageBasedLighting();
 		
-		RHI::D3D12Texture* SkyboxTexture;
-		RHI::D3D12Texture* DiffuseTexture;
-		RHI::D3D12Texture* SpecularTexture;
-
 	private:
 		// Parent
 		RHI::D3D12RHI* m_Gfx = nullptr;

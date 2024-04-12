@@ -33,13 +33,15 @@ namespace lde::RHI
 
 	};
 
-	
+	/**
+	 * @brief Texture is created in Generic Read state
+	 */
 	class D3D12RenderTexture
 	{
 	public:
 		~D3D12RenderTexture(); /* Releases Texture resource */
 
-		void Initialize(D3D12RHI* pGfx, DXGI_FORMAT Format, LPCWSTR DebugName = L"");
+		void Initialize(D3D12RHI* pGfx, DXGI_FORMAT Format, std::string_view DebugName = "");
 
 		void OnResize(uint32 Width, uint32 Height);
 
@@ -48,11 +50,16 @@ namespace lde::RHI
 
 		DXGI_FORMAT& GetFormat() { return m_Format; }
 
-		Ref<ID3D12Resource> Resource;
+		/**
+		 * @brief 
+		 * @return Underlying texture resource.
+		 */
+		ID3D12Resource* Get() { return m_Texture.Get(); }
 
 	private:
 		// For texture resizing
 		D3D12RHI* m_Gfx = nullptr;
+		Ref<ID3D12Resource> m_Texture;
 		DXGI_FORMAT m_Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 		D3D12Descriptor m_SRV;

@@ -11,7 +11,7 @@
 
 #include "D3D12DescriptorHeap.hpp"
 #include "D3D12Device.hpp"
-
+#include "D3D12Viewport.hpp"
 #include "D3D12CommandList.hpp"
 #include "D3D12DepthBuffer.hpp"
 #include "D3D12Fence.hpp"
@@ -21,7 +21,6 @@
 #include "D3D12RootSignature.hpp"
 #include "D3D12SwapChain.hpp"
 #include "D3D12Utility.hpp"
-#include "D3D12Viewport.hpp"
 
 
 namespace lde::RHI
@@ -82,25 +81,29 @@ namespace lde::RHI
 		//void CloseList(D3D12CommandList* pCommandList);
 		
 		// Set current Swapchain backbuffer
-		void SetRenderTarget();
-		void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE RtvCpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE DepthCpuHandle);
+		void SetMainRenderTarget() const;
+		void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE RtvCpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE* DepthCpuHandle = nullptr);
 		void SetRenderTargets(std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>& RtvCpuHandles, D3D12_CPU_DESCRIPTOR_HANDLE DepthCpuHandle);
 		// Clear current Swapchain backbuffer
-		void ClearRenderTarget(); 
+		void ClearMainRenderTarget() const; 
 		void ClearRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE RtvCpuHandle);
 		void ClearDepthStencil();
 
 		// Bind scene Viewport and Scissor
-		void SetViewport();
+		void SetViewport() const;
 
 		void SetRootSignature(D3D12RootSignature* pRootSignature) const;
+		void SetRootSignature(ID3D12RootSignature* pRootSignature) const;
 		void SetPipeline(D3D12PipelineState* pState) const;
 
 		void TransitResource(ID3D12Resource* pResource, D3D12_RESOURCE_STATES Before, D3D12_RESOURCE_STATES After);
+		void TransitResource(Ref<ID3D12Resource> pResource, D3D12_RESOURCE_STATES Before, D3D12_RESOURCE_STATES After);
 
 		void UploadResource(ID3D12Resource* pDst, ID3D12Resource* pSrc, D3D12_SUBRESOURCE_DATA& Subresource);
 		void UploadResource(ID3D12Resource** ppDst, ID3D12Resource** ppSrc, D3D12_SUBRESOURCE_DATA& Subresource);
-		void UploadResource(Ref<ID3D12Resource> ppDst, Ref<ID3D12Resource> ppSrc, D3D12_SUBRESOURCE_DATA& Subresource);
+		void UploadResource(Ref<ID3D12Resource> ppDst, Ref<ID3D12Resource> ppSrc, D3D12_SUBRESOURCE_DATA Subresource);
+
+		void CopyResource(Ref<ID3D12Resource> ppDst, Ref<ID3D12Resource> ppSrc);
 
 		void BindIndexBuffer(Buffer* pIndexBuffer) const;
 		/* For non-bindless only */

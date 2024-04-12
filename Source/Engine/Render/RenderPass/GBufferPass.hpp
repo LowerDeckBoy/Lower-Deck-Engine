@@ -5,12 +5,14 @@
 */
 
 #include "RHI/D3D12/D3D12Texture.hpp"
+#include "RHI/D3D12/D3D12RootSignature.hpp"
+#include "RHI/D3D12/D3D12PipelineState.hpp"
 #include <Core/CoreTypes.hpp>
 #include <map>
 
 namespace lde::RHI
 {
-	class D3D12Context;
+	class D3D12RHI;
 	class D3D12RenderTexture;
 	class D3D12RootSignature;
 	struct D3D12PipelineState;
@@ -50,7 +52,7 @@ namespace lde
 	public:
 		/// @brief Initializes Root Signature and Pipeline State
 		/// @param pGfx 
-		GBufferPass(RHI::D3D12Context* pGfx);
+		GBufferPass(RHI::D3D12RHI* pGfx);
 
 		void Render(Scene* pScene);
 		void OnResize(uint32 Width, uint32 Height);
@@ -62,11 +64,13 @@ namespace lde
 
 		void Release();
 		
+		std::array<int, 7> GetTextureIndices();
+
 	private:
 		PassContent m_GBuffer{};
 		//D3D12_RENDER_PASS_RENDER_TARGET_DESC
 
-		RHI::D3D12Context* m_Gfx = nullptr;
+		RHI::D3D12RHI* m_Gfx = nullptr;
 		RHI::D3D12RootSignature m_RootSignature;
 		RHI::D3D12PipelineState m_PipelineState;
 

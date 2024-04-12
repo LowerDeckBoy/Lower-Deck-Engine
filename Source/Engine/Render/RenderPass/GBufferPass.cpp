@@ -1,39 +1,30 @@
 #include "RHI/D3D12/D3D12PipelineState.hpp"
 #include "RHI/D3D12/D3D12RootSignature.hpp"
 #include "GBufferPass.hpp"
-#include "RHI/D3D12/D3D12Context.hpp"
+#include "RHI/D3D12/D3D12RHI.hpp"
 #include "Scene/Scene.hpp"
 
 namespace lde
 {
-	GBufferPass::GBufferPass(RHI::D3D12Context* pGfx)
+	GBufferPass::GBufferPass(RHI::D3D12RHI* pGfx)
 	{
 		m_Gfx = pGfx;
 
-		m_RenderTargets.at(GBuffers::eDepth).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, L"GBuffer Depth");
-		m_RenderTargets.at(GBuffers::eBaseColor).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, L"GBuffer BaseColor");
-		m_RenderTargets.at(GBuffers::eTexCoords).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, L"GBuffer TexCoords");
-		m_RenderTargets.at(GBuffers::eNormal).Initialize(m_Gfx, DXGI_FORMAT_R16G16B16A16_FLOAT, L"GBuffer Normal");
-		m_RenderTargets.at(GBuffers::eMetalRoughness).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, L"GBuffer MetalRoughness");
-		m_RenderTargets.at(GBuffers::eEmissive).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, L"GBuffer Emissive");
-		m_RenderTargets.at(GBuffers::eWorldPosition).Initialize(m_Gfx, DXGI_FORMAT_R32G32B32A32_FLOAT, L"GBuffer WorldPosition");
-
-		D3D12_ROOT_SIGNATURE_FLAGS rootFlags = D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED | D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
-
+		m_RenderTargets.at(GBuffers::eDepth).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, "GBuffer Depth");
+		m_RenderTargets.at(GBuffers::eBaseColor).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, "GBuffer BaseColor");
+		m_RenderTargets.at(GBuffers::eTexCoords).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, "GBuffer TexCoords");
+		m_RenderTargets.at(GBuffers::eNormal).Initialize(m_Gfx, DXGI_FORMAT_R16G16B16A16_FLOAT, "GBuffer Normal");
+		m_RenderTargets.at(GBuffers::eMetalRoughness).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, "GBuffer MetalRoughness");
+		m_RenderTargets.at(GBuffers::eEmissive).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, "GBuffer Emissive");
+		m_RenderTargets.at(GBuffers::eWorldPosition).Initialize(m_Gfx, DXGI_FORMAT_R32G32B32A32_FLOAT, "GBuffer WorldPosition");
+		
 		// Root Signature
 		{
-			std::vector<CD3DX12_ROOT_PARAMETER1> parameters(3);
-			// Per Object Matrices
-			parameters.at(0).InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
-			// Vertex vertices and offset
-			parameters.at(1).InitAsConstants(2, 1, 0, D3D12_SHADER_VISIBILITY_ALL);
-			// Texture indices
-			parameters.at(2).InitAsConstants(16, 2, 0, D3D12_SHADER_VISIBILITY_ALL);
-
-			std::vector<D3D12_STATIC_SAMPLER_DESC> samplers(1);
-			samplers.at(0) = RHI::D3D12Utility::CreateStaticSampler(0, 0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_COMPARISON_FUNC_LESS_EQUAL);
-
-			m_RootSignature.Create(m_Gfx->Device.get(), parameters, samplers, rootFlags, L"GBuffer Root Signature");
+			m_RootSignature.AddCBV(0); // Per Object Matrices
+			m_RootSignature.AddConstants(2, 1); // // Vertex vertices and offset
+			m_RootSignature.AddConstants(16, 2); // Texture indices and properties
+			m_RootSignature.AddStaticSampler(0, 0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_COMPARISON_FUNC_LESS_EQUAL);
+			m_RootSignature.Build(m_Gfx->Device.get(), RHI::PipelineType::eGraphics, "GBuffer Root Signature");
 		}
 
 		// Pipeline State
@@ -66,14 +57,15 @@ namespace lde
 	void GBufferPass::Render(Scene* pScene)
 	{
 		m_Gfx->SetRootSignature(&m_RootSignature);
+		//m_Gfx->SetRootSignature(m_Gfx->Device->GlobalRootSignature.Get());
 		m_Gfx->SetPipeline(&m_PipelineState);
 
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs;
 		for (auto& renderTarget : m_RenderTargets)
 		{
-			m_Gfx->TransitResource(renderTarget.second.Resource.Get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_RENDER_TARGET);
-			m_Gfx->ClearRenderTarget(renderTarget.second.RTV.GetCpuHandle());
-			rtvs.push_back(renderTarget.second.RTV.GetCpuHandle());
+			m_Gfx->TransitResource(renderTarget.second.Get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			m_Gfx->ClearRenderTarget(renderTarget.second.GetRTV().GetCpuHandle());
+			rtvs.push_back(renderTarget.second.GetRTV().GetCpuHandle());
 		}
 
 		m_Gfx->SetRenderTargets(rtvs, m_Gfx->SceneDepth->DSV().GetCpuHandle());
@@ -82,7 +74,7 @@ namespace lde
 
 		for (auto& rtv : m_RenderTargets)
 		{
-			m_Gfx->TransitResource(rtv.second.Resource.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
+			m_Gfx->TransitResource(rtv.second.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
 		}
 		
 	}
@@ -101,5 +93,17 @@ namespace lde
 		//{
 		//	//renderTarget.second.
 		//}
+	}
+	std::array<int, 7> GBufferPass::GetTextureIndices()
+	{
+		std::array<int, 7> indices{};
+		int i = 0;
+		for (auto it = m_RenderTargets.begin(); it != m_RenderTargets.end(); ++it)
+		{
+			indices.at(i) = it->second.GetSRV().Index();
+			i++;
+		}
+
+		return indices;
 	}
 }

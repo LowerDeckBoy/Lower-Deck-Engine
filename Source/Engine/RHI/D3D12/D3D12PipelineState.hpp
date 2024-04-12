@@ -7,7 +7,7 @@
 #include <AgilitySDK/d3d12.h>
 #include <AgilitySDK/d3dx12/d3dx12.h>
 #include <Core/CoreMinimal.hpp>
-#include <Managers/ShaderCompiler.hpp>
+#include <Graphics/ShaderCompiler.hpp>
 #include <RHI/Types.hpp>
 
 #include <span>
@@ -54,6 +54,7 @@ namespace lde::RHI
 	
 		void SetVertexShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
 		void SetPixelShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
+		void SetGeometryShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
 	
 		// Won't be necessary for Bindless tho
 		void SetInputLayout(const std::span<D3D12_INPUT_ELEMENT_DESC>& InputLayout);

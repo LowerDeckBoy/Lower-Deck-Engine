@@ -31,8 +31,8 @@ namespace lde
 		int32 MetalRoughnessIndex	= -1;
 		int32 EmissiveIndex			= -1;
 	
-		float MetallicFactor		= 0.5f;
-		float RoughnessFactor		= 0.5f;
+		float MetallicFactor		= 1.0f;
+		float RoughnessFactor		= 1.0f;
 		float AlphaCutoff			= 0.5f;
 		int32 bDoubleSided			= -1;
 	
@@ -70,8 +70,7 @@ namespace lde
 	{
 	public:
 		
-		void ProcessMesh();
-		void ProcessMaterials();
+		
 
 	private:
 		std::vector<SubMesh> Submeshes;

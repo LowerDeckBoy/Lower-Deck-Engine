@@ -14,6 +14,11 @@ namespace lde::RHI
 		Create(pDevice, Desc);
 	}
 
+	D3D12Buffer::D3D12Buffer(D3D12Device* pDevice, D3D12UploadHeap* pUploadHeap, BufferDesc Desc)
+	{
+		Create(pDevice, pUploadHeap, Desc);
+	}
+
 	D3D12Buffer::~D3D12Buffer()
 	{
 		//Release();
@@ -80,6 +85,44 @@ namespace lde::RHI
 		}
 	}
 
+	void D3D12Buffer::Create(D3D12Device* pDevice, D3D12UploadHeap* pUploadHeap, BufferDesc Desc)
+	{
+		if (m_Buffer.Resource.Get())
+		{
+			SAFE_RELEASE(m_Buffer.Resource);
+			SAFE_RELEASE(m_Buffer.Allocation);
+		}
+
+		D3D12_RESOURCE_DESC desc = CreateBufferDesc(Desc.Size);
+
+		//D3D12Memory::Allocate(m_Buffer, desc, AllocType::eCopyDst);
+		D3D12Memory::Allocate(m_Buffer, desc, AllocType::eGeneric);
+		
+		D3D12_SUBRESOURCE_DATA subresource{};
+		subresource.pData = Desc.pData;
+		subresource.RowPitch = static_cast<LONG_PTR>(Desc.Size);
+		subresource.SlicePitch = subresource.RowPitch;
+
+		pUploadHeap->AddBufferCopy(Desc.pData, static_cast<int32>(Desc.Size), m_Buffer.Resource.Get());
+
+		m_Desc = Desc;
+
+		if (Desc.bBindless)
+		{
+			//pGfx->Heap->Allocate(m_Descriptor);
+			pDevice->GetSRVHeap()->Allocate(m_Descriptor);
+			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+			srvDesc.Buffer.FirstElement = 0;
+			srvDesc.Buffer.NumElements = Desc.Count;
+			srvDesc.Buffer.StructureByteStride = Desc.Stride;
+			srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+			pDevice->GetDevice()->CreateShaderResourceView(m_Buffer.Resource.Get(), &srvDesc, m_Descriptor.GetCpuHandle());
+		}
+	}
+
 	void D3D12Buffer::Release()
 	{
 		SAFE_RELEASE(m_Buffer.Allocation);
@@ -117,10 +160,12 @@ namespace lde::RHI
 			return D3D12_INDEX_BUFFER_VIEW();
 		}
 
+		DXGI_FORMAT format = (pBuffer->GetDesc().Stride == 4) ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT;
+		
 		return D3D12_INDEX_BUFFER_VIEW(
 			pBuffer->Get()->GetGPUVirtualAddress(),
 			static_cast<uint32>(pBuffer->GetDesc().Size),
-			DXGI_FORMAT_R32_UINT);
+			format);
 	}
 
 	D3D12_VERTEX_BUFFER_VIEW GetVertexView(D3D12Buffer* pBuffer)

@@ -14,13 +14,13 @@ namespace lde::RHI
 
 	D3D12RenderTexture::~D3D12RenderTexture()
 	{
-		SAFE_RELEASE(Resource);
+		SAFE_RELEASE(m_Texture);
 	}
 
-	void D3D12RenderTexture::Initialize(D3D12RHI* pGfx, DXGI_FORMAT Format, LPCWSTR DebugName)
+	void D3D12RenderTexture::Initialize(D3D12RHI* pGfx, DXGI_FORMAT Format, std::string_view DebugName)
 	{
-		if (Resource.Get())
-			Resource.Reset();
+		if (m_Texture.Get())
+			m_Texture.Reset();
 
 		D3D12_CLEAR_VALUE clearValue{};
 		clearValue.Color[0] = ClearColor.at(0);
@@ -30,12 +30,12 @@ namespace lde::RHI
 		clearValue.Format = Format;
 
 		D3D12_RESOURCE_DESC desc{};
-		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		desc.Format = Format;
-		desc.Flags  = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		desc.Width  = static_cast<uint64>(pGfx->SceneViewport->GetViewport().Width);
-		desc.Height = static_cast<uint32>(pGfx->SceneViewport->GetViewport().Height);
-		desc.MipLevels = 1;
+		desc.Dimension	= D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		desc.Format		= Format;
+		desc.Flags		= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		desc.Width		= static_cast<uint64>(pGfx->SceneViewport->GetViewport().Width);
+		desc.Height		= static_cast<uint32>(pGfx->SceneViewport->GetViewport().Height);
+		desc.MipLevels	= 1;
 		desc.DepthOrArraySize = 1;
 		desc.SampleDesc = { 1, 0 };
 
@@ -45,20 +45,18 @@ namespace lde::RHI
 			&desc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			&clearValue,
-			IID_PPV_ARGS(&Resource)));
+			IID_PPV_ARGS(&m_Texture)));
 
-		if (DebugName)
-			Resource->SetName(DebugName);
+		m_Texture->SetName(String::ToWide(DebugName).c_str());
 
-		D3D12_RENDER_TARGET_VIEW_DESC rtv{};
-		rtv.Format = Format;
-		rtv.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-		rtv.Texture2D.MipSlice = 0;
-		rtv.Texture2D.PlaneSlice = 0;
-
-		//RTV = pGfx->RenderTargetHeap->Allocate();
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+		rtvDesc.Format = Format;
+		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+		rtvDesc.Texture2D.MipSlice = 0;
+		rtvDesc.Texture2D.PlaneSlice = 0;
+		
 		pGfx->Device->GetRTVHeap()->Allocate(GetRTV());
-		pGfx->Device->GetDevice()->CreateRenderTargetView(Resource.Get(), &rtv, GetRTV().GetCpuHandle());
+		pGfx->Device->GetDevice()->CreateRenderTargetView(m_Texture.Get(), &rtvDesc, GetRTV().GetCpuHandle());
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srv{};
 		srv.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
@@ -68,7 +66,7 @@ namespace lde::RHI
 		srv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		
 		((D3D12Device*)pGfx->GetDevice())->Allocate(HeapType::eSRV, GetSRV(), 1);
-		pGfx->Device->GetDevice()->CreateShaderResourceView(Resource.Get(), &srv, GetSRV().GetCpuHandle());
+		pGfx->Device->GetDevice()->CreateShaderResourceView(m_Texture.Get(), &srv, GetSRV().GetCpuHandle());
 
 		m_Format = Format;
 		m_Gfx = pGfx;
@@ -77,8 +75,8 @@ namespace lde::RHI
 
 	void D3D12RenderTexture::OnResize(uint32 , uint32 )
 	{
-		if (Resource.Get())
-			Resource.Reset();
+		if (m_Texture.Get())
+			m_Texture.Reset();
 
 		D3D12_CLEAR_VALUE clearValue{};
 		clearValue.Color[0] = ClearColor.at(0);
@@ -103,7 +101,7 @@ namespace lde::RHI
 			&desc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			&clearValue,
-			IID_PPV_ARGS(&Resource)));
+			IID_PPV_ARGS(&m_Texture)));
 
 		D3D12_RENDER_TARGET_VIEW_DESC rtv{};
 		rtv.Format = m_Format;
@@ -112,16 +110,16 @@ namespace lde::RHI
 		rtv.Texture2D.PlaneSlice = 0;
 
 		m_Gfx->Device->GetRTVHeap()->Allocate(GetRTV());
-		m_Gfx->Device->GetDevice()->CreateRenderTargetView(Resource.Get(), &rtv, GetRTV().GetCpuHandle());
+		m_Gfx->Device->GetDevice()->CreateRenderTargetView(m_Texture.Get(), &rtv, GetRTV().GetCpuHandle());
 
-		D3D12_SHADER_RESOURCE_VIEW_DESC srv{};
-		srv.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srv.Format = m_Format;
-		srv.Texture2D.MipLevels = 1;
-		srv.Texture2D.MostDetailedMip = 0;
-		srv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Format = m_Format;
+		srvDesc.Texture2D.MipLevels = 1;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
 		((D3D12Device*)m_Gfx->GetDevice())->Allocate(HeapType::eSRV, GetSRV(), 1);
-		m_Gfx->Device->GetDevice()->CreateShaderResourceView(Resource.Get(), &srv, GetSRV().GetCpuHandle());
+		m_Gfx->Device->GetDevice()->CreateShaderResourceView(m_Texture.Get(), &srvDesc, GetSRV().GetCpuHandle());
 	}
 }

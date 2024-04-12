@@ -8,7 +8,8 @@ namespace lde::RHI
 	class D3D12Descriptor;
 	class D3D12DescriptorHeap;
 	class D3D12Viewport;
-
+	
+	// TODO: Rework and move into other file
 	class D3D12DepthBuffer
 	{
 	public:
@@ -24,8 +25,8 @@ namespace lde::RHI
 
 		ID3D12Resource* Get() { return m_Resource.Get(); }
 
-		inline D3D12Descriptor DSV() { return m_DSV; }
-		inline D3D12Descriptor SRV() { return m_SRV; }
+		inline D3D12Descriptor DSV() const { return m_DSV; }
+		inline D3D12Descriptor SRV() const { return m_SRV; }
 
 		void Release();
 

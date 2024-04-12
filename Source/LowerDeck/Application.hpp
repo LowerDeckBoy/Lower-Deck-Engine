@@ -7,7 +7,6 @@
 #include <Engine/Platform/Window.hpp>
 #include <Engine/Core/CoreMinimal.hpp>
 
-#include <Engine/RHI/D3D12/D3D12Context.hpp>
 #include <Engine/RHI/D3D12/D3D12RHI.hpp>
 #include <Engine/Render/Renderer.hpp>
 #include <Engine/Scene/Scene.hpp>
@@ -39,7 +38,7 @@ namespace lde
 	private:
 		std::unique_ptr<Timer> m_AppTimer;
 
-		std::shared_ptr<RHI::D3D12Context> m_Gfx;
+		std::unique_ptr<RHI::D3D12RHI> m_Gfx;
 		std::unique_ptr<RHI::RHI> m_RHI;
 		std::unique_ptr<Renderer> m_Renderer;
 		std::unique_ptr<Scene> m_ActiveScene;

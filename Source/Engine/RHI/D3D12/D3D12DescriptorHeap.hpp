@@ -24,7 +24,7 @@ namespace lde::RHI
 	class D3D12DescriptorHeap
 	{
 	public:
-		D3D12DescriptorHeap(D3D12Device* pDevice, HeapType eType, uint32 MaxCapacity, const LPCWSTR& DebugName = L"");
+		D3D12DescriptorHeap(D3D12Device* pDevice, HeapType eType, uint32 MaxCapacity, std::string_view DebugName = "");
 		~D3D12DescriptorHeap();
 
 		//void Allocate(D3D12Descriptor& OutDescriptor, HeapType eType);

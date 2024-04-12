@@ -24,6 +24,15 @@ cbuffer SpecularMapFilterSettings : register(b2, space0)
 	float roughness;
 };
 
+static const uint NumSamples = 1024; // 16 * 
+static const float InvNumSamples = 1.0f / float(NumSamples);
+
+// Sample i-th point from Hammersley point set of NumSamples points total.
+float2 SampleHammersley(uint i)
+{
+	return float2(i * InvNumSamples, RadicalInverse_VdC(i));
+}
+
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2.
 float ndfGGX(float cosLh, float Roughness)

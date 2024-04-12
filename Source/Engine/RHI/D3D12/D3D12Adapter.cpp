@@ -1,13 +1,15 @@
 #include "D3D12Device.hpp"
 #include "D3D12Utility.hpp"
+#include "D3D12RootSignature.hpp"
+//#include "D3D12Memory.hpp"
 
 /*
 	Implemets Factory, Adapter, Device, Queues and Heaps creation from D3D12Device.hpp
 */
 
-// Setting AgilitySDK
-extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = 611; }
-extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\"; }
+/* ===========================================  Setting AgilitySDK =========================================== */
+extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = 611;			}
+extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\";	}
 
 namespace lde::RHI
 {
@@ -34,13 +36,10 @@ namespace lde::RHI
 
 		// Create Factory
 		DX_CALL(CreateDXGIFactory2(factoryFlags, IID_PPV_ARGS(&m_Factory)));
-		ASSERT(m_Factory.Get());
 
 		CreateAdapter();
 		CreateDevice();
-
-		m_Adapter->GetDesc3(&m_AdapterDesc);
-
+		
 		QueryShaderModel();
 		QueryFeatures();
 
@@ -49,20 +48,23 @@ namespace lde::RHI
 		CreateCommandLists();
 		CreateHeaps();
 
+		CreateFrameResources();
+		
 	}
 
 	void D3D12Device::Release()
 	{
-		m_GfxQueue.reset();
-		m_ComputeQueue.reset();
-		m_UploadQueue.reset();
+		delete m_FrameResources.GraphicsCommandList;
+		delete m_FrameResources.GraphicsQueue;
+		delete m_FrameResources.ComputeCommandList;
+		delete m_FrameResources.ComputeQueue;
+		delete m_FrameResources.UploadCommandList;
+		delete m_FrameResources.UploadQueue;
 
-		m_MipMapHeap.reset();
 		m_RTVHeap.reset();
 		m_DSVHeap.reset();
 		m_SRVHeap.reset();
 
-		m_GfxCommandList.reset();
 		m_Fence.reset();
 
 		SAFE_RELEASE(m_Device);
@@ -93,6 +95,10 @@ namespace lde::RHI
 				break;
 			}
 		}
+
+		LDE_ASSERT(m_Adapter.Get());
+		m_Adapter->GetDesc3(&m_AdapterDesc);
+
 	}
 
 	void D3D12Device::CreateDevice()
@@ -101,9 +107,9 @@ namespace lde::RHI
 		if (FAILED(D3D12CreateDevice(m_Adapter.Get(), DESIRED_FEATURE_LEVEL, IID_PPV_ARGS(&m_Device))))
 		{
 			DX_CALL(D3D12CreateDevice(m_Adapter.Get(), MINIMUM_FEATURE_LEVEL, IID_PPV_ARGS(&m_Device)));
-			m_Device->SetName(L"Logical Device");
+			SET_D3D12_NAME(m_Device, "D3D12 Logical Device");
 		}
-
+		
 #if DEBUG_MODE
 		// Create Debug interfaces
 		DX_CALL(m_Device->QueryInterface(&m_DebugDevices.DebugDevice));
@@ -145,35 +151,31 @@ namespace lde::RHI
 		DX_CALL(m_Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS7, &Features.Features7, sizeof(Features.Features7)));
 
 		Capabilities.RaytracingTier = Features.Features5.RaytracingTier;
-		Capabilities.BindingTier = Features.Features.ResourceBindingTier;
+		Capabilities.BindingTier	= Features.Features.ResourceBindingTier;
 		Capabilities.MeshShaderTier = Features.Features7.MeshShaderTier;
-
-		D3D12_FEATURE_DATA_COMMAND_QUEUE_PRIORITY priority{};
-		DX_CALL(m_Device->CheckFeatureSupport(D3D12_FEATURE_COMMAND_QUEUE_PRIORITY, &priority, sizeof(priority)));
-		CommandQueuePriority = priority.Priority;
-
+		
 	}
 
 	void D3D12Device::CreateQueues()
 	{
-		m_GfxQueue		= std::make_unique<D3D12Queue>(this, CommandType::eGraphics, L"Graphics Queue");
-		m_ComputeQueue	= std::make_unique<D3D12Queue>(this, CommandType::eCompute,  L"Compute Queue");
-		m_UploadQueue	= std::make_unique<D3D12Queue>(this, CommandType::eUpload,   L"Upload Queue");
+		//m_GfxQueue		= std::make_unique<D3D12Queue>(this, CommandType::eGraphics, "Graphics Queue");
+		//m_ComputeQueue	= std::make_unique<D3D12Queue>(this, CommandType::eCompute,  "Compute Queue");
+		//m_UploadQueue	= std::make_unique<D3D12Queue>(this, CommandType::eUpload,   "Upload Queue");
 	}
 
 	void D3D12Device::CreateCommandLists()
 	{
-		m_GfxCommandList = std::make_unique<D3D12CommandList>(this, CommandType::eGraphics, "Graphics Command List");
+		//m_GfxCommandList = std::make_unique<D3D12CommandList>(this, CommandType::eGraphics, "Graphics Command List");
+		//m_ComputeCommandList = std::make_unique<D3D12CommandList>(this, CommandType::eCompute, "Compute Command List");
 
 	}
 
 	void D3D12Device::CreateHeaps()
 	{
-		m_SRVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 4096, L"SRV Descriptor Heap");
-		m_DSVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eDSV, 64,   L"DSV Descriptor Heap");
-		m_RTVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eRTV, 64,   L"RTV Descriptor Heap");
-
-		m_MipMapHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 1024,   L"MipMap Descriptor Heap");
+		// Needs to be bigger as is also meant for generating mip chains.
+		m_SRVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 32768, "SRV Descriptor Heap");
+		m_DSVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eDSV, 64,    "DSV Descriptor Heap");
+		m_RTVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eRTV, 64,    "RTV Descriptor Heap");
 	}
 	
 } // namespace lde::RHI
