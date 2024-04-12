@@ -1,6 +1,6 @@
 ﻿# CMakeList.txt : Top-level CMake project file, do global configuration
 
-cmake_minimum_required (VERSION 3.5)
+cmake_minimum_required (VERSION 3.5.0)
 project("Lower Deck Engine")
 
 add_definitions(-DUNICODE -D_UNICODE -DNOMINMAX)

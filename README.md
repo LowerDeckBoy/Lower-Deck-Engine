@@ -6,6 +6,29 @@ Currently running D3D12 backend only.
 
 Lower Deck is a working name - likely to change it later.
 
+## Features and goals:
+
+- [x] Deferred rendering
+- [x] Bindless resources
+- [ ] Physically Based Rendering:
+    - [x] Epic's UE4 PBR
+    - [ ] Disney's PBR
+- [x] Image Based Lighting:
+    - [x] Diffuse
+    - [x] Specular
+- [ ] Shadows:
+    - [ ] Directional
+    - [ ] Point
+- [ ] Raytracing:
+    - [ ] Shadows
+    - [ ] Reflections
+- [ ] Model loading:
+    - [x] glTF 2.0
+    - [ ] glb
+    - [x] fbx
+    - [ ] obj
+
+
 ## Built with:
 
 - **C++20**
@@ -26,4 +49,8 @@ Lower Deck is a working name - likely to change it later.
 - [**ImGui**](https://github.com/ocornut/imgui)
 - [**FontAwesome**](https://github.com/juliettef/IconFontCppHeaders)
 - [**cereal**](https://github.com/USCiLab/cereal)
+- [**fast_obj**](https://github.com/thisistherk/fast_obj)
 
+## Screenshots
+
+![Sponza](Media/Sponza_pbr.jpg)
