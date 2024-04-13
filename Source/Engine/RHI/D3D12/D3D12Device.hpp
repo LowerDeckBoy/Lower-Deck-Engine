@@ -16,12 +16,17 @@
 #include <unordered_map>
 
 #if DEBUG_MODE
-#	include <dxgidebug.h>
+	#include <dxgidebug.h>
 #endif
 
 namespace lde::RHI
 {
-	class D3D12RootSignature;
+	// Since running single GPU, node stays as 0.
+	constexpr uint32 DEVICE_NODE = 0;
+
+	class D3D12Texture;
+	class D3D12Buffer;
+	class D3D12ConstantBuffer;
 
 	struct D3D12Debug
 	{
@@ -63,7 +68,18 @@ namespace lde::RHI
 		
 		// Default; Graphics Queue
 		void WaitForGPU();
+
+		/**
+		 * @brief Wait for GPU to finish it's work on given type of a Queue.
+		 * @param eType Queue to wait for.
+		 */
 		void WaitForGPU(CommandType eType);
+
+		/**
+		 * @brief Wait for all types of queues to finish it's work.
+		 */
+		void WaitForAllQueues();
+
 		void FlushGPU();
 		void IdleGPU();
 
@@ -73,8 +89,9 @@ namespace lde::RHI
 		 * @param bResetAllocator 
 		 */
 		void ExecuteCommandList(CommandType eType, bool bResetAllocator = false);
+		void ExecuteAllCommandLists(bool bResetAllocators);
 
-		D3D12Fence* GetFence()						{ return m_Fence.get(); }
+		D3D12Fence* GetFence() { return m_Fence.get(); }
 
 		/**
 		 * @brief 
@@ -94,10 +111,10 @@ namespace lde::RHI
 			uint64				UploadFenceValue = 0;
 		} m_FrameResources{};
 
-		FrameResources& GetFrameResources() { return m_FrameResources; }
+		void			CreateFrameResources();
+		FrameResources& GetFrameResources()			{ return m_FrameResources; }
 
 		D3D12Queue*			GetGfxQueue()			{ return m_FrameResources.GraphicsQueue;		}
-
 		D3D12CommandList*	GetGfxCommandList()		{ return m_FrameResources.GraphicsCommandList;	}
 
 		D3D12DescriptorHeap* GetSRVHeap()			{ return m_SRVHeap.get();		}
@@ -118,23 +135,14 @@ namespace lde::RHI
 		Ref<IDXGIAdapter4> m_Adapter;
 		Ref<ID3D12Device8> m_Device;
 
+		DXGI_ADAPTER_DESC3 m_AdapterDesc{};
+
 		std::unique_ptr<D3D12Fence> m_Fence;
-
-		//std::unique_ptr<D3D12Queue> m_GfxQueue;
-		//std::unique_ptr<D3D12Queue> m_ComputeQueue;
-		//std::unique_ptr<D3D12Queue> m_UploadQueue;
-
-		//std::unique_ptr<D3D12CommandList> m_GfxCommandList;
-		//std::unique_ptr<D3D12CommandList> m_ComputeCommandList;
-		//std::unique_ptr<D3D12CommandList> m_UploadCommandList;
 
 		std::unique_ptr<D3D12DescriptorHeap> m_SRVHeap;
 		std::unique_ptr<D3D12DescriptorHeap> m_DSVHeap;
 		std::unique_ptr<D3D12DescriptorHeap> m_RTVHeap;
 
-		
-
-		void CreateFrameResources();
 
 	private:
 		void Create();
@@ -157,28 +165,31 @@ namespace lde::RHI
 		void CreateCommandLists();
 		void CreateHeaps();
 
-		DXGI_ADAPTER_DESC3 m_AdapterDesc{};
-		
 #if DEBUG_MODE
 		D3D12Debug m_DebugDevices;
 #endif
 
 	public:
-
-
-		//std::vector<D3D12Buffer*>	Buffers;
-		//std::vector<D3D12Texture*>	Textures;
+		// TODO:
+		std::vector<D3D12Buffer*>			Buffers;
+		std::vector<D3D12ConstantBuffer*>	ConstantBuffers;
+		std::vector<D3D12Texture*>			Textures;
 
 		/* ======================== RHI implementations ======================== */
 
-		Buffer*			CreateBuffer(BufferDesc Desc) override final;
-		ConstantBuffer* CreateConstantBuffer(void* pData, usize Size) override final;
-		Texture*		CreateTexture(TextureDesc Desc) override final;
+		BufferHandle	CreateBuffer(BufferDesc Desc) override final;
+		BufferHandle	CreateConstantBuffer(void* pData, usize Size) override final;
+		// Temporal
+		TextureHandle	CreateTexture(D3D12Texture* pTexture);
+		//TextureHandle	CreateTexture(TextureDesc Desc) override final;
 
-		void CreateSRV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 Count = 1);
+		void			DestroyBuffer(BufferHandle Handle);
+		void			DestroyConstantBuffer(BufferHandle Handle);
+		void			DestroyTexture(TextureHandle Handle);
+
+
 		void CreateSRV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 Mips, uint32 Count);
-		void CreateUAV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 Count = 1);
-		void CreateUAV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 MipSlice, uint32 Count = 1);
+		void CreateUAV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 MipSlice, uint32 Count);
 
 	private:
 

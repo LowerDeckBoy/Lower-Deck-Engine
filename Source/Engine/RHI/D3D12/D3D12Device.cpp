@@ -26,10 +26,12 @@ namespace lde::RHI
 		case lde::RHI::CommandType::eGraphics:
 			m_Fence->Signal(GetFrameResources().GraphicsQueue, m_Fence->GetValue());
 			break;
-		//case lde::RHI::CommandType::eCompute:
-		//	break;
-		//case lde::RHI::CommandType::eUpload:
-		//	break;
+		case lde::RHI::CommandType::eCompute:
+			m_Fence->Signal(GetFrameResources().ComputeQueue, m_Fence->GetValue());
+			break;
+		case lde::RHI::CommandType::eUpload:
+			m_Fence->Signal(GetFrameResources().UploadQueue, m_Fence->GetValue());
+			break;
 		//case lde::RHI::CommandType::eBundle:
 		//	break;
 		}
@@ -65,7 +67,7 @@ namespace lde::RHI
 		WaitForGPU();
 		FlushGPU();
 	}
-
+	
 	void D3D12Device::ExecuteCommandList(CommandType eType, bool bResetAllocator)
 	{
 		D3D12CommandList* commandList = nullptr;
@@ -75,8 +77,20 @@ namespace lde::RHI
 		{
 		case lde::RHI::CommandType::eGraphics:
 		{
-			commandList = GetFrameResources().GraphicsCommandList;
+			commandList  = GetFrameResources().GraphicsCommandList;
 			commandQueue = GetFrameResources().GraphicsQueue->Get();
+			break;
+		}
+		case lde::RHI::CommandType::eCompute:
+		{
+			commandList  = GetFrameResources().ComputeCommandList;
+			commandQueue = GetFrameResources().ComputeQueue->Get();
+			break;
+		}
+		case lde::RHI::CommandType::eUpload:
+		{
+			commandList  = GetFrameResources().UploadCommandList;
+			commandQueue = GetFrameResources().UploadQueue->Get();
 			break;
 		}
 		default:
@@ -94,7 +108,8 @@ namespace lde::RHI
 			commandList->ResetList();
 		}
 		
-		WaitForGPU();
+		//WaitForGPU();
+		WaitForGPU(eType);
 	}
 
 	void D3D12Device::CreateFrameResources()
@@ -129,54 +144,49 @@ namespace lde::RHI
 		}
 	}
 
-    Buffer* D3D12Device::CreateBuffer(BufferDesc Desc)
-    {
-        return new D3D12Buffer(this, Desc);
-    }
-
-    ConstantBuffer* D3D12Device::CreateConstantBuffer(void* pData, usize Size)
-    {
-        return new D3D12ConstantBuffer(pData, Size);
-    }
-
-    Texture* D3D12Device::CreateTexture(TextureDesc /* Desc */)
-    {
-        return nullptr;
-    }
-
-	void D3D12Device::CreateSRV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 Count)
+	BufferHandle D3D12Device::CreateBuffer(BufferDesc Desc)
 	{
-		const auto desc = pResource->GetDesc();
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.Format = desc.Format;
+		BufferHandle handle = static_cast<BufferHandle>(Buffers.size());
+
+		Buffers.push_back(new D3D12Buffer(this, Desc));
 		
-		if (desc.DepthOrArraySize == 6)
-		{
-			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-			srvDesc.TextureCube.MipLevels = desc.MipLevels;
-			srvDesc.TextureCube.MostDetailedMip = 0;
-		}
-		else if (desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
-		{
-			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-			srvDesc.Texture2D.MipLevels = desc.MipLevels;
-			srvDesc.Texture2D.MostDetailedMip = 0;
-			srvDesc.Texture2D.PlaneSlice = 0;
-		}
-		else if (desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE3D)
-		{
-			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
-			srvDesc.Texture3D.MipLevels = desc.MipLevels;
-			srvDesc.Texture3D.MostDetailedMip = 0;
-		}
-		else if (desc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
-		{
-			// TODO:
-		}
-		
-		Descriptor = m_SRVHeap->Allocate(Count);
-		m_Device->CreateShaderResourceView(pResource, &srvDesc, Descriptor.GetCpuHandle());
+		return handle;
+	}
+	
+	BufferHandle D3D12Device::CreateConstantBuffer(void* pData, usize Size)
+	{
+		BufferHandle handle = static_cast<BufferHandle>(ConstantBuffers.size());
+
+		ConstantBuffers.push_back(new D3D12ConstantBuffer(pData, Size));
+
+		return handle;
+	}
+
+	TextureHandle D3D12Device::CreateTexture(D3D12Texture* pTexture)
+	{
+		TextureHandle handle = static_cast<TextureHandle>(Textures.size());
+
+		Textures.push_back(pTexture);
+
+		return handle;
+	}
+
+	void D3D12Device::DestroyBuffer(BufferHandle Handle)
+	{
+		Buffers.at(Handle)->Release();
+		delete Buffers.at(Handle);
+	}
+
+	void D3D12Device::DestroyConstantBuffer(BufferHandle Handle)
+	{
+		ConstantBuffers.at(Handle)->Release();
+		delete ConstantBuffers.at(Handle);
+	}
+
+	void D3D12Device::DestroyTexture(TextureHandle Handle)
+	{
+		Textures.at(Handle)->Release();
+		delete Textures.at(Handle);
 	}
 
 	void D3D12Device::CreateSRV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 Mips, uint32 Count)
@@ -213,42 +223,7 @@ namespace lde::RHI
 		Descriptor = m_SRVHeap->Allocate(Count);
 		m_Device->CreateShaderResourceView(pResource, &srvDesc, Descriptor.GetCpuHandle());
 	}
-
-	void D3D12Device::CreateUAV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 Count)
-	{
-		const auto desc = pResource->GetDesc();
-		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
-		uavDesc.Format = desc.Format;
-
-		if (desc.DepthOrArraySize > 1)
-		{
-			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
-			uavDesc.Texture2DArray.MipSlice = 0;
-			uavDesc.Texture2DArray.PlaneSlice = 0;
-			uavDesc.Texture2DArray.FirstArraySlice = 0;
-			uavDesc.Texture2DArray.ArraySize = desc.DepthOrArraySize;
-		}
-		else if (desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
-		{
-			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-			uavDesc.Texture2D.MipSlice = 0;
-			uavDesc.Texture2D.PlaneSlice = 0;
-		}
-		else if (desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE3D)
-		{
-			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
-			uavDesc.Texture3D.MipSlice = 0;
-		}
-		else if (desc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
-		{
-			// TODO:
-		}
-
-		Descriptor = m_SRVHeap->Allocate(Count);
-		m_Device->CreateUnorderedAccessView(pResource, nullptr, &uavDesc, Descriptor.GetCpuHandle());
-
-	}
-
+	
 	void D3D12Device::CreateUAV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 MipSlice, uint32 Count)
 	{
 		const auto desc = pResource->GetDesc();

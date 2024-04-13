@@ -1,4 +1,5 @@
 #include "D3D12Buffer.hpp"
+#include "D3D12Texture.hpp"
 #include "D3D12RHI.hpp"
 
 #include <Core/Logger.hpp>
@@ -71,13 +72,29 @@ namespace lde::RHI
 		SceneDepth = new D3D12DepthBuffer(Device.get(), Device->GetDSVHeap(), SceneViewport);
 
 		LOG_INFO("Backend: D3D12 initialized.");
-
 	}
 
 	void D3D12RHI::Release()
 	{
 		delete SceneDepth;
-		SwapChain.reset();;
+		SwapChain.reset();
+
+
+		for (auto& texture : Device->Textures)
+		{
+			texture->Release();
+			delete texture;
+		}
+		for (auto* buffer : Device->ConstantBuffers)
+		{
+			buffer->Release();
+			delete buffer;
+		}
+		for (auto* buffer : Device->Buffers)
+		{
+			buffer->Release();
+			delete buffer;
+		}
 		SAFE_RELEASE(D3D12Memory::Allocator);
 		Device.reset();
 		LOG_INFO("Backend: D3D12 released.");
