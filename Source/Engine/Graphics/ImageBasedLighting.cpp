@@ -1,13 +1,11 @@
 #include "Skybox.hpp"
 #include "ImageBasedLighting.hpp"
 #include "RHI/D3D12/D3D12Utility.hpp"
-//#include <AgilitySDK/d3dx12/d3dx12.h>
 #include "TextureManager.hpp"
 #include "ShaderCompiler.hpp"
-#include <DirectXTex.h>
-#include <directxtk12/ResourceUploadBatch.h>
 #include <Core/Math.hpp>
 #include <Core/Logger.hpp>
+#include <stb/stb_image.h>
 
 namespace lde
 {
@@ -132,28 +130,22 @@ namespace lde
 
 	void ImageBasedLighting::CreateHDRTexture(std::string_view Filepath, Skybox* pSkybox)
 	{
-		// Create texture from HDR image
-		DirectX::ScratchImage scratchImage{};
-		auto path = String::ToWide(Filepath);
-		DirectX::LoadFromHDRFile(path.c_str(), nullptr, scratchImage);
-		DirectX::TexMetadata metadata = scratchImage.GetMetadata();
+		int32 width,height;
+		stbi_ldr_to_hdr_scale(1.0f);
+		stbi_ldr_to_hdr_gamma(2.2f);
+		float* pixels = stbi_loadf(Filepath.data(), &width, &height, 0, STBI_rgb_alpha);
 
 		D3D12_RESOURCE_DESC desc{};
-		desc.Format = metadata.format;
-		desc.Width = static_cast<uint64>(metadata.width);
-		desc.Height = static_cast<uint32>(metadata.height);
-		desc.MipLevels = 6;
+		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		desc.Width = static_cast<uint64_t>(width);
+		desc.Height = static_cast<uint32_t>(height);
+		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		desc.MipLevels = 1;
 		desc.DepthOrArraySize = 1;
 		desc.SampleDesc = { 1, 0 };
-		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 		desc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
-		if (metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE1D)
-			desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE1D;
-		else if (metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE2D)
-			desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		else if (metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE3D)
-			desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
 		pSkybox->Texture = new RHI::D3D12Texture();
 		RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
 			&RHI::D3D12Utility::HeapDefault,
@@ -161,47 +153,38 @@ namespace lde
 			&desc,
 			D3D12_RESOURCE_STATE_COPY_DEST,
 			nullptr,
-			IID_PPV_ARGS(&pSkybox->Texture->Texture)));
-		pSkybox->Texture->Texture->SetName(L"Skybox Equirectangular Texture");
+			IID_PPV_ARGS(&pSkybox->Texture->Texture)
+		));
 
 		D3D12_SUBRESOURCE_DATA subresource{};
-		subresource.pData = scratchImage.GetImages()->pixels;
-		subresource.RowPitch = static_cast<int64>(scratchImage.GetImages()->rowPitch);
-		subresource.SlicePitch = static_cast<int64>(scratchImage.GetImages()->slicePitch);
+		subresource.pData = pixels;
+		subresource.RowPitch = static_cast<LONG_PTR>(desc.Width * 16u);
+		subresource.SlicePitch = static_cast<LONG_PTR>(subresource.RowPitch * desc.Height);
 
-		const auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(scratchImage.GetImages()->slicePitch);
+		const auto uploadBuffer = CD3DX12_RESOURCE_DESC::Buffer(subresource.SlicePitch);
 
 		Ref<ID3D12Resource> uploadResource;
 		RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
 			&RHI::D3D12Utility::HeapUpload,
 			D3D12_HEAP_FLAG_NONE,
-			&bufferDesc,
+			&uploadBuffer,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
-			IID_PPV_ARGS(&uploadResource)));
-
-		//DirectX::ScratchImage outMipChain{};
-		//DirectX::ResourceUploadBatch upload(m_Gfx->Device->GetDevice());
-		//upload.Begin();
-		//upload.Upload(pSkybox->Texture->Texture.Get(), 0, &subresource, 1);
-		//upload.Transition(pSkybox->Texture->Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		//upload.GenerateMips(pSkybox->Texture->Texture.Get());
+			IID_PPV_ARGS(uploadResource.ReleaseAndGetAddressOf())
+		));
+		uploadResource->SetName(L"Texture Upload Resource");
 
 		m_Gfx->UploadResource(pSkybox->Texture->Texture, uploadResource, subresource);
 		m_Gfx->TransitResource(pSkybox->Texture->Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
 		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
-		//textureManager.Generate2D(pSkybox->Texture);
 
-		pSkybox->Texture->Width		= static_cast<uint32>(desc.Width);
-		pSkybox->Texture->Height	= desc.Height;
-		pSkybox->Texture->Format	= desc.Format;
-		pSkybox->Texture->MipLevels = desc.MipLevels;
-		m_Gfx->Device->CreateSRV(pSkybox->Texture->Texture.Get(), pSkybox->Texture->SRV);
+		m_Gfx->Device->CreateSRV(pSkybox->Texture->Texture.Get(), pSkybox->Texture->SRV, 1, 1);
 
-		//auto finish{ upload.End(m_Gfx->Device->GetGfxQueue()->Get()) };
-		//finish.wait();
-
+		stbi_image_free(pixels);
 		SAFE_RELEASE(uploadResource);
+
+		
 	}
 
 	void ImageBasedLighting::CreateTextureCube(Skybox* pSkybox)
@@ -334,7 +317,7 @@ namespace lde
 		pSkybox->DiffuseTexture->Texture->SetName(L"[Image Based Lighting] Diffuse Irradiance Texture");
 		m_Gfx->Device->Allocate(RHI::HeapType::eSRV, pSkybox->DiffuseTexture->SRV, 1);
 		
-		m_Gfx->Device->CreateUAV(pSkybox->DiffuseTexture->Texture.Get(), pSkybox->DiffuseTexture->UAV);
+		m_Gfx->Device->CreateUAV(pSkybox->DiffuseTexture->Texture.Get(), pSkybox->DiffuseTexture->UAV, 0, 1);
 		
 		const auto dispatch = [&](RHI::D3D12CommandList* pCmdList) {
 			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
@@ -348,7 +331,7 @@ namespace lde
 
 		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
 		
-		m_Gfx->Device->CreateSRV(pSkybox->DiffuseTexture->Texture.Get(), pSkybox->DiffuseTexture->SRV);
+		m_Gfx->Device->CreateSRV(pSkybox->DiffuseTexture->Texture.Get(), pSkybox->DiffuseTexture->SRV, 1, 1);
 
 	}
 
@@ -461,7 +444,7 @@ namespace lde
 		));
 		pSkybox->BRDFTexture->Texture->SetName(L"[Image Based Lighting] Specular BRDF LUT texture");
 
-		m_Gfx->Device->CreateUAV(pSkybox->BRDFTexture->Texture.Get(), pSkybox->BRDFTexture->UAV);
+		m_Gfx->Device->CreateUAV(pSkybox->BRDFTexture->Texture.Get(), pSkybox->BRDFTexture->UAV, 0, 1);
 
 		const auto dispatch = [&](RHI::D3D12CommandList* pCmdList){
 			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
@@ -474,7 +457,7 @@ namespace lde
 
 		m_Gfx->TransitResource(pSkybox->BRDFTexture->Texture, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
-		m_Gfx->Device->CreateSRV(pSkybox->BRDFTexture->Texture.Get(), pSkybox->BRDFTexture->SRV);
+		m_Gfx->Device->CreateSRV(pSkybox->BRDFTexture->Texture.Get(), pSkybox->BRDFTexture->SRV, 1, 1);
 
 	}
 
