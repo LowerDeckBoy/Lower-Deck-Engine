@@ -393,34 +393,42 @@ namespace lde::editor
 			if (ImGui::BeginMenu(ICON_FA_IMAGES" Render Target"))
 			{
 				if (ImGui::MenuItem("Shaded"))
+				{
 					m_Renderer->SelectedRenderTarget = RenderOutput::eShaded;
-
-				if (ImGui::MenuItem("Depth"))
+				}
+				else if (ImGui::MenuItem("Depth"))
+				{
 					m_Renderer->SelectedRenderTarget = RenderOutput::eDepth;
-
-				if (ImGui::MenuItem("Base Color"))
+				}
+				else if (ImGui::MenuItem("Base Color"))
+				{
 					m_Renderer->SelectedRenderTarget = RenderOutput::eBaseColor;
-
-				if (ImGui::MenuItem("TexCoords"))
+				}
+				else if (ImGui::MenuItem("TexCoords"))
+				{ 
 					m_Renderer->SelectedRenderTarget = RenderOutput::eTexCoords;
-
-				if (ImGui::MenuItem("Normal"))
+				}
+				else if (ImGui::MenuItem("Normal"))
+				{
 					m_Renderer->SelectedRenderTarget = RenderOutput::eNormal;
-		
-				if (ImGui::MenuItem("Metallic-Roughness"))
+				}
+				else if (ImGui::MenuItem("Metallic-Roughness"))
+				{
 					m_Renderer->SelectedRenderTarget = RenderOutput::eMetalRoughness;
-
-				if (ImGui::MenuItem("Emissive"))
+				}
+				else if (ImGui::MenuItem("Emissive"))
+				{
 					m_Renderer->SelectedRenderTarget = RenderOutput::eEmissive;
-
-				if (ImGui::MenuItem("World Position"))
+				}
+				else if (ImGui::MenuItem("World Position"))
+				{
 					m_Renderer->SelectedRenderTarget = RenderOutput::eWorldPosition;
-
-				if (ImGui::MenuItem("Skybox"))
+				}
+				else if (ImGui::MenuItem("Skybox"))
+				{
 					m_Renderer->SelectedRenderTarget = RenderOutput::eSkybox;
-
+				}
 				
-
 				ImGui::EndMenu();
 			}
 
