@@ -56,18 +56,15 @@ namespace lde::RHI
 	class D3D12Device : public Device
 	{
 	public:
-		D3D12Device()  { Create();  }
-		~D3D12Device() { Release(); }
+		D3D12Device();
+		~D3D12Device();
 
-		D3D12Features		Features;
-		D3D12Capabilities	Capabilities;
-		
 		IDXGIFactory7* GetFactory() { return m_Factory.Get(); }
 		IDXGIAdapter4* GetAdapter() { return m_Adapter.Get(); }
 		ID3D12Device8* GetDevice()  { return m_Device.Get();  }
 		
 		// Default; Graphics Queue
-		void WaitForGPU();
+		//void WaitForGPU();
 
 		/**
 		 * @brief Wait for GPU to finish it's work on given type of a Queue.
@@ -100,7 +97,10 @@ namespace lde::RHI
 		{
 			D3D12CommandList*	GraphicsCommandList;
 			D3D12Queue*			GraphicsQueue;
-			uint64				FrameFenceValue = 0;
+			D3D12Fence*			RenderFence;
+			//uint64				RenderFenceValue = 0;
+			// https://www.youtube.com/watch?v=KsCZDeJDXDQ
+			uint64				RenderFenceValues[FRAME_COUNT];
 
 			D3D12CommandList*	ComputeCommandList;
 			D3D12Queue*			ComputeQueue;
@@ -114,22 +114,25 @@ namespace lde::RHI
 		void			CreateFrameResources();
 		FrameResources& GetFrameResources()			{ return m_FrameResources; }
 
-		D3D12Queue*			GetGfxQueue()			{ return m_FrameResources.GraphicsQueue;		}
-		D3D12CommandList*	GetGfxCommandList()		{ return m_FrameResources.GraphicsCommandList;	}
+		D3D12Queue*			 GetGfxQueue()			{ return m_FrameResources.GraphicsQueue;		}
+		D3D12CommandList*	 GetGfxCommandList()	{ return m_FrameResources.GraphicsCommandList;	}
 
-		D3D12DescriptorHeap* GetSRVHeap()			{ return m_SRVHeap.get();		}
-		D3D12DescriptorHeap* GetDSVHeap()			{ return m_DSVHeap.get();		}
-		D3D12DescriptorHeap* GetRTVHeap()			{ return m_RTVHeap.get();		}
+		D3D12DescriptorHeap* GetSRVHeap()			{ return m_SRVHeap.get(); }
+		D3D12DescriptorHeap* GetDSVHeap()			{ return m_DSVHeap.get(); }
+		D3D12DescriptorHeap* GetRTVHeap()			{ return m_RTVHeap.get(); }
 
 
 		/**
-		 * @brief Allocate given Descriptor from the Heap of given enum type.
-		 * @param eType 
-		 * @param Descriptor 
-		 * @param Count 
+		 * @brief				Allocate given Descriptor from the Heap of given enum type.
+		 * @param eType			Type of a Heap to allocate from.
+		 * @param Descriptor	Target Descriptor.
+		 * @param Count			How much space Descriptor needs. Defaults to 1.
 		 */
 		void Allocate(HeapType eType, D3D12Descriptor& Descriptor, uint32 Count = 1);
 		
+		D3D12Features		Features;
+		D3D12Capabilities	Capabilities;
+
 	private:
 		Ref<IDXGIFactory7> m_Factory;
 		Ref<IDXGIAdapter4> m_Adapter;
@@ -139,10 +142,13 @@ namespace lde::RHI
 
 		std::unique_ptr<D3D12Fence> m_Fence;
 
+		// TODO:
+		// https://stackoverflow.com/questions/59569301/how-many-fences-are-necessary-to-support-multiple-frames-in-flight-each-using-mu
+		//std::unique_ptr<D3D12Fence> m_RenderFence;
+
 		std::unique_ptr<D3D12DescriptorHeap> m_SRVHeap;
 		std::unique_ptr<D3D12DescriptorHeap> m_DSVHeap;
 		std::unique_ptr<D3D12DescriptorHeap> m_RTVHeap;
-
 
 	private:
 		void Create();
@@ -151,18 +157,9 @@ namespace lde::RHI
 		void CreateAdapter();
 		void CreateDevice();
 
-		/**
-		 * @brief Check if SM6.6 is supported.
-		 */
 		void QueryShaderModel();
-
-		/**
-		 * @brief  Gather Device features
-		 */
 		void QueryFeatures();
-
-		void CreateQueues();
-		void CreateCommandLists();
+		
 		void CreateHeaps();
 
 #if DEBUG_MODE

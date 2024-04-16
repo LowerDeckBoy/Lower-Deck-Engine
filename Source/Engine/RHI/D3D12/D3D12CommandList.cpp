@@ -52,7 +52,7 @@ namespace lde::RHI
 			DX_CALL(pDevice->GetDevice()->CreateCommandAllocator(type, IID_PPV_ARGS(&allocator)));
 		}
 
-		DX_CALL(pDevice->GetDevice()->CreateCommandList(0, type, GetAllocator(), nullptr, IID_PPV_ARGS(&m_GraphicsCommandList)));
+		DX_CALL(pDevice->GetDevice()->CreateCommandList(DEVICE_NODE, type, GetAllocator(), nullptr, IID_PPV_ARGS(&m_GraphicsCommandList)));
 		SET_D3D12_NAME(m_GraphicsCommandList, DebugName);
 
 		m_Type = eType;
