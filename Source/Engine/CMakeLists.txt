@@ -39,17 +39,10 @@ elseif (${CMAKE_CXX_COMPILER_ID} MATCHES "CLANG") # Add Clang specific compiler 
 	target_compile_options(${PROJECT_NAME} PRIVATE -W4 -fp:fast -GA -MP -TP -O2 -Ot -fexceptions)
 endif()
 
-message("Compile flags: " ${CMAKE_CXX_FLAGS})
-message("Compile debug flags: " ${CMAKE_CXX_FLAGS_DEBUG})
 find_package(assimp CONFIG REQUIRED)
-find_package(DirectXTex CONFIG REQUIRED)
-find_package(DirectXTK12 CONFIG REQUIRED)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/Third-party)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC d3d12 dxgi dxguid dinput8)
 target_link_libraries(${PROJECT_NAME} PUBLIC assimp::assimp)
-target_link_libraries(${PROJECT_NAME} PUBLIC Microsoft::DirectXTex)
-target_link_libraries(${PROJECT_NAME} PUBLIC Microsoft::DirectXTK12)
-

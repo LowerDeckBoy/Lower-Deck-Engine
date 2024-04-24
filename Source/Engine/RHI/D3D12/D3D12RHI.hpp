@@ -18,6 +18,7 @@
 #include "D3D12Memory.hpp"
 #include "D3D12PipelineState.hpp"
 #include "D3D12Queue.hpp"
+#include "D3D12Texture.hpp"
 #include "D3D12RootSignature.hpp"
 #include "D3D12SwapChain.hpp"
 #include "D3D12Utility.hpp"
@@ -69,11 +70,8 @@ namespace lde::RHI
 
 		/// @brief 
 		D3D12DepthBuffer* SceneDepth = nullptr;
-
-		/// @brief For HLSL RootSignature
-		inline static D3D12RootSignature GlobalRootSignature;
-
-		uint32 QueryAdapterMemory();
+		
+		uint32 QueryAdapterMemory() const;
 
 		void MoveToNextFrame();
 
@@ -84,6 +82,7 @@ namespace lde::RHI
 		void SetMainRenderTarget() const;
 		void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE RtvCpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE* DepthCpuHandle = nullptr);
 		void SetRenderTargets(std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>& RtvCpuHandles, D3D12_CPU_DESCRIPTOR_HANDLE DepthCpuHandle);
+
 		// Clear current Swapchain backbuffer
 		void ClearMainRenderTarget() const; 
 		void ClearRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE RtvCpuHandle);
@@ -103,6 +102,7 @@ namespace lde::RHI
 		void UploadResource(ID3D12Resource** ppDst, ID3D12Resource** ppSrc, D3D12_SUBRESOURCE_DATA& Subresource);
 		void UploadResource(Ref<ID3D12Resource> ppDst, Ref<ID3D12Resource> ppSrc, D3D12_SUBRESOURCE_DATA Subresource);
 
+		void CopyResource(ID3D12Resource* pDst, ID3D12Resource* pSrc);
 		void CopyResource(Ref<ID3D12Resource> ppDst, Ref<ID3D12Resource> ppSrc);
 
 		void BindIndexBuffer(Buffer* pIndexBuffer) const;

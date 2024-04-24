@@ -31,17 +31,10 @@ namespace lde::RHI
 		switch (eType)
 		{
 		case lde::RHI::CommandType::eGraphics:
-			m_Fence->Signal(GetFrameResources().GraphicsQueue, m_Fence->GetValue());
+			m_Fence->Signal(GetGfxQueue(), m_Fence->GetValue());
+			//m_Fence->Signal(GetFrameResources().GraphicsQueue, m_Fence->GetValue());
 			//m_FrameResources.GraphicsQueue->Signal(m_Fence.get(), m_FrameResources.RenderFenceValues[FRAME_INDEX]);
 			break;
-		case lde::RHI::CommandType::eCompute:
-			//m_Fence->Signal(GetFrameResources().ComputeQueue, m_Fence->GetValue());
-			break;
-		case lde::RHI::CommandType::eUpload:
-			//m_Fence->Signal(GetFrameResources().UploadQueue, m_Fence->GetValue());
-			break;
-		//case lde::RHI::CommandType::eBundle:
-		//	break;
 		}
 
 		m_Fence->Wait();
@@ -55,7 +48,8 @@ namespace lde::RHI
 	void D3D12Device::FlushGPU()
 	{
 		//ID3D12CommandQueue* queue = m_GfxQueue->Get();
-		ID3D12CommandQueue* queue = GetFrameResources().GraphicsQueue->Get();
+		//ID3D12CommandQueue* queue = GetFrameResources().GraphicsQueue->Get();
+		ID3D12CommandQueue* queue = GetGfxQueue()->Get();
 		ID3D12Fence* pFence = nullptr;
 		DX_CALL(m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pFence)));
 
@@ -88,20 +82,8 @@ namespace lde::RHI
 		{
 		case lde::RHI::CommandType::eGraphics:
 		{
-			commandList  = GetFrameResources().GraphicsCommandList;
-			commandQueue = GetFrameResources().GraphicsQueue->Get();
-			break;
-		}
-		case lde::RHI::CommandType::eCompute:
-		{
-			commandList  = GetFrameResources().ComputeCommandList;
-			commandQueue = GetFrameResources().ComputeQueue->Get();
-			break;
-		}
-		case lde::RHI::CommandType::eUpload:
-		{
-			commandList  = GetFrameResources().UploadCommandList;
-			commandQueue = GetFrameResources().UploadQueue->Get();
+			commandList  = GetGfxCommandList();
+			commandQueue = GetGfxQueue()->Get();
 			break;
 		}
 		default:
@@ -127,17 +109,8 @@ namespace lde::RHI
 	{
 		m_FrameResources.GraphicsCommandList = new D3D12CommandList(this, CommandType::eGraphics);
 		m_FrameResources.GraphicsQueue = new D3D12Queue(this, CommandType::eGraphics);
-		//m_FrameResources.RenderFenceValue = 1;
+		////m_FrameResources.RenderFenceValue = 1;
 		m_FrameResources.RenderFenceValues[0] = 1;
-
-		m_FrameResources.ComputeCommandList = new D3D12CommandList(this, CommandType::eCompute);
-		m_FrameResources.ComputeQueue = new D3D12Queue(this, CommandType::eCompute);
-		m_FrameResources.ComputeFenceValue = 1;
-
-		m_FrameResources.UploadCommandList = new D3D12CommandList(this, CommandType::eUpload);
-		m_FrameResources.UploadQueue = new D3D12Queue(this, CommandType::eUpload);
-		m_FrameResources.UploadFenceValue = 1;
-
 	}
 
 	void D3D12Device::Allocate(HeapType eType, D3D12Descriptor& Descriptor, uint32 Count)

@@ -11,7 +11,6 @@ namespace lde
 		Initialize();
 	}
 
-
 	Renderer::Renderer(RHI::D3D12RHI* pGfx, Scene* pScene)
 		: m_Gfx(pGfx)
 	{
@@ -24,11 +23,13 @@ namespace lde
 		m_Skybox = std::make_unique<Skybox>();
 		SetScene(pScene);
 		Initialize();
+
 	}
 
 	Renderer::~Renderer()
 	{
 		Release();
+		delete RaytracingCtx;
 	}
 
 	void Renderer::Initialize()
@@ -36,8 +37,8 @@ namespace lde
 		BuildRootSignatures();
 		BuildPipelines();
 		
-		//m_Skybox = std::make_unique<Skybox>();
-		m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/newport_loft.hdr");
+		
+		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/newport_loft.hdr");
 		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/kloofendal_48d_partly_cloudy_puresky_2k.hdr");
 		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/san_giuseppe_bridge_4k.hdr");
 		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/environment.hdr");
@@ -47,39 +48,57 @@ namespace lde
 		m_LightPass		= new LightPass(m_Gfx);
 		m_SkyPass		= new SkyPass(m_Gfx);
 		
+		// TEST
+		RaytracingCtx = new RHI::D3D12Raytracing(m_Gfx->Device.get());
+
+		
 	}
 
 	void Renderer::BeginFrame()
 	{	
-		//SetViewport();
-		//TransitToRender();
+		m_Gfx->BeginFrame();
 	}
 
 	void Renderer::EndFrame()
 	{
+		
 	}
 
 	void Renderer::RecordCommands()
 	{
-		m_Gfx->SetRootSignature(&m_Gfx->GlobalRootSignature);
-		m_Gfx->Device->GetGfxCommandList()->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		m_Gfx->Device->GetGfxCommandList()->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		m_GBufferPass->Render(m_ActiveScene);
 
 		// Light Pass
-		{
-			m_Gfx->SetRootSignature(&m_LightRS);
-			m_Gfx->SetPipeline(&m_LightPSO);
-			m_LightPass->Render(m_ActiveScene->GetCamera(), m_GBufferPass, m_Skybox.get());
-		}
+		//{
+		//	m_Gfx->SetRootSignature(&m_LightRS);
+		//	m_Gfx->SetPipeline(&m_LightPSO);
+		//	m_LightPass->Render(m_ActiveScene->GetCamera(), m_GBufferPass, m_Skybox.get());
+		//}
 		
 		// Sky Pass
-		{
-			m_Gfx->SetRootSignature(&m_SkyboxRS);
-			m_Gfx->SetPipeline(&m_SkyboxPSO);
-			m_SkyPass->Render(m_Skybox.get(), m_ActiveScene->GetCamera());
-			//m_Skybox->Draw(-1, m_ActiveScene->GetCamera());
-		}
+		//{
+		//	m_Gfx->SetRootSignature(&m_SkyboxRS);
+		//	m_Gfx->SetPipeline(&m_SkyboxPSO);
+		//	m_SkyPass->Render(m_Skybox.get(), m_ActiveScene->GetCamera());
+		//	//m_Skybox->Draw(-1, m_ActiveScene->GetCamera());
+		//}
+		//RaytracingCtx->DispatchRaytrace();
+
+
+		//RaytracingCtx->m_SceneOutput->Texture.Get();
+
+		//m_Gfx->TransitResource(RaytracingCtx->m_SceneOutput->Texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		//m_Gfx->TransitResource(m_GBufferPass->GetRenderTargets().at(GBuffers::eBaseColor).Get(), D3D12_RESOURCE_STATE_GENERIC_READ, //D3D12_RESOURCE_STATE_COPY_DEST);
+		////m_Gfx->TransitResource(m_SkyPass->GetRenderTexture()->Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST);
+		//;
+		//m_Gfx->CopyResource(m_GBufferPass->GetRenderTargets().at(GBuffers::eBaseColor).Get(), RaytracingCtx->m_SceneOutput->Texture.Get());
+		//
+		//m_Gfx->TransitResource(RaytracingCtx->m_SceneOutput->Texture.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		//m_Gfx->TransitResource(m_GBufferPass->GetRenderTargets().at(GBuffers::eBaseColor).Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ);
+		//m_Gfx->TransitResource(m_SkyPass->GetRenderTexture()->Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
 
 		m_Gfx->SetViewport();
 		m_Gfx->SetMainRenderTarget();
@@ -95,7 +114,7 @@ namespace lde
 
 	void Renderer::Render()
 	{
-		m_Gfx->BeginFrame();
+		BeginFrame();
 
 		RecordCommands();
 
@@ -111,9 +130,7 @@ namespace lde
 	{
 		m_ActiveScene = pScene;
 
-		m_SceneLighting = new SceneLighting(m_Gfx, m_ActiveScene->World());
-		m_SceneLighting->AddDirectionalLight();
-
+	
 		m_Skybox->Create(m_Gfx, m_ActiveScene->World(), "Assets/Textures/newport_loft.hdr");
 	}
 
@@ -125,7 +142,7 @@ namespace lde
 		m_LightPass->Resize(Width, Height);
 		m_SkyPass->Resize(Width, Height);
 
-		m_Gfx->Device->WaitForGPU();
+		m_Gfx->Device->WaitForGPU(RHI::CommandType::eGraphics);
 	}
 
 	void Renderer::Release()
@@ -133,7 +150,6 @@ namespace lde
 		delete m_SkyPass;
 		delete m_LightPass;
 		delete m_GBufferPass;
-		delete m_SceneLighting;
 
 		// Release gathered Textures
 		TextureManager::GetInstance().Release();
@@ -207,8 +223,8 @@ namespace lde
 
 		// Light Pass
 		{
-			psoBuilder->SetVertexShader("Shaders/PBR.hlsl", L"VSmain");
-			psoBuilder->SetPixelShader( "Shaders/PBR.hlsl", L"PSmain");
+			psoBuilder->SetVertexShader("Shaders/Deferred/PBR.hlsl", L"VSmain");
+			psoBuilder->SetPixelShader( "Shaders/Deferred/PBR.hlsl", L"PSmain");
 			psoBuilder->EnableDepth(true);
 			std::array<DXGI_FORMAT, 1> formats{ DXGI_FORMAT_R32G32B32A32_FLOAT };
 			psoBuilder->SetRenderTargetFormats(formats);
@@ -220,7 +236,7 @@ namespace lde
 		// Skybox
 		{
 			psoBuilder->SetVertexShader("Shaders/Sky/Skybox.hlsl", L"VSmain");
-			psoBuilder->SetPixelShader("Shaders/Sky/Skybox.hlsl", L"PSmain");
+			psoBuilder->SetPixelShader( "Shaders/Sky/Skybox.hlsl", L"PSmain");
 			psoBuilder->EnableDepth(true);
 			psoBuilder->SetCullMode(RHI::CullMode::eNone);
 			std::vector<DXGI_FORMAT> formats{ DXGI_FORMAT_R32G32B32A32_FLOAT };
@@ -252,6 +268,8 @@ namespace lde
 			return m_GBufferPass->GetRenderTargets().at(GBuffers::eWorldPosition).GetSRV().GetGpuHandle().ptr;
 		case RenderOutput::eSkybox:
 			return m_SkyPass->GetRenderTexture()->GetSRV().GetGpuHandle().ptr;
+		case RenderOutput::eRaytracing:
+			return RaytracingCtx->m_SceneOutput->SRV.GetGpuHandle().ptr;
 		}
 
 		return m_LightPass->GetRenderTexture()->GetSRV().GetGpuHandle().ptr;

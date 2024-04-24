@@ -12,6 +12,10 @@
 #include <Utility/FileSystem.hpp>
 #include <Utility/Utility.hpp>
 
+// TODO:
+//#define CGLTF_IMPLEMENTATION
+//#include <cgltf/cgltf.h>
+
 
 namespace lde
 {
@@ -261,9 +265,9 @@ namespace lde
 	
 				newMaterial.MetalRoughnessIndex = textureManager.Create(m_Gfx, texPath);
 	
+			}
 				aiGetMaterialFloat(material, AI_MATKEY_METALLIC_FACTOR,  &newMaterial.MetallicFactor);
 				aiGetMaterialFloat(material, AI_MATKEY_ROUGHNESS_FACTOR, &newMaterial.RoughnessFactor);
-			}
 		}
 	
 		for (uint32_t i = 0; i < material->GetTextureCount(aiTextureType_EMISSIVE); ++i)

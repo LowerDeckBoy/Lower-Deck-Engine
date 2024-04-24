@@ -17,8 +17,8 @@ namespace lde
         delete DiffuseTexture;
         delete TextureCube;
         delete Texture;
-        m_IndexBuffer->Release();
-        m_ConstBuffer->Release();
+        //m_IndexBuffer->Release();
+        //m_ConstBuffer->Release();
     }
 
     void Skybox::Create(RHI::RHI* pRHI, World* pWorld, std::string_view Filepath)
@@ -38,6 +38,7 @@ namespace lde
              3, 2, 7, 7, 6, 3    // Bottom
         };
 
+
         m_IndexBuffer = pRHI->GetDevice()->CreateBuffer(
             RHI::BufferDesc{
                 .eType = RHI::BufferUsage::eIndex,
@@ -50,18 +51,20 @@ namespace lde
 
         m_ConstBuffer = pRHI->GetDevice()->CreateConstantBuffer(&m_cbPerObject, sizeof(m_cbPerObject));
 
-        //m_TextureIndex = TextureManager::GetInstance().Create((RHI::D3D12RHI*)pRHI, Filepath, false);
-
     }
 
     void Skybox::Draw(int32 TextureID, SceneCamera* pCamera)
     {
         auto* commandList = m_Device->GetGfxCommandList();
+        auto* indexBuffer = m_Device->Buffers.at(m_IndexBuffer);
+        auto* constBuffer = m_Device->ConstantBuffers.at(m_ConstBuffer);
+
         commandList->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        commandList->BindIndexBuffer(m_IndexBuffer);
+        commandList->BindIndexBuffer(indexBuffer);
 
         auto& transforms = Entity::GetComponent<TransformComponent>();
         transforms.Scale = XMFLOAT3(50.0f, 50.0f, 50.0f);
+
         // Set Skybox position to current Camera position
         XMStoreFloat3(&transforms.Translation, pCamera->GetPosition());
         transforms.Update();
@@ -69,14 +72,13 @@ namespace lde
         // Bind constant buffers
         m_cbPerObject.WVP = XMMatrixTranspose(transforms.WorldMatrix * pCamera->GetViewProjection());
         m_cbPerObject.World = XMMatrixTranspose(transforms.WorldMatrix);
-        m_ConstBuffer->Update(&m_cbPerObject);
-        commandList->BindConstantBuffer(0, m_ConstBuffer);
+        constBuffer->Update(&m_cbPerObject);
+        commandList->BindConstantBuffer(0, constBuffer);
 
         struct indices { uint32 index; } textures{ TextureCube->SRV.Index() };
-        //struct indices { uint32 index; } textures{ TextureID };
         commandList->PushConstants(1, 1, &textures);
   
-        commandList->DrawIndexed(m_IndexBuffer->GetDesc().Count, 0, 0);
+        commandList->DrawIndexed(indexBuffer->GetDesc().Count, 0, 0);
         
     }
 } // namespace lde

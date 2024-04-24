@@ -89,10 +89,8 @@ namespace lde::RHI
 		void ExecuteAllCommandLists(bool bResetAllocators);
 
 		D3D12Fence* GetFence() { return m_Fence.get(); }
+		
 
-		/**
-		 * @brief 
-		 */
 		struct FrameResources
 		{
 			D3D12CommandList*	GraphicsCommandList;
@@ -102,20 +100,15 @@ namespace lde::RHI
 			// https://www.youtube.com/watch?v=KsCZDeJDXDQ
 			uint64				RenderFenceValues[FRAME_COUNT];
 
-			D3D12CommandList*	ComputeCommandList;
-			D3D12Queue*			ComputeQueue;
-			uint64				ComputeFenceValue = 0;
-
-			D3D12CommandList*	UploadCommandList;
-			D3D12Queue*			UploadQueue;
-			uint64				UploadFenceValue = 0;
-		} m_FrameResources{};
+		} m_FrameResources;
 
 		void			CreateFrameResources();
 		FrameResources& GetFrameResources()			{ return m_FrameResources; }
 
 		D3D12Queue*			 GetGfxQueue()			{ return m_FrameResources.GraphicsQueue;		}
 		D3D12CommandList*	 GetGfxCommandList()	{ return m_FrameResources.GraphicsCommandList;	}
+
+		//D3D12Fence* GetGraphicsFence() { return m_FrameResources.GraphicsCommandList.Fence; }
 
 		D3D12DescriptorHeap* GetSRVHeap()			{ return m_SRVHeap.get(); }
 		D3D12DescriptorHeap* GetDSVHeap()			{ return m_DSVHeap.get(); }
@@ -141,10 +134,6 @@ namespace lde::RHI
 		DXGI_ADAPTER_DESC3 m_AdapterDesc{};
 
 		std::unique_ptr<D3D12Fence> m_Fence;
-
-		// TODO:
-		// https://stackoverflow.com/questions/59569301/how-many-fences-are-necessary-to-support-multiple-frames-in-flight-each-using-mu
-		//std::unique_ptr<D3D12Fence> m_RenderFence;
 
 		std::unique_ptr<D3D12DescriptorHeap> m_SRVHeap;
 		std::unique_ptr<D3D12DescriptorHeap> m_DSVHeap;

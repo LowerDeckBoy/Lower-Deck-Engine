@@ -15,6 +15,7 @@ namespace lde::RHI
 	D3D12PipelineStateBuilder::D3D12PipelineStateBuilder(D3D12Device* pDevice)
 		: m_Device(pDevice)
 	{
+		Reset();
 	}
 	
 	D3D12PipelineStateBuilder::~D3D12PipelineStateBuilder()
@@ -29,8 +30,10 @@ namespace lde::RHI
 		//streamDesc.SizeInBytes
 		//DX_CALL(m_Device->Device->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&OutPipeline.PipelineState)));
 
+		//d3d12_pipeline_state
+
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC desc{};
-		desc.NodeMask = 0;
+		desc.NodeMask = DEVICE_NODE;
 		desc.pRootSignature = pRootSignature->Get();
 
 		// Not required for bindless
@@ -49,9 +52,9 @@ namespace lde::RHI
 		desc.DepthStencilState = m_DepthDesc;
 		desc.DSVFormat = m_DepthFormat;
 		// Blend
-		desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		desc.BlendState = m_BlendDesc;
+		//desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 
-		desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		desc.SampleMask = UINT_MAX;
 
 		// Set Shaders
@@ -67,21 +70,37 @@ namespace lde::RHI
 		{
 			desc.GS = m_GeometryShader->Bytecode();
 		}
+		if (m_HullShader)
+		{
+			desc.HS = m_HullShader->Bytecode();
+		}
+		if (m_TessellationShader)
+		{
+			//desc.S = m_HullShader->Bytecode();
+		}
+		if (m_DomainShader)
+		{
+			desc.DS = m_DomainShader->Bytecode();
+		}
+
+		desc.PrimitiveTopologyType = (m_HullShader) ? D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH : D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		desc.SampleDesc = { 1, 0 };
 
 		// Render Targets
 		if (!m_RenderTargetFormats.empty())
 		{
 			desc.NumRenderTargets = static_cast<uint32>(m_RenderTargetFormats.size());
 			for (uint32 i = 0; i < static_cast<uint32>(m_RenderTargetFormats.size()); i++)
+			{
 				desc.RTVFormats[i] = m_RenderTargetFormats.at(i);
+			}
 		}
 		else
 		{
 			desc.NumRenderTargets = 1;
 			desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 		}
-
-		desc.SampleDesc = { 1, 0 };
+		
 		desc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
 		OutPipeline.Type = PipelineType::eGraphics;
@@ -111,10 +130,31 @@ namespace lde::RHI
 		m_GeometryShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eGeometry, EntryPoint));
 	}
 
+	void D3D12PipelineStateBuilder::SetHullShader(std::string_view Filepath, std::wstring EntryPoint)
+	{
+		auto& shaderCompiler = ShaderCompiler::GetInstance();
+		if (m_HullShader) m_HullShader = nullptr;
+		m_HullShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eHull, EntryPoint));
+	}
+
+	void D3D12PipelineStateBuilder::SetTessellationShader(std::string_view Filepath, std::wstring EntryPoint)
+	{
+		auto& shaderCompiler = ShaderCompiler::GetInstance();
+		if (m_TessellationShader) m_TessellationShader = nullptr;
+		m_TessellationShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eTessellation, EntryPoint));
+	}
+
+	void D3D12PipelineStateBuilder::SetDomainShader(std::string_view Filepath, std::wstring EntryPoint)
+	{
+		auto& shaderCompiler = ShaderCompiler::GetInstance();
+		if (m_DomainShader) m_DomainShader = nullptr;
+		m_DomainShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eDomain, EntryPoint));
+	}
+
 	void D3D12PipelineStateBuilder::SetInputLayout(const std::span<D3D12_INPUT_ELEMENT_DESC>& InputLayout)
 	{
-		m_InputLayout.clear();
-		m_InputLayout.insert(m_InputLayout.begin(), InputLayout.begin(), InputLayout.end());
+		//m_InputLayout.clear();
+		//m_InputLayout.insert(m_InputLayout.begin(), InputLayout.begin(), InputLayout.end());
 	}
 	
 	void D3D12PipelineStateBuilder::SetCullMode(CullMode eMode)
@@ -158,19 +198,51 @@ namespace lde::RHI
 	void D3D12PipelineStateBuilder::Reset()
 	{
 		m_VertexShader = nullptr;
-		m_PixelShader = nullptr;
+		m_PixelShader  = nullptr;
 	
 		m_RenderTargetFormats.clear();
 		m_RenderTargetFormats.shrink_to_fit();
-	
-		m_Ranges.clear();
-		m_Parameters.clear();
-		//m_InputLayout = {};
 		
-		m_RasterizerDesc = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		m_RasterizerDesc = {};
 		m_FillMode = D3D12_FILL_MODE_SOLID;
 		m_CullMode = D3D12_CULL_MODE_BACK;
 	
-		m_DepthDesc = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+		m_DepthDesc = {};
+
+		// Default Depth Desc
+		m_DepthDesc.DepthEnable = TRUE;
+		m_DepthDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+		m_DepthDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+		m_DepthDesc.StencilEnable = FALSE;
+		m_DepthDesc.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
+		m_DepthDesc.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+
+		// Default Rasterizer Desc
+		m_RasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
+		m_RasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
+		m_RasterizerDesc.FrontCounterClockwise = FALSE;
+		m_RasterizerDesc.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
+		m_RasterizerDesc.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+		m_RasterizerDesc.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+		m_RasterizerDesc.DepthClipEnable = TRUE;
+		m_RasterizerDesc.MultisampleEnable = FALSE;
+		m_RasterizerDesc.AntialiasedLineEnable = FALSE;
+		m_RasterizerDesc.ForcedSampleCount = 0;
+		m_RasterizerDesc.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+
+		// Default Blend Desc
+		m_BlendDesc.AlphaToCoverageEnable = FALSE;
+		m_BlendDesc.IndependentBlendEnable = FALSE;
+		m_BlendDesc.RenderTarget[0].BlendEnable = FALSE;
+		m_BlendDesc.RenderTarget[0].LogicOpEnable = FALSE;
+		m_BlendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+		m_BlendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_ZERO;
+		m_BlendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+		m_BlendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+		m_BlendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
+		m_BlendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+		m_BlendDesc.RenderTarget[0].LogicOp = D3D12_LOGIC_OP_NOOP;
+		m_BlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+
 	}
 } // namespace lde::RHI

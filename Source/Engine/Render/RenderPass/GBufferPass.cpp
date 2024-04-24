@@ -20,44 +20,41 @@ namespace lde
 		
 		// Root Signature
 		{
-			m_RootSignature.AddCBV(0); // Per Object Matrices
-			m_RootSignature.AddConstants(2, 1); // // Vertex vertices and offset
+			m_RootSignature.AddCBV(0);			 // Per Object Matrices
+			m_RootSignature.AddConstants(2, 1);  // Vertex vertices and offset
 			m_RootSignature.AddConstants(16, 2); // Texture indices and properties
 			m_RootSignature.AddStaticSampler(0, 0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_COMPARISON_FUNC_LESS_EQUAL);
 			m_RootSignature.Build(m_Gfx->Device.get(), RHI::PipelineType::eGraphics, "GBuffer Root Signature");
 		}
 
 		// Pipeline State
+		auto* psoBuilder = new RHI::D3D12PipelineStateBuilder(m_Gfx->Device.get());
+
+		// Base Pipeline
 		{
-			auto* psoBuilder = new RHI::D3D12PipelineStateBuilder(m_Gfx->Device.get());
-
-			// Base Pipeline
+			psoBuilder->SetVertexShader("Shaders/Deferred/GBuffer.hlsl", L"VSmain");
+			psoBuilder->SetPixelShader( "Shaders/Deferred/GBuffer.hlsl", L"PSmain");
+			psoBuilder->EnableDepth(true);
+			std::array<DXGI_FORMAT, (usize)GBuffers::COUNT> formats =
 			{
-				psoBuilder->SetVertexShader("Shaders/GBuffer.hlsl", L"VSmain");
-				psoBuilder->SetPixelShader("Shaders/GBuffer.hlsl", L"PSmain");
-				psoBuilder->EnableDepth(true);
-				std::array<DXGI_FORMAT, (usize)GBuffers::COUNT> formats = 
-				{
-					m_RenderTargets.at(GBuffers::eDepth).GetFormat(),
-					m_RenderTargets.at(GBuffers::eBaseColor).GetFormat(),
-					m_RenderTargets.at(GBuffers::eTexCoords).GetFormat(),
-					m_RenderTargets.at(GBuffers::eNormal).GetFormat(),
-					m_RenderTargets.at(GBuffers::eMetalRoughness).GetFormat(),
-					m_RenderTargets.at(GBuffers::eEmissive).GetFormat(),
-					m_RenderTargets.at(GBuffers::eWorldPosition).GetFormat()
-				};
-				psoBuilder->SetRenderTargetFormats(formats);
+				m_RenderTargets.at(GBuffers::eDepth).GetFormat(),
+				m_RenderTargets.at(GBuffers::eBaseColor).GetFormat(),
+				m_RenderTargets.at(GBuffers::eTexCoords).GetFormat(),
+				m_RenderTargets.at(GBuffers::eNormal).GetFormat(),
+				m_RenderTargets.at(GBuffers::eMetalRoughness).GetFormat(),
+				m_RenderTargets.at(GBuffers::eEmissive).GetFormat(),
+				m_RenderTargets.at(GBuffers::eWorldPosition).GetFormat()
+			};
+			psoBuilder->SetRenderTargetFormats(formats);
 
-				RHI::DX_CALL(psoBuilder->Build(m_PipelineState, &m_RootSignature, "GBuffer PSO"));
-				psoBuilder->Reset();
-			}
+			RHI::DX_CALL(psoBuilder->Build(m_PipelineState, &m_RootSignature, "GBuffer PSO"));
+			psoBuilder->Reset();
 		}
 	}
 
 	void GBufferPass::Render(Scene* pScene)
 	{
 		m_Gfx->SetRootSignature(&m_RootSignature);
-		//m_Gfx->SetRootSignature(m_Gfx->Device->GlobalRootSignature.Get());
 		m_Gfx->SetPipeline(&m_PipelineState);
 
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs;

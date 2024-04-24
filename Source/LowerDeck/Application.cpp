@@ -28,13 +28,25 @@ namespace lde
 #endif
 		
 		m_ActiveScene->AddModel("Assets/Models/sponza/Sponza.gltf");
-		m_ActiveScene->AddModel("Assets/Models/DamagedHelmet/DamagedHelmet.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/DamagedHelmet/DamagedHelmet.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/sgd162_idle_walk_run_cycle/scene.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/Bistro/Bistro.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/SciFiHelmet/SciFiHelmet.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/MetalRoughSpheres/MetalRoughSpheres.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/SunTemple/SunTemple.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/cube/Cube.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/Bistro-gltf/BistroExterior.gltf");
 
+		/*
+		for (auto& model : m_ActiveScene->GetModels())
+		{
+			m_Renderer->RaytracingCtx->AddBLAS(model.get());
+		}
+		m_Renderer->RaytracingCtx->CreateTLAS();
+		m_Renderer->RaytracingCtx->CreateSceneUAV();
+		m_Renderer->RaytracingCtx->CreateStateObject();
+		m_Renderer->RaytracingCtx->BuildShaderTable();
+		*/
 		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, false);
 	}
 
@@ -131,11 +143,6 @@ namespace lde
 			Window::Height = static_cast<unsigned int>(HIWORD(lParam));
 			Window::AspectRatio = static_cast<float>(Window::Width) / static_cast<float>(Window::Height);
 
-			//if (!m_Renderer)
-			//{
-			//	//LOG_CRITICAL("Renderer not found!\n");
-			//	return 0;
-			//}
 			if (wParam == SIZE_MINIMIZED)
 			{
 				bAppPaused = true;

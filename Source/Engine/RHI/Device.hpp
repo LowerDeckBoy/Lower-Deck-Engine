@@ -39,9 +39,10 @@ namespace lde::RHI
 
 		/* ================================= Create resources ================================= */
 
-		virtual Buffer*			CreateBuffer(BufferDesc Desc) = 0;
-		virtual ConstantBuffer* CreateConstantBuffer(void* pData, usize Size) = 0;
-		virtual Texture*		CreateTexture(TextureDesc Desc) = 0;
+		virtual BufferHandle	CreateBuffer(BufferDesc Desc) = 0;
+		virtual BufferHandle	CreateConstantBuffer(void* pData, usize Size) = 0;
+		//virtual TextureHandle	CreateTexture(TextureDesc Desc) = 0;
+		//virtual Texture*		CreateTexture(TextureDesc Desc) = 0;
 
 		// TODOs:
 		//virtual Buffer* CreateBLAS() = 0;

@@ -41,7 +41,9 @@ namespace lde::RHI
 		eRaytracing,
 		eClosestHit,
 		eMiss,
-		eIntersection,
+		eHull,
+		eTessellation,
+		eDomain,
 		eUnspecified,
 		COUNT
 	};

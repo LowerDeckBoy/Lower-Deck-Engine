@@ -40,11 +40,11 @@ namespace lde::RHI
 		SAFE_RELEASE(TLAS.ResultBuffer);
 		SAFE_RELEASE(TLAS.InstanceDescsBuffer);
 		
+		RootSignatures.Global->Release();
 		RootSignatures.Miss->Release();
 		RootSignatures.ClosestHit->Release();
-
-		m_RootSignature->Release();
-		m_SceneBVH->Release();
+		//
+		//m_SceneOutput->Release();
 
 		LOG_INFO("DXR context released.");
 	}
@@ -61,22 +61,24 @@ namespace lde::RHI
 
 	void D3D12Raytracing::CreateRootSignature()
 	{
-		m_RootSignature = new D3D12RootSignature();
+		// Global RS
+		{
+			RootSignatures.Global = new D3D12RootSignature();
 
-		// 0. SceneBVH
-		// 1. Top Level
-		m_RootSignature->AddConstants(2, 0, 0);
-		//m_RootSignature->AddUAV(0);
-		//m_RootSignature->AddSRV(0);
-		// Camera
-		//m_RootSignature->AddCBV(0);
-		DX_CALL(m_RootSignature->Build(m_Device, PipelineType::eGraphics, "Raytracing Root Signature"));
+			// 0. SceneBVH
+			// 1. Top Level
+			RootSignatures.Global->AddConstants(2, 0, 0);
+			// Camera
+			//RootSignatures.Global->AddCBV(0);
+			RootSignatures.Global->AddStaticSampler(0, 0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
+			DX_CALL(RootSignatures.Global->Build(m_Device, PipelineType::eCompute, "Raytracing Global Root Signature"));
+		}
 
 		// Miss RS
 		{
 			RootSignatures.Miss = new D3D12RootSignature();
 			RootSignatures.Miss->SetLocal();
-			DX_CALL(RootSignatures.Miss->Build(m_Device, PipelineType::eGraphics, "Raytracing Miss Root Signature"));
+			DX_CALL(RootSignatures.Miss->Build(m_Device, PipelineType::eCompute, "Raytracing Miss Root Signature"));
 		}
 
 		// ClosestHit RS
@@ -84,14 +86,14 @@ namespace lde::RHI
 			RootSignatures.ClosestHit = new D3D12RootSignature();
 			RootSignatures.ClosestHit->AddConstants(sizeof(XMFLOAT4), 0, 1);
 			RootSignatures.ClosestHit->SetLocal();
-			DX_CALL(RootSignatures.ClosestHit->Build(m_Device, PipelineType::eGraphics, "Raytracing ClosestHit Root Signature"));
+			DX_CALL(RootSignatures.ClosestHit->Build(m_Device, PipelineType::eCompute, "Raytracing ClosestHit Root Signature"));
 		}
 
 	}
 
 	void D3D12Raytracing::CreateSceneUAV()
 	{
-		m_SceneBVH = new D3D12Texture();
+		m_SceneOutput = new D3D12Texture();
 
 		D3D12_RESOURCE_DESC desc{};
 		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -102,36 +104,34 @@ namespace lde::RHI
 		desc.MipLevels = 1;
 		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 		desc.SampleDesc = { 1, 0 };
-		DX_CALL(m_Device->GetDevice()->CreateCommittedResource(&D3D12Utility::HeapDefault, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_SceneBVH->Texture)));
-		SET_D3D12_NAME(m_SceneBVH->Texture, "Raytracing SceneBVH");
+		DX_CALL(m_Device->GetDevice()->CreateCommittedResource(&D3D12Utility::HeapDefault, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_SceneOutput->Texture)));
+		SET_D3D12_NAME(m_SceneOutput->Texture, "Raytracing SceneBVH");
 		
-		m_Device->GetSRVHeap()->Allocate(m_SceneBVH->UAV);
+		m_Device->GetSRVHeap()->Allocate(m_SceneOutput->UAV);
 		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
 		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-		m_Device->GetDevice()->CreateUnorderedAccessView(m_SceneBVH->Texture.Get(), nullptr, &uavDesc, m_SceneBVH->UAV.GetCpuHandle());
+		m_Device->GetDevice()->CreateUnorderedAccessView(m_SceneOutput->Texture.Get(), nullptr, &uavDesc, m_SceneOutput->UAV.GetCpuHandle());
 
-		m_Device->GetSRVHeap()->Allocate(m_SceneBVH->SRV);
+		m_Device->GetSRVHeap()->Allocate(m_SceneOutput->SRV);
 		D3D12_SHADER_RESOURCE_VIEW_DESC sceneSrvDesc{};
 		sceneSrvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		sceneSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 		sceneSrvDesc.Texture2D.MipLevels = 1;
 		sceneSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		m_Device->GetDevice()->CreateShaderResourceView(m_SceneBVH->Texture.Get(), &sceneSrvDesc, m_SceneBVH->SRV.GetCpuHandle());
+		m_Device->GetDevice()->CreateShaderResourceView(m_SceneOutput->Texture.Get(), &sceneSrvDesc, m_SceneOutput->SRV.GetCpuHandle());
 
 		m_Device->GetSRVHeap()->Allocate(TLAS.SRV);
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 		srvDesc.Format = DXGI_FORMAT_UNKNOWN;
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.RaytracingAccelerationStructure.Location = TLAS.ResultBuffer->GetGPUVirtualAddress();
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		m_Device->GetDevice()->CreateShaderResourceView(nullptr, &srvDesc, TLAS.SRV.GetCpuHandle());
 
 	}
 
 	void D3D12Raytracing::CreateStateObject()
 	{
-		//std::vector<D3D12_STATE_SUBOBJECT> subobjects{  };
-
 		CD3DX12_STATE_OBJECT_DESC raytracingPipeline{ D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
 
 		// RayGen Shader
@@ -196,11 +196,11 @@ namespace lde::RHI
 		{
 			hitAssociation->SetSubobjectToAssociate(*hitSignature);
 			std::vector<LPCWSTR> exports{ L"HitGroup" };
-			hitAssociation->AddExports(exports.data(), static_cast<uint32_t>(exports.size()));
+			hitAssociation->AddExports(exports.data(), static_cast<uint32>(exports.size()));
 		}
 
 		auto globalRootSignature{ raytracingPipeline.CreateSubobject<CD3DX12_GLOBAL_ROOT_SIGNATURE_SUBOBJECT>() };
-		globalRootSignature->SetRootSignature(m_RootSignature->Get());
+		globalRootSignature->SetRootSignature(RootSignatures.Global->Get());
 
 		DX_CALL(m_Device->GetDevice()->CreateStateObject(raytracingPipeline, IID_PPV_ARGS(m_StateObject.ReleaseAndGetAddressOf())));
 		DX_CALL(m_StateObject->QueryInterface(&m_StateObjectProperties));
@@ -210,7 +210,7 @@ namespace lde::RHI
 
 	void D3D12Raytracing::BuildShaderTable()
 	{
-		constexpr uint32_t shaderIdentifierSize{ D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES };
+		constexpr uint32 shaderIdentifierSize{ D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES };
 
 		void* rayGenIdentifier	= m_StateObjectProperties.Get()->GetShaderIdentifier(L"RayGen");
 		void* missIdentifier	= m_StateObjectProperties.Get()->GetShaderIdentifier(L"Miss");
@@ -218,21 +218,23 @@ namespace lde::RHI
 
 		// Raygen
 		{
-			ShaderTables.RayGen.Create(m_Device->GetDevice(), 1, shaderIdentifierSize, L"RayGen Shader Table");
+			ShaderTables.RayGen.Create(m_Device->GetDevice(), 1, shaderIdentifierSize, "RayGen Shader Table");
 			TableRecord record(rayGenIdentifier, shaderIdentifierSize, nullptr, shaderIdentifierSize);
 
 			ShaderTables.RayGen.AddRecord(record);
 		}
+
 		// Miss
 		{
-			ShaderTables.Miss.Create(m_Device->GetDevice(), 1, shaderIdentifierSize, L"Miss Shader Table");
+			ShaderTables.Miss.Create(m_Device->GetDevice(), 1, shaderIdentifierSize, "Miss Shader Table");
 			TableRecord record(missIdentifier, shaderIdentifierSize, nullptr, shaderIdentifierSize);
 
 			ShaderTables.Miss.AddRecord(record);
 		}
+
 		// ClosestHit
 		{
-			ShaderTables.ClosestHit.Create(m_Device->GetDevice(), 1, shaderIdentifierSize, L"Closest Shader Table");
+			ShaderTables.ClosestHit.Create(m_Device->GetDevice(), 1, shaderIdentifierSize, "Closest Shader Table");
 			TableRecord record(hitIdentifier, shaderIdentifierSize, nullptr, shaderIdentifierSize);
 
 			ShaderTables.ClosestHit.AddRecord(record);
@@ -243,9 +245,9 @@ namespace lde::RHI
 	void D3D12Raytracing::DispatchRaytrace()
 	{
 		const auto dispatch = [&](ID3D12GraphicsCommandList8* pCommandList, const D3D12_DISPATCH_RAYS_DESC& Desc) {
-
-			pCommandList->SetComputeRootSignature(m_RootSignature->Get());
-			struct indices{ uint32 Out; uint32 Top; } data{ .Out = m_SceneBVH->UAV.Index(), .Top = TLAS.SRV.Index() };
+			//pCommandList->SetDescriptorHeaps(1, m_Device->GetSRVHeap()->GetAddressOf());
+			pCommandList->SetComputeRootSignature(RootSignatures.Global->Get());
+			struct indices{ uint32 Out; uint32 Top; } data{ .Out = m_SceneOutput->UAV.Index(), .Top = TLAS.SRV.Index() };
 			pCommandList->SetComputeRoot32BitConstants(0, 2,  &data, 0);
 			
 			pCommandList->SetPipelineState1(m_StateObject.Get());
@@ -253,24 +255,22 @@ namespace lde::RHI
 			};
 
 		D3D12_DISPATCH_RAYS_DESC dispatchDesc{};
-		{
-			// RayGen
-			dispatchDesc.RayGenerationShaderRecord.StartAddress = ShaderTables.RayGen.GetAddressOf();
-			dispatchDesc.RayGenerationShaderRecord.SizeInBytes  = ShaderTables.RayGen.GetShaderRecordSize();
-			// Miss
-			dispatchDesc.MissShaderTable.StartAddress = ShaderTables.Miss.GetAddressOf();
-			dispatchDesc.MissShaderTable.SizeInBytes = static_cast<uint64_t>(ShaderTables.Miss.GetShaderRecordSize());
-			dispatchDesc.MissShaderTable.StrideInBytes = static_cast<uint64_t>(ShaderTables.Miss.Stride());
-			//// ClosestHit
-			dispatchDesc.HitGroupTable.StartAddress = ShaderTables.ClosestHit.GetAddressOf();
-			dispatchDesc.HitGroupTable.SizeInBytes = static_cast<uint64_t>(ShaderTables.ClosestHit.GetShaderRecordSize() * ShaderTables.ClosestHit.GetRecordsCount());
-			dispatchDesc.HitGroupTable.StrideInBytes = static_cast<uint64_t>(ShaderTables.ClosestHit.Stride());
-			//// Output dimensions
-			dispatchDesc.Width  = static_cast<uint32_t>(Window::Width);
-			dispatchDesc.Height = static_cast<uint32_t>(Window::Height);
-			// Primary Rays
-			dispatchDesc.Depth = m_MaxRecursiveDepth;
-		}
+		// RayGen
+		dispatchDesc.RayGenerationShaderRecord.StartAddress = ShaderTables.RayGen.GetAddressOf();
+		dispatchDesc.RayGenerationShaderRecord.SizeInBytes = ShaderTables.RayGen.GetShaderRecordSize();
+		// Miss
+		dispatchDesc.MissShaderTable.StartAddress	= ShaderTables.Miss.GetAddressOf();
+		dispatchDesc.MissShaderTable.SizeInBytes	= static_cast<uint64_t>(ShaderTables.Miss.GetShaderRecordSize());
+		dispatchDesc.MissShaderTable.StrideInBytes	= static_cast<uint64_t>(ShaderTables.Miss.Stride());
+		//// ClosestHit
+		dispatchDesc.HitGroupTable.StartAddress		= ShaderTables.ClosestHit.GetAddressOf();
+		dispatchDesc.HitGroupTable.SizeInBytes		= static_cast<uint64_t>(ShaderTables.ClosestHit.GetShaderRecordSize() * ShaderTables.ClosestHit.GetRecordsCount());
+		dispatchDesc.HitGroupTable.StrideInBytes	= static_cast<uint64_t>(ShaderTables.ClosestHit.Stride());
+		//// Output dimensions
+		dispatchDesc.Width  = static_cast<uint32>(Window::Width);
+		dispatchDesc.Height = static_cast<uint32>(Window::Height);
+		// Primary Rays
+		dispatchDesc.Depth = m_MaxRecursiveDepth;
 
 		// Execute
 		dispatch(m_Device->GetGfxCommandList()->Get(), dispatchDesc);
@@ -413,30 +413,33 @@ namespace lde::RHI
 		Instances.emplace_back(Instance{ .BottomLevel = pBottomLevel, .Matrix = Matrix, .InstanceGroup = InstanceGroup, .HitGroupID = HitGroupID });
 	}
 
-	TableRecord::TableRecord(void* pIdentifier, uint32_t Size)
+	TableRecord::TableRecord(void* pIdentifier, uint32 Size)
 	{
-		m_Identifier.pData = pIdentifier;
-		m_Identifier.Size = Size;
+		m_Identifier.pData	= pIdentifier;
+		m_Identifier.Size	= Size;
 
 		TotalSize += Size;
 	}
 
-	TableRecord::TableRecord(void* pIdentifier, uint32_t Size, void* pLocalRootArgs, uint32_t ArgsSize)
+	TableRecord::TableRecord(void* pIdentifier, uint32 Size, void* pLocalRootArgs, uint32 ArgsSize)
 	{
-		m_Identifier.pData = pIdentifier;
-		m_Identifier.Size = Size;
-		m_LocalRootArgs.pData = pLocalRootArgs;
-		m_LocalRootArgs.Size = ArgsSize;
+		m_Identifier.pData		= pIdentifier;
+		m_Identifier.Size		= Size;
+		m_LocalRootArgs.pData	= pLocalRootArgs;
+		m_LocalRootArgs.Size	= ArgsSize;
 
-		TotalSize += Size + ArgsSize;
+		TotalSize += (Size + ArgsSize);
 	}
 
 	void TableRecord::CopyTo(void* pDestination)
 	{
-		uint8_t* pByteDestination{ static_cast<uint8_t*>(pDestination) };
+		uint8* pByteDestination = static_cast<uint8*>(pDestination);
 		std::memcpy(pByteDestination, m_Identifier.pData, m_Identifier.Size);
+
 		if (m_LocalRootArgs.pData != nullptr)
+		{
 			std::memcpy(pByteDestination + m_Identifier.Size, m_LocalRootArgs.pData, m_LocalRootArgs.Size);
+		}
 	}
 
 	ShaderTable::~ShaderTable()
@@ -444,22 +447,25 @@ namespace lde::RHI
 		Release();
 	}
 
-	void ShaderTable::Create(ID3D12Device8* pDevice, uint32_t NumShaderRecord, uint32_t ShaderRecordSize, const std::wstring& DebugName)
+	void ShaderTable::Create(ID3D12Device8* pDevice, uint32 NumShaderRecord, uint32 ShaderRecordSize, const std::string& DebugName)
 	{
 		m_ShaderRecordSize = ALIGN(ShaderRecordSize, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT);
 		m_Records.reserve(NumShaderRecord);
 
-		const uint32_t bufferSize{ NumShaderRecord * m_ShaderRecordSize };
-		const auto uploadHeap{ CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD) };
+		const uint32 bufferSize = NumShaderRecord * m_ShaderRecordSize;
 
-		auto desc = CreateBufferDesc(bufferSize);
-		DX_CALL(pDevice->CreateCommittedResource(&D3D12Utility::HeapUpload, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_Storage)));
+		const auto desc = CreateBufferDesc(bufferSize);
+		DX_CALL(pDevice->CreateCommittedResource(
+			&D3D12Utility::HeapUpload, 
+			D3D12_HEAP_FLAG_NONE, 
+			&desc, 
+			D3D12_RESOURCE_STATE_GENERIC_READ, 
+			nullptr, IID_PPV_ARGS(&m_Storage)));
+		SET_D3D12_NAME(m_Storage, DebugName);
 		
-		const CD3DX12_RANGE range(0, 0);
+		const D3D12_RANGE range(0, 0);
 		DX_CALL(m_Storage->Map(0, &range, reinterpret_cast<void**>(&m_MappedData)));
 
-		if (!DebugName.empty())
-			SetTableName(DebugName);
 	}
 
 	void ShaderTable::AddRecord(TableRecord& Record)
@@ -471,14 +477,14 @@ namespace lde::RHI
 
 	}
 
-	void ShaderTable::SetStride(uint32_t Stride)
+	void ShaderTable::SetStride(uint32 Stride)
 	{
 		m_Stride = Stride;
 	}
 
 	void ShaderTable::CheckAlignment()
 	{
-		uint32_t max = std::max({ m_Records.data()->TotalSize });
+		uint32 max = std::max({ m_Records.data()->TotalSize });
 
 		for (auto& record : m_Records)
 			record.TotalSize = max;
@@ -488,12 +494,7 @@ namespace lde::RHI
 
 		m_Storage->Unmap(0, nullptr);
 	}
-
-	void ShaderTable::SetTableName(std::wstring Name)
-	{
-		m_Storage.Get()->SetName(Name.c_str());
-	}
-
+	
 	void ShaderTable::Release()
 	{
 		SAFE_RELEASE(m_Storage);

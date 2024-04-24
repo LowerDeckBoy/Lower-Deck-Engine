@@ -44,21 +44,15 @@ namespace lde
 		 */
 		int32 Create(RHI::D3D12RHI* pGfx, std::string_view Filepath, bool bGenerateMipMaps = true);
 
-		int32 CreateFromDesc(RHI::D3D12RHI* pGfx, std::string_view Filepath, D3D12_RESOURCE_DESC& Desc);
-		//RHI::D3D12Texture* Create(RHI::D3D12RHI* pGfx, std::string_view Filepath, bool bGenerateMipMaps = true);
-
-		RHI::D3D12Texture* GetTexture(uint32 SRVIndex);
-
+		//int32 CreateFromDesc(RHI::D3D12RHI* pGfx, std::string_view Filepath, D3D12_RESOURCE_DESC& Desc);
+		
 		// Generate mip chain for 2D texture
 		void Generate2D(RHI::D3D12Texture* pTexture);
+
 		// Generate mip chain for 3D/TextureCube
 		void Generate3D(RHI::D3D12Texture* pTexture);
 
-		std::vector<RHI::D3D12Texture*> m_Textures;
-		//std::map<int32, RHI::D3D12Texture*> m_Textures;
-		//std::unordered_map<uint32, RHI::D3D12Texture*> m_Textures;
-
-		/// @brief Returns mips in chains until 1x1.
+		// Returns mips in chains until 1x1.
 		uint16 CountMips(uint32 Width, uint32 Height);
 
 	private:
@@ -83,8 +77,6 @@ namespace lde
 
 		Shader m_ComputeShader;
 		Shader m_ComputeShader3D;
-		// TODO: 
-		// Gather all textures here and only distribute Indices to models
-		//std::unordered_map<uint32_t, Texture*> m_Textures;
+		
 	};
 } // namespace lde

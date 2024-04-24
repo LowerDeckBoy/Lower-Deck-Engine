@@ -17,8 +17,6 @@ cbuffer TextureUAV : register(b1, space0)
 	uint IndexUAV;
 };
 
-//Texture2D<float4> inputTexture : register(t0);
-//RWTexture2DArray<float4> outputTexture : register(u0);
 SamplerState texSampler : register(s0);
 
 float3 TransformCoords(uint3 ThreadID)

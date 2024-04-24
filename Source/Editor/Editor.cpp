@@ -188,6 +188,12 @@ namespace lde::editor
 				}
 			});
 
+		DrawProperties<PointLightComponent>(Entity, [&](auto& Component)
+			{
+				auto position = XMFLOAT3(Component.Position.x, Component.Position.y, Component.Position.z);
+				DrawFloat3("Position", position);
+			});
+
 		//DrawProperties<DirectionalLightComponent>(Entity, [&](auto& Component)
 		//	{
 		//		ImGui::Text("Test");
@@ -427,6 +433,10 @@ namespace lde::editor
 				else if (ImGui::MenuItem("Skybox"))
 				{
 					m_Renderer->SelectedRenderTarget = RenderOutput::eSkybox;
+				}
+				else if (ImGui::MenuItem("Raytracing"))
+				{
+					m_Renderer->SelectedRenderTarget = RenderOutput::eRaytracing;
 				}
 				
 				ImGui::EndMenu();

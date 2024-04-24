@@ -21,8 +21,13 @@ namespace lde::RHI
         case lde::RHI::ShaderStage::eRaytracing:    [[fallthrough]];
         case lde::RHI::ShaderStage::eClosestHit:    [[fallthrough]];
         case lde::RHI::ShaderStage::eMiss:          [[fallthrough]];
-        case lde::RHI::ShaderStage::eIntersection:
             return L"lib_6_6";
+        case lde::RHI::ShaderStage::eHull:
+            return L"hs_6_6";
+        case lde::RHI::ShaderStage::eTessellation:
+            return L"ts_6_6";
+        case lde::RHI::ShaderStage::eDomain:
+            return L"ds_6_6";
         case lde::RHI::ShaderStage::eUnspecified:
             return L"Invalid";
         }

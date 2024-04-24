@@ -24,11 +24,52 @@ namespace lde::RHI
 		DX_CALL(pQueue->Get()->Signal(m_Fence.Get(), Value));
 	}
 
+	/*
+	void D3D12Fence::SetEvent(uint64 Value)
+	{
+		DX_CALL(m_Fence->SetEventOnCompletion(Value, m_FenceEvent));
+	}
+
+	void D3D12Fence::Wait(uint64 Value)
+	{
+		if (IsValueCompleted(Value))
+		{
+			m_Fence->SetEventOnCompletion(Value, m_FenceEvent);
+			::WaitForSingleObject(m_FenceEvent, INFINITE);
+		}
+	}
+
+
+	void D3D12Fence::OnResize(uint64 Values[FRAME_COUNT])
+	{
+		for (uint32 i = 0; i < FRAME_COUNT; i++)
+		{
+			Values[i] = Values[FRAME_INDEX];
+		}
+	}
+	*/
+
+
+	bool D3D12Fence::IsValueCompleted(uint64 Value)
+	{
+		return m_Fence->GetCompletedValue() < Value;
+	}
+
+	void D3D12Fence::UpdateValue(uint64 Value)
+	{
+		m_FenceValues.at(FRAME_INDEX) = Value + 1u;
+	}
+
+	void D3D12Fence::UpdateValueAtIndex(usize Index)
+	{
+		m_FenceValues.at(Index)++;
+	}
+
 	void D3D12Fence::SetEvent()
 	{
 		DX_CALL(m_Fence->SetEventOnCompletion(GetValue(), m_FenceEvent));
 	}
-
+	
 	void D3D12Fence::Wait()
 	{
 		//::WaitForSingleObject(m_FenceEvent, INFINITE);
@@ -40,11 +81,6 @@ namespace lde::RHI
 		}
 	}
 
-	bool D3D12Fence::IsValueCompleted(uint64 Value)
-	{
-		return m_Fence->GetCompletedValue() < Value;
-	}
-
 	uint64 D3D12Fence::GetValue() const
 	{
 		return m_FenceValues.at(FRAME_INDEX);
@@ -53,16 +89,6 @@ namespace lde::RHI
 	uint64 D3D12Fence::GetValue(uint32 AtIndex) const
 	{
 		return m_FenceValues.at(AtIndex);
-	}
-
-	void D3D12Fence::UpdateValue(uint64 Value)
-	{
-		m_FenceValues.at(FRAME_INDEX) = Value + 1u;
-	}
-
-	void D3D12Fence::UpdateValueAtIndex(usize Index)
-	{
-		m_FenceValues.at(Index)++;
 	}
 
 	void D3D12Fence::OnResize()

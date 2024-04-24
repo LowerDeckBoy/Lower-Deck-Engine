@@ -15,11 +15,17 @@ namespace lde::RHI
 		D3D12Fence(D3D12Device* pDevice, D3D12_FENCE_FLAGS Flags = D3D12_FENCE_FLAG_NONE);
 		~D3D12Fence();
 
+		ID3D12Fence* Get() { return m_Fence.Get(); }
+
 		void Signal(D3D12Queue* pQueue, uint64 Value);
 
 		void SetEvent();
 
+		//void SetEvent(uint64 Value);
+
 		void Wait();
+
+		//void Wait(uint64 Value);
 
 		bool IsValueCompleted(uint64 Value);
 	
@@ -39,6 +45,7 @@ namespace lde::RHI
 		void UpdateValueAtIndex(usize Index);
 
 		void OnResize();
+		//void OnResize(uint64 Values[FRAME_COUNT]);
 		
 	private:
 		Ref<ID3D12Fence> m_Fence;

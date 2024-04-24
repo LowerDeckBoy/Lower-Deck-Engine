@@ -102,7 +102,8 @@ namespace lde::RHI
 		desc.Flags				= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 		desc.SampleDesc			= { 1, 0 };
 
-		DX_CALL(m_Device->GetDevice()->CreateCommittedResource(&heapProperties,
+		DX_CALL(m_Device->GetDevice()->CreateCommittedResource(
+			&heapProperties,
 			D3D12_HEAP_FLAG_NONE,
 			&desc,
 			D3D12_RESOURCE_STATE_DEPTH_WRITE,
@@ -116,7 +117,7 @@ namespace lde::RHI
 		dsView.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 		dsView.Texture2D.MipSlice = 0;
 
-		m_DSV = pDepthHeap->Allocate();
+		pDepthHeap->Allocate(m_DSV);
 		m_Device->GetDevice()->CreateDepthStencilView(m_Resource.Get(), &dsView, m_DSV.GetCpuHandle());
 
 	}

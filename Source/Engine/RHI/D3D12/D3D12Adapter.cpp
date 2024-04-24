@@ -32,9 +32,9 @@ namespace lde::RHI
 
 		DX_CALL(D3D12GetDebugInterface(IID_PPV_ARGS(&m_DebugDevices.D3DDebug)));
 		m_DebugDevices.D3DDebug->EnableDebugLayer();
+		m_DebugDevices.D3DDebug->SetEnableGPUBasedValidation(TRUE);
 #endif
 
-		// Create Factory
 		DX_CALL(CreateDXGIFactory2(factoryFlags, IID_PPV_ARGS(&m_Factory)));
 
 		CreateAdapter();
@@ -44,8 +44,7 @@ namespace lde::RHI
 		QueryFeatures();
 
 		m_Fence = std::make_unique<D3D12Fence>(this);
-		CreateQueues();
-		CreateCommandLists();
+
 		CreateHeaps();
 
 		CreateFrameResources();
@@ -56,10 +55,6 @@ namespace lde::RHI
 	{
 		delete m_FrameResources.GraphicsCommandList;
 		delete m_FrameResources.GraphicsQueue;
-		delete m_FrameResources.ComputeCommandList;
-		delete m_FrameResources.ComputeQueue;
-		delete m_FrameResources.UploadCommandList;
-		delete m_FrameResources.UploadQueue;
 
 		m_RTVHeap.reset();
 		m_DSVHeap.reset();
@@ -155,21 +150,7 @@ namespace lde::RHI
 		Capabilities.MeshShaderTier = Features.Features7.MeshShaderTier;
 		
 	}
-
-	void D3D12Device::CreateQueues()
-	{
-		//m_GfxQueue		= std::make_unique<D3D12Queue>(this, CommandType::eGraphics, "Graphics Queue");
-		//m_ComputeQueue	= std::make_unique<D3D12Queue>(this, CommandType::eCompute,  "Compute Queue");
-		//m_UploadQueue	= std::make_unique<D3D12Queue>(this, CommandType::eUpload,   "Upload Queue");
-	}
-
-	void D3D12Device::CreateCommandLists()
-	{
-		//m_GfxCommandList = std::make_unique<D3D12CommandList>(this, CommandType::eGraphics, "Graphics Command List");
-		//m_ComputeCommandList = std::make_unique<D3D12CommandList>(this, CommandType::eCompute, "Compute Command List");
-
-	}
-
+	
 	void D3D12Device::CreateHeaps()
 	{
 		// Needs to be bigger as is also meant for generating mip chains.

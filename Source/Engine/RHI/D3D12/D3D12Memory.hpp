@@ -60,6 +60,7 @@ namespace lde::RHI
 	};
 
 	// TODO: Finish this already
+	/*
 	class D3D12UploadHeap
 	{
 	public:
@@ -78,7 +79,7 @@ namespace lde::RHI
 		void Flush();
 
 	private:
-		D3D12Device*						m_Device = nullptr; /* Parent Device */
+		D3D12Device*						m_Device = nullptr; // Parent Device
 		Ref<ID3D12Resource>					m_UploadHeap;
 		std::unique_ptr<D3D12CommandList>	m_HeapCommandList;
 		std::unique_ptr<D3D12Queue>			m_HeapQueue;
@@ -110,7 +111,7 @@ namespace lde::RHI
 
 
 	};
-
+	*/
 	// TODO: 
 	// https://learn.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-id3d12device5-createlifetimetracker
 	class D3D12LifeTracker

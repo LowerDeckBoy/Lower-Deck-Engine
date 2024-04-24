@@ -1,9 +1,10 @@
 #pragma once
 
-#include <AgilitySDK/d3dx12/d3dx12.h>
+#include <AgilitySDK/d3d12.h>
 #include <Core/CoreMinimal.hpp>
 #include <RHI/Types.hpp>
 #include <span>
+#include <vector>
 
 namespace lde
 {
@@ -33,12 +34,16 @@ namespace lde::RHI
 		void AddSRV(uint32 RegisterSlot, uint32 Space = 0, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
 		// If possible, use instead of DescriptorTables.
 		void AddUAV(uint32 RegisterSlot, uint32 Space = 0, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
-		// Least preferable; slowest.
-		//void AddDescriptorTable(uint32 RegisterSlot, uint32 Space, std::span<D3D12_ROOT_DESCRIPTOR_TABLE D3D12_DESCRIPTOR_RANGE_TYPE Type, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
+		// Least preferable; slowest. Go for bindless instead.
+		void AddDescriptorTable(uint32 RegisterSlot, uint32 Space, uint32 NumDescriptors, std::span<D3D12_DESCRIPTOR_RANGE1> Ranges, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
 		
 		void AddStaticSampler(uint32 RegisterSlot, uint32 Space, 
 			D3D12_FILTER Filter, D3D12_TEXTURE_ADDRESS_MODE AddressMode, 
 			D3D12_COMPARISON_FUNC ComparsionFunc = D3D12_COMPARISON_FUNC_ALWAYS);
+
+		// Whether to set Local Root Signature flag.
+		// Note: for raytracing only.
+		void SetLocal();
 
 		/**
 		 * @brief Note: when adding Paramters and StaticSamplers they are being pushed to the vector;
@@ -60,8 +65,15 @@ namespace lde::RHI
 	private:
 		Ref<ID3D12RootSignature> m_RootSignature;
 
-		std::vector<D3D12_ROOT_PARAMETER1> m_Parameters;
+		std::vector<D3D12_ROOT_PARAMETER1>		m_Parameters;
 		std::vector<D3D12_STATIC_SAMPLER_DESC1> m_StaticSamplers;
 		
+		D3D12_ROOT_SIGNATURE_FLAGS m_RootFlags = 
+			D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS;
+
+		bool bIsLocal = false;
 	};
 } // namespace lde::RHI

@@ -3,7 +3,6 @@
 #include "Mesh.hpp"
 #include "RHI/D3D12/D3D12Buffer.hpp"
 
-
 namespace lde
 {
 	namespace RHI
@@ -27,18 +26,14 @@ namespace lde
 
 		std::string Filepath;
 	
-		RHI::Buffer* VertexBuffer = nullptr;
-		RHI::Buffer* IndexBuffer = nullptr;
-		RHI::ConstantBuffer* ConstBuffer = nullptr;
+		BufferHandle VertexBuffer = UINT32_MAX;
+		BufferHandle IndexBuffer = UINT32_MAX;
+		//D3D12_INDEX_BUFFER_VIEW IndexView{};
+		BufferHandle ConstBuffer = UINT32_MAX;
 		RHI::cbPerObject cbData{};
-		//RHI::D3D12Buffer* VertexBuffer = nullptr;
-		//RHI::D3D12Buffer* IndexBuffer = nullptr;
-	
-		//RHI::D3D12ConstantBuffer* ConstBuffer = nullptr;
-	
+
 	private:
 		std::unique_ptr<Mesh> m_Mesh;
 
 	};
-
 } // namespace lde

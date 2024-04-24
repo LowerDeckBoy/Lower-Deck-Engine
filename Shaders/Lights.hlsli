@@ -8,17 +8,19 @@
 
 struct DirectionalLight
 {
-
+	float3 Direction;
+	float padding;
+	float4 Ambient;
+	float4 Diffuse;
 };
 
 struct PointLight
 {
-
-};
-
-struct SpotLight
-{
-
+	float3 Position;
+	float padding;
+	float4 Ambient;
+	float Radius;
+	float3 padding2;
 };
 
 #endif // LIGHTS_HLSLI

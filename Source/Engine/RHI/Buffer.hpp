@@ -3,6 +3,11 @@
 #include "BufferConstants.hpp"
 #include <RHI/Types.hpp>
 
+using BufferHandle  = uint32;
+using TextureHandle = uint32;
+
+constexpr int32 INVALID_HANDLE = -1;
+
 namespace lde::RHI
 {
 	enum class BufferUsage

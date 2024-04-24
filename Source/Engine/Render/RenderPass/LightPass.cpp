@@ -4,6 +4,7 @@
 #include "GBufferPass.hpp"
 #include <RHI/D3D12/D3D12RHI.hpp>
 #include <Graphics/Skybox.hpp>
+#include <Scene/Scene.hpp>
 
 namespace lde
 {
@@ -15,8 +16,6 @@ namespace lde
 
 	LightPass::~LightPass()
 	{	
-		m_SceneConstBuffer->Release(); 
-		m_SceneLighting->Release();
 		m_Texture.reset();
 	}
 
@@ -31,7 +30,6 @@ namespace lde
 		m_Gfx->SetRenderTarget(rtvHandle, &depthHandle);
 
 		// Send Shader data
-
 		m_SceneData.CameraPosition = pCamera->GetPosition();
 		m_SceneData.View = pCamera->GetView();
 		m_SceneData.InversedView = XMMatrixTranspose(XMMatrixInverse(nullptr, pCamera->GetView()));
@@ -42,8 +40,9 @@ namespace lde
 		m_SceneData.Width  = static_cast<uint32>(m_Gfx->SceneViewport->GetViewport().Width);
 		m_SceneData.Height = static_cast<uint32>(m_Gfx->SceneViewport->GetViewport().Height);
 
-		m_SceneConstBuffer->Update(&m_SceneData);
-		m_Gfx->BindConstantBuffer(m_SceneConstBuffer, 0);
+		auto* sceneConstBuffer = m_Gfx->Device->ConstantBuffers.at(m_SceneConstBuffer);
+		sceneConstBuffer->Update(&m_SceneData);
+		m_Gfx->BindConstantBuffer(sceneConstBuffer, 0);
 
 		// TEST
 		m_LightsData.Light[0] = m_PointLights.at(0);
@@ -53,11 +52,12 @@ namespace lde
 
 		m_LightsData.Directional = { .Direction = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), .Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f) };
 
-		m_SceneLighting->Update(&m_LightsData);
-		m_Gfx->BindConstantBuffer(m_SceneLighting, 1);
+		auto* lightingConstBuffer = m_Gfx->Device->ConstantBuffers.at(m_SceneLighting);
+		lightingConstBuffer->Update(&m_LightsData);
+		m_Gfx->BindConstantBuffer(lightingConstBuffer, 1);
 
 		auto indices = pGBuffer->GetTextureIndices();
-		((RHI::D3D12RHI*)m_Gfx)->Device->GetGfxCommandList()->PushConstants(2, 7, indices.data());
+		m_Gfx->Device->GetGfxCommandList()->PushConstants(2, 7, indices.data());
 
 		struct
 		{
@@ -71,8 +71,7 @@ namespace lde
 			.specular = pSkybox->SpecularTexture->SRV.Index(), 
 			.brdf = pSkybox->BRDFTexture->SRV.Index() 
 		};
-		((RHI::D3D12RHI*)m_Gfx)->Device->GetGfxCommandList()->PushConstants(3, 4, &iblIndices);
-		
+		m_Gfx->Device->GetGfxCommandList()->PushConstants(3, 4, &iblIndices);
 
 		// Note:
 		// Actually there's no need for Index Buffer
@@ -101,7 +100,6 @@ namespace lde
 
 		m_SceneConstBuffer = pGfx->GetDevice()->CreateConstantBuffer(&m_SceneData, sizeof(m_SceneData));
 
-		//m_SceneLighting = pGfx->GetDevice()->CreateConstantBuffer(&m_DirLight, sizeof(m_DirLight));
 		
 
 		PointLightComponent light;

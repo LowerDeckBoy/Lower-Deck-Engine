@@ -18,10 +18,7 @@ namespace lde
 
 	Model::~Model()
 	{
-		//delete ConstBuffer;
-		ConstBuffer->Release();
-		VertexBuffer->Release();
-		IndexBuffer->Release();
+
 	}
 
 	void Model::Create(RHI::D3D12RHI* pGfx, World* pWorld)
@@ -50,6 +47,8 @@ namespace lde
 				m_Mesh->Indices.size() * sizeof(m_Mesh->Indices.at(0)),
 				static_cast<uint32>(sizeof(m_Mesh->Indices.at(0)))
 			});
+
+		//IndexView = RHI::GetIndexView(IndexBuffer);
 
 		ConstBuffer = pGfx->GetDevice()->CreateConstantBuffer(&cbData, sizeof(cbData));
 		

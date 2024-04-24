@@ -14,6 +14,13 @@ namespace lde::RHI
 	
 	class D3D12Device;
 	class D3D12Fence;
+	class D3D12CommandList;
+
+	//struct D3D12Fence
+	//{
+	//	Ref<ID3D12Fence> Fence;
+	//	uint64 LastSignaledValue = 0;
+	//};
 
 	class D3D12Queue
 	{
@@ -26,14 +33,24 @@ namespace lde::RHI
 			return m_Queue.Get();
 		}
 		 
-		void Wait(D3D12Fence* pFence);
+		//void Signal();
+		//void Wait();
+		//void SignalAndWait();
 
-		void Signal(D3D12Fence* pFence);
+		void Execute(D3D12CommandList* pCommandList);
+		void Execute(std::span<D3D12CommandList*> pCommandLists);
 
+		void Signal(D3D12Fence* pFence, uint64 Value);
 
+		void Wait(D3D12Fence* pFence, uint64 Value);
+
+		void SignalAndWait(D3D12Fence* pFence, uint64 Value);
+		
 		CommandType Type;
 	private:
 		Ref<ID3D12CommandQueue> m_Queue;
 
+		//D3D12Fence m_Fence;
+
 	};
-}
+} // namespace lde::RHI

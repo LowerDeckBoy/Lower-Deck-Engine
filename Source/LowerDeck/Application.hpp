@@ -4,8 +4,8 @@
 	
 */
 
-#include <Engine/Platform/Window.hpp>
 #include <Engine/Core/CoreMinimal.hpp>
+#include <Engine/Platform/Window.hpp>
 
 #include <Engine/RHI/D3D12/D3D12RHI.hpp>
 #include <Engine/Render/Renderer.hpp>
@@ -16,7 +16,7 @@
 #define EDITOR_MODE 1
 
 #if EDITOR_MODE
-#	include <Editor/Editor.hpp>
+	#include <Editor/Editor.hpp>
 #endif
 
 namespace lde
@@ -38,10 +38,10 @@ namespace lde
 	private:
 		std::unique_ptr<Timer> m_AppTimer;
 
-		std::unique_ptr<RHI::D3D12RHI> m_Gfx;
-		std::unique_ptr<RHI::RHI> m_RHI;
-		std::unique_ptr<Renderer> m_Renderer;
-		std::unique_ptr<Scene> m_ActiveScene;
+		std::unique_ptr<RHI::D3D12RHI>	m_Gfx;
+		std::unique_ptr<RHI::RHI>		m_RHI;
+		std::unique_ptr<Renderer>		m_Renderer;
+		std::unique_ptr<Scene>			m_ActiveScene;
 
 #if EDITOR_MODE
 		std::unique_ptr<editor::Editor> m_Editor;

@@ -57,9 +57,9 @@ namespace lde
 	private:
 		RHI::D3D12Device* m_Device = nullptr;
 		
-		RHI::Buffer* m_IndexBuffer = nullptr;
+		BufferHandle m_IndexBuffer = (uint32)INVALID_HANDLE;
 		// Per object
-		RHI::ConstantBuffer* m_ConstBuffer = nullptr;
+		BufferHandle m_ConstBuffer = (uint32)INVALID_HANDLE;
 		RHI::cbPerObject m_cbPerObject{};
 		
 		int32 m_TextureIndex = -1;

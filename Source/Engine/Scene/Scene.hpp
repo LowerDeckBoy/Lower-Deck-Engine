@@ -68,9 +68,6 @@ namespace lde
 	
 		void AddModel(std::string_view Filepath);
 		
-		//std::shared_ptr<SceneCamera> Camera;
-	
-		//ECS::Entity m_CameraEntity;
 		std::string SceneName = "Default scene";
 		std::unique_ptr<SceneCamera> m_Camera;
 		
@@ -82,9 +79,6 @@ namespace lde
 		std::vector<std::unique_ptr<Model>> m_Models;
 	
 		RHI::D3D12RHI* m_Gfx = nullptr;
-
-		
-
 	};
 
 } // namespace lde

@@ -14,11 +14,6 @@ namespace lde::RHI
 		Create(pDevice, Desc);
 	}
 
-	D3D12Buffer::D3D12Buffer(D3D12Device* pDevice, D3D12UploadHeap* pUploadHeap, BufferDesc Desc)
-	{
-		Create(pDevice, pUploadHeap, Desc);
-	}
-
 	D3D12Buffer::~D3D12Buffer()
 	{
 		//Release();
@@ -71,7 +66,6 @@ namespace lde::RHI
 
 		if (Desc.bBindless)
 		{
-			//pGfx->Heap->Allocate(m_Descriptor);
 			pDevice->GetSRVHeap()->Allocate(m_Descriptor);
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -84,45 +78,7 @@ namespace lde::RHI
 			pDevice->GetDevice()->CreateShaderResourceView(m_Buffer.Resource.Get(), &srvDesc, m_Descriptor.GetCpuHandle());
 		}
 	}
-
-	void D3D12Buffer::Create(D3D12Device* pDevice, D3D12UploadHeap* pUploadHeap, BufferDesc Desc)
-	{
-		if (m_Buffer.Resource.Get())
-		{
-			SAFE_RELEASE(m_Buffer.Resource);
-			SAFE_RELEASE(m_Buffer.Allocation);
-		}
-
-		D3D12_RESOURCE_DESC desc = CreateBufferDesc(Desc.Size);
-
-		//D3D12Memory::Allocate(m_Buffer, desc, AllocType::eCopyDst);
-		D3D12Memory::Allocate(m_Buffer, desc, AllocType::eGeneric);
-		
-		D3D12_SUBRESOURCE_DATA subresource{};
-		subresource.pData = Desc.pData;
-		subresource.RowPitch = static_cast<LONG_PTR>(Desc.Size);
-		subresource.SlicePitch = subresource.RowPitch;
-
-		pUploadHeap->AddBufferCopy(Desc.pData, static_cast<int32>(Desc.Size), m_Buffer.Resource.Get());
-
-		m_Desc = Desc;
-
-		if (Desc.bBindless)
-		{
-			//pGfx->Heap->Allocate(m_Descriptor);
-			pDevice->GetSRVHeap()->Allocate(m_Descriptor);
-			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-			srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-			srvDesc.Buffer.FirstElement = 0;
-			srvDesc.Buffer.NumElements = Desc.Count;
-			srvDesc.Buffer.StructureByteStride = Desc.Stride;
-			srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-			pDevice->GetDevice()->CreateShaderResourceView(m_Buffer.Resource.Get(), &srvDesc, m_Descriptor.GetCpuHandle());
-		}
-	}
-
+	
 	void D3D12Buffer::Release()
 	{
 		SAFE_RELEASE(m_Buffer.Allocation);
@@ -136,7 +92,7 @@ namespace lde::RHI
 
 	uint64 D3D12Buffer::GetGpuAddress() const
 	{
-		return uint64();
+		return m_Buffer.Resource->GetGPUVirtualAddress();
 	}
 
 	void D3D12Buffer::Map(void* /* pMappedData */)
@@ -191,7 +147,10 @@ namespace lde::RHI
 		desc.Height				= 1;
 		desc.DepthOrArraySize	= 1;
 		desc.MipLevels			= 1;
-		desc.Alignment			= D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+		// Note:
+		// Setting D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT cause issue 
+		// when building Acceleration Structures for Raytracing
+		desc.Alignment			= 0;
 		desc.Layout				= D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 		desc.SampleDesc			= { 1, 0 };
 		desc.Flags				= Flag;
@@ -229,7 +188,7 @@ namespace lde::RHI
 			//bufferView.SizeInBytes = static_cast<uint32>(dataSize);
 
 			// Persistent mapping
-			const CD3DX12_RANGE readRange(0, 0);
+			const D3D12_RANGE readRange(0, 0);
 			DX_CALL(m_Buffers.at(i)->Map(0, &readRange, reinterpret_cast<void**>(&pDataBegin.at(i))));
 			std::memcpy(pDataBegin.at(i), &pData, m_Size);
 

@@ -22,10 +22,6 @@ namespace lde
 		m_Camera = std::make_unique<SceneCamera>(m_World, static_cast<float>((float)Width / (float)Height));
 		m_Camera->InitializeInputs();
 		m_Gfx = pGfx;
-	
-		Lights.emplace_back(Entity(m_World));
-		//Lights.at(0).AddComponent<DirectLightComponent>();
-	
 		
 	}
 
@@ -50,33 +46,39 @@ namespace lde
 		auto* commandList = m_Gfx->Device->GetGfxCommandList();
 		commandList->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		
-		struct vertex
+		auto* indexBuffer  = m_Gfx->Device->Buffers.at(pModel.IndexBuffer);
+		auto* vertexBuffer = m_Gfx->Device->Buffers.at(pModel.VertexBuffer);
+		auto* constBuffer  = m_Gfx->Device->ConstantBuffers.at(pModel.ConstBuffer);
+
+		auto& transform = pModel.GetComponent<TransformComponent>();
+
+		struct meshVertex
 		{
 			uint32 index;
 			uint32 offset;
-		} vert{ pModel.VertexBuffer->GetSRVIndex(), 0 };
+		} vertex{ .index = vertexBuffer->GetSRVIndex(), .offset = 0 };
 
 		for (uint32 i = 0; i < pModel.GetMesh()->Submeshes.size(); i++)
 		{
 			auto& mesh = pModel.GetMesh()->Submeshes.at(i);
-			auto& transform = pModel.GetComponent<TransformComponent>();
+
 			auto WVP = mesh.Matrix * transform.WorldMatrix * m_Camera->GetViewProjection();
 			
 			RHI::cbPerObject update = { XMMatrixTranspose(WVP), DirectX::XMMatrixTranspose(transform.WorldMatrix) };
-			pModel.ConstBuffer->Update(&update);
-			m_Gfx->BindConstantBuffer(pModel.ConstBuffer, 0);
-	
-			vert.offset = mesh.BaseVertex;
-			commandList->PushConstants(1, 2, &vert, 0);
+			constBuffer->Update(&update);
+			m_Gfx->BindConstantBuffer(constBuffer, 0);
+
+			vertex.offset = mesh.BaseVertex;
+			commandList->PushConstants(1, 2, &vertex);
 			// Push Material as constants; 64bytes
 			commandList->PushConstants(2, 16, &mesh.Mat, 0);
-	
-			if (pModel.IndexBuffer->GetDesc().Count != 0)
+
+			if (indexBuffer->GetDesc().Count != 0)
 			{
-				m_Gfx->BindIndexBuffer(pModel.IndexBuffer);
+				m_Gfx->BindIndexBuffer(indexBuffer);
 				m_Gfx->DrawIndexed(mesh.IndexCount, mesh.BaseIndex, mesh.BaseVertex);
 			}
-			else /* Draw non-indexed */
+			else // Draw non-indexed
 			{
 				m_Gfx->Draw(mesh.VertexCount);
 			}

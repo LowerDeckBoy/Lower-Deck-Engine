@@ -6,8 +6,6 @@
 #include <Core/Logger.hpp>
 #include <Core/String.hpp>
 
-#include <DirectXTex.h>
-
 namespace lde
 {
 	TextureManager* TextureManager::m_Instance = nullptr;
@@ -42,15 +40,6 @@ namespace lde
 
 	void TextureManager::Release()
 	{
-
-		for (usize i = 0; i < m_Textures.size(); ++i)
-		{
-			delete m_Textures.at(i);
-		}
-		//for (auto& texture : m_Textures)
-		//{
-		//	delete texture;
-		//}
 		
 	}
 
@@ -86,21 +75,9 @@ namespace lde
 			LOG_ERROR("Invalid texture extension!");
 			return -1;
 		}
-	
-		m_Textures.emplace_back(newTexture);
+		
+		m_Gfx->Device->CreateTexture(newTexture);
 		return static_cast<uint32>(newTexture->SRV.Index());
-	}
-
-	RHI::D3D12Texture* TextureManager::GetTexture(uint32 SRVIndex)
-	{
-		for (auto& texture : m_Textures)
-		{
-			if (texture->SRV.Index() == SRVIndex)
-				return texture;
-		}
-
-		LOG_WARN("Failed to find desired texture!");
-		return nullptr;
 	}
 
 	void TextureManager::Create2D(RHI::D3D12RHI* pGfx, std::string_view Filepath, RHI::D3D12Texture* pTarget, bool bMipMaps)
@@ -143,13 +120,21 @@ namespace lde
 		subresource.RowPitch = static_cast<LONG_PTR>(desc.Width * 4u);
 		subresource.SlicePitch = static_cast<LONG_PTR>(subresource.RowPitch * desc.Height);
 
-		const auto uploadBuffer = CD3DX12_RESOURCE_DESC::Buffer(subresource.SlicePitch);
+		//const auto uploadBuffer = CD3DX12_RESOURCE_DESC::Buffer(subresource.SlicePitch);
+		D3D12_RESOURCE_DESC uploadBufferDesc{};
+		uploadBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+		uploadBufferDesc.Width = subresource.SlicePitch;
+		uploadBufferDesc.Height = 1;
+		uploadBufferDesc.MipLevels = 1;
+		uploadBufferDesc.DepthOrArraySize = 1;
+		uploadBufferDesc.SampleDesc = { 1, 0 };
+		uploadBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
 		Ref<ID3D12Resource> uploadResource;
 		RHI::DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
 			&RHI::D3D12Utility::HeapUpload,
 			D3D12_HEAP_FLAG_NONE,
-			&uploadBuffer,
+			&uploadBufferDesc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
 			IID_PPV_ARGS(uploadResource.ReleaseAndGetAddressOf())
@@ -165,7 +150,7 @@ namespace lde
 	
 		pGfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
 
-		pGfx->Device->CreateSRV(pTarget->Texture.Get(), pTarget->SRV, mipCount);
+		pGfx->Device->CreateSRV(pTarget->Texture.Get(), pTarget->SRV, mipCount, 1);
 
 		stbi_image_free(pixels);
 		SAFE_RELEASE(uploadResource);
@@ -177,70 +162,12 @@ namespace lde
 	}
 
 	void TextureManager::CreateFromHDR(RHI::D3D12RHI* pGfx, std::string_view Filepath, RHI::D3D12Texture* pTarget)
-	{
-		DirectX::ScratchImage scratchImage{};
-		auto path = String::ToWide(Filepath);
-		DirectX::LoadFromHDRFile(path.c_str(), nullptr, scratchImage);
-		DirectX::TexMetadata metadata = scratchImage.GetMetadata();
+	{	
+		int32 width, height, channels = 0;
 
-		D3D12_RESOURCE_DESC desc{};
-		desc.Format = metadata.format;
-		desc.Width  = static_cast<uint64>(metadata.width);
-		desc.Height = static_cast<uint32>(metadata.height);
-		desc.MipLevels = 1;
-		desc.DepthOrArraySize = 1;
-		desc.SampleDesc = { 1, 0 };
-		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-		desc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-
-		if (metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE1D)
-			desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE1D;
-		else if (metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE2D)
-			desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		else if (metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE3D)
-			desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
-
-		RHI::DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
-			&RHI::D3D12Utility::HeapDefault,
-			D3D12_HEAP_FLAG_NONE,
-			&desc,
-			D3D12_RESOURCE_STATE_COPY_DEST,
-			nullptr,
-			IID_PPV_ARGS(&pTarget->Texture)));
-
-		D3D12_SUBRESOURCE_DATA subresource{};
-		subresource.pData		= scratchImage.GetImages()->pixels;
-		subresource.RowPitch	= static_cast<int64>(scratchImage.GetImages()->rowPitch);
-		subresource.SlicePitch	= static_cast<int64>(scratchImage.GetImages()->slicePitch);
-
-		//const uint64_t bufferSize = ::GetRequiredIntermediateSize(pTarget->Texture.Get(), 0, 1);
-		//const auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-		const auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(scratchImage.GetImages()->slicePitch);
-
-		Ref<ID3D12Resource> uploadResource;
-		RHI::DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
-			&RHI::D3D12Utility::HeapUpload,
-			D3D12_HEAP_FLAG_NONE,
-			&bufferDesc,
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&uploadResource)));
-
-
-		pGfx->UploadResource(pTarget->Texture, uploadResource, subresource);
-		pGfx->TransitResource(pTarget->Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		pGfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
-
-		pGfx->Device->CreateSRV(pTarget->Texture.Get(), pTarget->SRV);
-
-		// Delete AFTER executing Command Lists, otherwise upload resource will remain live.
-		SAFE_RELEASE(uploadResource);
-		
-
-		/*
-		int32 width, height, channels;
-		int is_hdr = stbi_is_hdr(Filepath.data());
-		void* pixels = stbi_load(Filepath.data(), &width, &height, &channels, STBI_rgb_alpha);
+		stbi_ldr_to_hdr_scale(1.0f);
+		stbi_ldr_to_hdr_gamma(2.2f);
+		float* pixels = stbi_loadf(Filepath.data(), &width, &height, &channels, STBI_rgb_alpha);
 		if (!pixels)
 		{
 			::MessageBoxA(nullptr, stbi_failure_reason(), "Error", MB_OK);
@@ -252,7 +179,6 @@ namespace lde
 		desc.Width = static_cast<uint64_t>(width);
 		desc.Height = static_cast<uint32_t>(height);
 		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		//desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		desc.MipLevels  = 1;
 		desc.DepthOrArraySize = 1;
 		desc.SampleDesc = { 1, 0 };
@@ -273,13 +199,20 @@ namespace lde
 		subresource.RowPitch = static_cast<LONG_PTR>(desc.Width * 16u);
 		subresource.SlicePitch = static_cast<LONG_PTR>(subresource.RowPitch * desc.Height);
 
-		const auto uploadBuffer = CD3DX12_RESOURCE_DESC::Buffer(subresource.SlicePitch);
+		D3D12_RESOURCE_DESC uploadBufferDesc{};
+		uploadBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+		uploadBufferDesc.Width = subresource.SlicePitch;
+		uploadBufferDesc.Height = 1;
+		uploadBufferDesc.MipLevels = 1;
+		uploadBufferDesc.DepthOrArraySize = 1;
+		uploadBufferDesc.SampleDesc = { 1, 0 }; 
+		uploadBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
 		Ref<ID3D12Resource> uploadResource;
 		RHI::DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
 			&RHI::D3D12Utility::HeapUpload,
 			D3D12_HEAP_FLAG_NONE,
-			&uploadBuffer,
+			&uploadBufferDesc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
 			IID_PPV_ARGS(uploadResource.ReleaseAndGetAddressOf())
@@ -291,12 +224,11 @@ namespace lde
 
 		pGfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
 
-		CreateSRV(pGfx, pTarget, 1, desc.Format);
+		pGfx->Device->CreateSRV(pTarget->Texture.Get(), pTarget->SRV, 1, 1);
 
 		stbi_image_free(pixels);
 		SAFE_RELEASE(uploadResource);
-		*/
-
+		
 	}
 
 	uint16 TextureManager::CountMips(uint32 Width, uint32 Height)
@@ -317,10 +249,10 @@ namespace lde
 		// 2D
 		{
 			m_RootSignature.AddConstants(8, 0);
-			m_RootSignature.AddStaticSampler(0, 0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+			m_RootSignature.AddStaticSampler(0, 0, D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_COMPARISON_FUNC_NEVER);
 			m_RootSignature.Build(m_Gfx->Device.get(), RHI::PipelineType::eCompute, "MipMap2D Root Signature");
 
-			m_ComputeShader = ShaderCompiler::GetInstance().Compile("Shaders/MipMap2D.hlsl", RHI::ShaderStage::eCompute, L"CSmain");
+			m_ComputeShader = ShaderCompiler::GetInstance().Compile("Shaders/Compute/MipMap2D.hlsl", RHI::ShaderStage::eCompute, L"CSmain");
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
 			psoDesc.pRootSignature = m_RootSignature.Get();
@@ -339,7 +271,7 @@ namespace lde
 			m_RootSignature3D.AddStaticSampler(0, 0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 			m_RootSignature3D.Build(m_Gfx->Device.get(), RHI::PipelineType::eCompute, "MipMap3D Root Signature");
 
-			m_ComputeShader3D = ShaderCompiler::GetInstance().Compile("Shaders/MipMap3D.hlsl", RHI::ShaderStage::eCompute, L"CSmain");
+			m_ComputeShader3D = ShaderCompiler::GetInstance().Compile("Shaders/Compute/MipMap3D.hlsl", RHI::ShaderStage::eCompute, L"CSmain");
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
 			psoDesc.pRootSignature = m_RootSignature3D.Get();
@@ -446,7 +378,10 @@ namespace lde
 
 			m_Gfx->Device->GetGfxCommandList()->Get()->Dispatch(((destWidth + 8u - 1) / 8u), (destHeight + 8u - 1) / 8u, 1);
 
-			CD3DX12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(uavResource.Get());
+			//CD3DX12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(uavResource.Get());
+			D3D12_RESOURCE_BARRIER uavBarrier{};
+			uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+			uavBarrier.UAV.pResource = uavResource.Get();
 			m_Gfx->Device->GetGfxCommandList()->Get()->ResourceBarrier(1, &uavBarrier);
 		}
 
@@ -545,18 +480,16 @@ namespace lde
 				const uint32 dispatchZ = std::max((uint32)std::ceil(baseMipDepth  / 2.0f), 1u);
 				m_Gfx->Device->GetGfxCommandList()->Get()->Dispatch(dispatchX, dispatchY, dispatchZ);
 
-				CD3DX12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(uavResource);
+				//CD3DX12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(uavResource);
+				D3D12_RESOURCE_BARRIER uavBarrier{};
+				uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+				uavBarrier.UAV.pResource = uavResource;
 				m_Gfx->Device->GetGfxCommandList()->Get()->ResourceBarrier(1, &uavBarrier);
 			}
 
 			// Execute after every ArraySlice step
 			m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
 		}
-		
-		//m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
-		// Reset UAV; they are not necessary after mip creation for now
-		//pTexture->UAV = {};
-	
 	}
 
 } // namespace lde

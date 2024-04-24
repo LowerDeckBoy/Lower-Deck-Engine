@@ -1,7 +1,7 @@
 #include "D3D12Buffer.hpp"
 #include "D3D12Texture.hpp"
 #include "D3D12RHI.hpp"
-
+#include <AgilitySDK/d3dx12/d3dx12.h>
 #include <Core/Logger.hpp>
 #include <Platform/Window.hpp>
 
@@ -20,8 +20,7 @@ namespace lde::RHI
 	void D3D12RHI::BeginFrame()
 	{
 		OpenList(Device->GetGfxCommandList());
-		//D3D12Memory::SetFrameIndex(FRAME_INDEX);
-		
+
 		TransitResource(SwapChain->GetBackbuffer(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		SetViewport();
 
@@ -48,7 +47,8 @@ namespace lde::RHI
 	void D3D12RHI::Present(bool bVSync)
 	{
 		TransitResource(SwapChain->GetBackbuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		Device->ExecuteCommandList(CommandType::eGraphics, false);
+		Device->ExecuteCommandList(CommandType::eGraphics, true);
+		DX_CALL(Device->GetGfxCommandList()->Close());
 
 		DX_CALL(SwapChain->Get()->Present((bVSync ? 1 : 0), 0));
 
@@ -79,7 +79,7 @@ namespace lde::RHI
 		delete SceneDepth;
 		SwapChain.reset();
 
-
+		// Release all resources before destroying Allocator
 		for (auto& texture : Device->Textures)
 		{
 			texture->Release();
@@ -100,7 +100,7 @@ namespace lde::RHI
 		LOG_INFO("Backend: D3D12 released.");
 	}
 
-	uint32 D3D12RHI::QueryAdapterMemory()
+	uint32 D3D12RHI::QueryAdapterMemory() const
 	{
 		DXGI_QUERY_VIDEO_MEMORY_INFO memoryInfo{};
 		Device->GetAdapter()->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &memoryInfo);
@@ -119,10 +119,11 @@ namespace lde::RHI
 		if (Device->GetFence()->IsValueCompleted(Device->GetFence()->GetValue()))
 		{
 			Device->GetFence()->SetEvent();
-			Device->GetFence()->Wait();
+			Device->GetFence()->Wait();	
 		}
 
-		Device->GetFence()->UpdateValue(static_cast<uint32>(currentFenceValue));
+		Device->GetFence()->UpdateValue(currentFenceValue);
+		
 	}
 
 	void D3D12RHI::OpenList(D3D12CommandList* pCommandList)
@@ -132,11 +133,13 @@ namespace lde::RHI
 	
 	void D3D12RHI::OnResize(uint32 Width, uint32 Height)
 	{
-		Device->WaitForGPU();
+		Device->WaitForGPU(CommandType::eGraphics);
 
 		Device->GetGfxCommandList()->Reset();
 		
 		Device->GetFence()->OnResize();
+		//Device->GetFence()->OnResize(Device->GetFrameResources().RenderFenceValues);
+
 		SceneViewport->Set(Width, Height);
 		SwapChain->OnResize(Width, Height);
 		SceneDepth->OnResize(Device->GetDSVHeap(), SceneViewport);
@@ -253,6 +256,11 @@ namespace lde::RHI
 	void D3D12RHI::UploadResource(Ref<ID3D12Resource> ppDst, Ref<ID3D12Resource> ppSrc, D3D12_SUBRESOURCE_DATA Subresource)
 	{
 		::UpdateSubresources(Device->GetGfxCommandList()->Get(), ppDst.Get(), ppSrc.Get(), 0, 0, 1, &Subresource);
+	}
+
+	void D3D12RHI::CopyResource(ID3D12Resource* pDst, ID3D12Resource* pSrc)
+	{
+		Device->GetGfxCommandList()->Get()->CopyResource(pDst, pSrc);
 	}
 
 	void D3D12RHI::CopyResource(Ref<ID3D12Resource> ppDst, Ref<ID3D12Resource> ppSrc)

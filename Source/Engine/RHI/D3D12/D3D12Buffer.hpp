@@ -24,11 +24,9 @@ namespace lde::RHI
 	public:
 		D3D12Buffer() = default;
 		D3D12Buffer(D3D12Device* pDevice, BufferDesc Desc);
-		D3D12Buffer(D3D12Device* pDevice, D3D12UploadHeap* pUploadHeap, BufferDesc Desc);
 		~D3D12Buffer();
 
 		void Create(D3D12Device* pDevice, BufferDesc Desc);
-		void Create(D3D12Device* pDevice, D3D12UploadHeap* pUploadHeap, BufferDesc Desc);
 
 		D3D12Descriptor Descriptor() const;
 

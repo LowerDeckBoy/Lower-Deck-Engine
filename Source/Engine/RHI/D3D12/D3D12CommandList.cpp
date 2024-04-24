@@ -4,6 +4,7 @@
 #include "D3D12Utility.hpp"
 #include "RHI/Types.hpp"
 #include "D3D12RootSignature.hpp"
+#include <AgilitySDK/d3dx12/d3dx12_resource_helpers.h>
 
 namespace lde::RHI
 {
@@ -47,25 +48,28 @@ namespace lde::RHI
 	D3D12CommandList::D3D12CommandList(D3D12Device* pDevice, CommandType eType, std::string DebugName)
 	{
 		D3D12_COMMAND_LIST_TYPE type = GetCommandType(eType);
-		for (auto& allocator : m_Allocators)
-		{
-			DX_CALL(pDevice->GetDevice()->CreateCommandAllocator(type, IID_PPV_ARGS(&allocator)));
-		}
+		//for (auto& allocator : m_Allocators)
+		//{
+		//	DX_CALL(pDevice->GetDevice()->CreateCommandAllocator(type, IID_PPV_ARGS(&allocator)));
+		//}
 
+		DX_CALL(pDevice->GetDevice()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_Allocator)));
 		DX_CALL(pDevice->GetDevice()->CreateCommandList(DEVICE_NODE, type, GetAllocator(), nullptr, IID_PPV_ARGS(&m_GraphicsCommandList)));
 		SET_D3D12_NAME(m_GraphicsCommandList, DebugName);
-
+		SET_D3D12_NAME(m_Allocator, (DebugName + ": Allocator"));
+		
 		m_Type = eType;
 	}
 
 	D3D12CommandList::~D3D12CommandList()
 	{
 		SAFE_RELEASE(m_GraphicsCommandList);
-		
-		for (auto& allocator : m_Allocators)
-		{
-			SAFE_RELEASE(allocator);
-		}
+
+		SAFE_RELEASE(m_Allocator);
+		//for (auto& allocator : m_Allocators)
+		//{
+		//	SAFE_RELEASE(allocator);
+		//}
 	}
 
 	void D3D12CommandList::ResetAllocator()

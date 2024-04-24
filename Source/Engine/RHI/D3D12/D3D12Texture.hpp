@@ -16,7 +16,10 @@ namespace lde::RHI
 	class D3D12Texture
 	{
 	public:
-		~D3D12Texture(); /* Releases Texture resource */
+		D3D12Texture() = default;
+		~D3D12Texture() = default;
+
+		void Release();
 
 		D3D12Descriptor SRV;
 		D3D12Descriptor UAV; /* For mipmapping */
@@ -39,6 +42,8 @@ namespace lde::RHI
 	class D3D12RenderTexture
 	{
 	public:
+		D3D12RenderTexture() = default;
+		D3D12RenderTexture(D3D12RHI* pGfx, DXGI_FORMAT Format, std::string_view DebugName = "");
 		~D3D12RenderTexture(); /* Releases Texture resource */
 
 		void Initialize(D3D12RHI* pGfx, DXGI_FORMAT Format, std::string_view DebugName = "");

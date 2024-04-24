@@ -19,6 +19,4 @@ struct CameraData
 	float		zFar;
 };
 
-// https://github.com/pkurth/D3D12Renderer/blob/master/shaders/common/camera.hlsli
-
 #endif // CAMERA_HLSLI

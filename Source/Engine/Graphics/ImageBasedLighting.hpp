@@ -11,13 +11,13 @@
 namespace lde::RHI
 {
 	class D3D12Device;
+	class D3D12RootSignature;
 }
 
 namespace lde
 {	
 	class Skybox;
 	
-
 	/**
 	 * @brief Creates TextureCube from HDRi equirectangular map
 	 * and prefilters texture for PBR usage.
@@ -46,7 +46,8 @@ namespace lde
 
 		struct
 		{
-			Ref<ID3D12RootSignature> ComputeRS;
+			//Ref<ID3D12RootSignature> ComputeRS;
+			RHI::D3D12RootSignature* ComputeRS;
 			Ref<ID3D12PipelineState> ComputePSO;
 
 			Ref<ID3D12PipelineState> DiffusePSO;

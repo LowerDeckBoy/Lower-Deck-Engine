@@ -13,11 +13,11 @@ namespace lde::RHI
 	void D3D12RootSignature::AddConstants(uint32 Count, uint32 RegisterSlot, uint32 Space, D3D12_SHADER_VISIBILITY Visibility)
 	{
 		D3D12_ROOT_PARAMETER1 parameter{};
-		parameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-		parameter.Constants.Num32BitValues = Count;
-		parameter.Constants.ShaderRegister = RegisterSlot;
-		parameter.Constants.RegisterSpace = Space;
-		parameter.ShaderVisibility = Visibility;
+		parameter.ParameterType				= D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+		parameter.Constants.Num32BitValues	= Count;
+		parameter.Constants.ShaderRegister	= RegisterSlot;
+		parameter.Constants.RegisterSpace	= Space;
+		parameter.ShaderVisibility			= Visibility;
 
 		m_Parameters.emplace_back(parameter);
 	}
@@ -25,11 +25,11 @@ namespace lde::RHI
 	void D3D12RootSignature::AddCBV(uint32 RegisterSlot, uint32 Space, D3D12_SHADER_VISIBILITY Visibility)
 	{
 		D3D12_ROOT_PARAMETER1 parameter{};
-		parameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+		parameter.ParameterType				= D3D12_ROOT_PARAMETER_TYPE_CBV;
 		parameter.Descriptor.ShaderRegister = RegisterSlot;
-		parameter.Descriptor.RegisterSpace = Space;
-		parameter.Descriptor.Flags = D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE;
-		parameter.ShaderVisibility = Visibility;
+		parameter.Descriptor.RegisterSpace	= Space;
+		parameter.Descriptor.Flags			= D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE;
+		parameter.ShaderVisibility			= Visibility;
 
 		m_Parameters.emplace_back(parameter);
 	}
@@ -37,11 +37,11 @@ namespace lde::RHI
 	void D3D12RootSignature::AddSRV(uint32 RegisterSlot, uint32 Space, D3D12_SHADER_VISIBILITY Visibility)
 	{
 		D3D12_ROOT_PARAMETER1 parameter{};
-		parameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
+		parameter.ParameterType				= D3D12_ROOT_PARAMETER_TYPE_SRV;
 		parameter.Descriptor.ShaderRegister = RegisterSlot;
-		parameter.Descriptor.RegisterSpace = Space;
-		parameter.Descriptor.Flags = D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE;
-		parameter.ShaderVisibility = Visibility;
+		parameter.Descriptor.RegisterSpace	= Space;
+		parameter.Descriptor.Flags			= D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE;
+		parameter.ShaderVisibility			= Visibility;
 
 		m_Parameters.emplace_back(parameter);
 	}
@@ -49,50 +49,60 @@ namespace lde::RHI
 	void D3D12RootSignature::AddUAV(uint32 RegisterSlot, uint32 Space, D3D12_SHADER_VISIBILITY Visibility)
 	{
 		D3D12_ROOT_PARAMETER1 parameter{};
-		parameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_UAV;
+		parameter.ParameterType				= D3D12_ROOT_PARAMETER_TYPE_UAV;
 		parameter.Descriptor.ShaderRegister = RegisterSlot;
-		parameter.Descriptor.RegisterSpace = Space;
-		parameter.Descriptor.Flags = D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE;
-		parameter.ShaderVisibility = Visibility;
+		parameter.Descriptor.RegisterSpace	= Space;
+		parameter.Descriptor.Flags			= D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE;
+		parameter.ShaderVisibility			= Visibility;
 
+		m_Parameters.emplace_back(parameter);
+	}
+
+	void D3D12RootSignature::AddDescriptorTable(uint32 RegisterSlot, uint32 Space, uint32 NumDescriptors, std::span<D3D12_DESCRIPTOR_RANGE1> Ranges, D3D12_SHADER_VISIBILITY Visibility)
+	{
+		D3D12_ROOT_PARAMETER1 parameter{};
+		parameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		parameter.DescriptorTable.NumDescriptorRanges = static_cast<uint32>(Ranges.size());
+		parameter.DescriptorTable.pDescriptorRanges = Ranges.data();
+		parameter.ShaderVisibility = Visibility;
+		
 		m_Parameters.emplace_back(parameter);
 	}
 
 	void D3D12RootSignature::AddStaticSampler(uint32 RegisterSlot, uint32 Space, D3D12_FILTER Filter, D3D12_TEXTURE_ADDRESS_MODE AddressMode, D3D12_COMPARISON_FUNC ComparsionFunc)
 	{
 		D3D12_STATIC_SAMPLER_DESC1 sampler{};
-		sampler.ShaderRegister = RegisterSlot;
-		sampler.RegisterSpace = Space;
-		sampler.Filter = Filter;
-		sampler.AddressU = AddressMode;
-		sampler.AddressV = AddressMode;
-		sampler.AddressW = AddressMode;
-		sampler.ComparisonFunc = ComparsionFunc;
-		sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-		sampler.MinLOD = 0.0f;
-		sampler.MaxLOD = D3D12_FLOAT32_MAX;
-		sampler.MaxAnisotropy  = D3D12_MAX_MAXANISOTROPY;
+		sampler.ShaderRegister	= RegisterSlot;
+		sampler.RegisterSpace	= Space;
+		sampler.Filter			= Filter;
+		sampler.AddressU		= AddressMode;
+		sampler.AddressV		= AddressMode;
+		sampler.AddressW		= AddressMode;
+		sampler.ComparisonFunc	= ComparsionFunc;
+		sampler.BorderColor		= D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+		sampler.MinLOD			= 0.0f;
+		sampler.MaxLOD			= D3D12_FLOAT32_MAX;
+		sampler.MaxAnisotropy	= D3D12_MAX_MAXANISOTROPY;
 		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-		sampler.Flags = D3D12_SAMPLER_FLAG_NONE;
+		sampler.Flags			= D3D12_SAMPLER_FLAG_NONE;
 
 		m_StaticSamplers.emplace_back(sampler);
 	}
 
+	void D3D12RootSignature::SetLocal()
+	{
+		bIsLocal = true;
+	}
+
 	HRESULT D3D12RootSignature::Build(D3D12Device* pDevice, PipelineType eType, std::string DebugName)
 	{
-		const D3D12_ROOT_SIGNATURE_FLAGS flags = 
-			D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED | 
-			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | 
-			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS | 
-			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS;
-
 		D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc{};
-		desc.Desc_1_2.NumParameters = static_cast<uint32>(m_Parameters.size());
-		desc.Desc_1_2.pParameters = m_Parameters.data();
+		desc.Version					= D3D_ROOT_SIGNATURE_VERSION_1_2;
+		desc.Desc_1_2.NumParameters		= static_cast<uint32>(m_Parameters.size());
+		desc.Desc_1_2.pParameters		= m_Parameters.data();
 		desc.Desc_1_2.NumStaticSamplers = static_cast<uint32>(m_StaticSamplers.size());
-		desc.Desc_1_2.pStaticSamplers = m_StaticSamplers.data();
-		desc.Desc_1_2.Flags = flags;
-		desc.Version = D3D_ROOT_SIGNATURE_VERSION_1_2;
+		desc.Desc_1_2.pStaticSamplers	= m_StaticSamplers.data();
+		desc.Desc_1_2.Flags				= (bIsLocal) ? D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE : m_RootFlags;
 
 		Type = eType;
 

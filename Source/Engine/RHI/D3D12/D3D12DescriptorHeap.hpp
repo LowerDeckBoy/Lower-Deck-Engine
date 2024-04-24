@@ -1,11 +1,5 @@
 #pragma once
 
-/*
-	RHI/D3D12/D3D12DescriptorHeap.hpp
-
-*/
-
-//#include <AgilitySDK/d3d12.h>
 #include <Core/CoreMinimal.hpp>
 #include "D3D12Descriptor.hpp"
 

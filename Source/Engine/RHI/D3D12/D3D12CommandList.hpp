@@ -51,9 +51,10 @@ namespace lde::RHI
 		D3D12CommandList& operator=(const D3D12CommandList&) = delete;
 		~D3D12CommandList();
 
-		ID3D12GraphicsCommandList6*			Get() const		{ return m_GraphicsCommandList.Get();			}
-		ID3D12GraphicsCommandList6* const*	GetAddressOf()	{ return m_GraphicsCommandList.GetAddressOf();	}
-		ID3D12CommandAllocator*				GetAllocator()	{ return m_Allocators.at(FRAME_INDEX).Get();	}
+		ID3D12GraphicsCommandList8*			Get() const		{ return m_GraphicsCommandList.Get();			}
+		ID3D12GraphicsCommandList8* const*	GetAddressOf()	{ return m_GraphicsCommandList.GetAddressOf();	}
+		ID3D12CommandAllocator*				GetAllocator()	{ return m_Allocator.Get();	}
+		//ID3D12CommandAllocator*				GetAllocator()	{ return m_Allocators.at(FRAME_INDEX).Get();	}
 
 		HRESULT Close();
 
@@ -85,8 +86,9 @@ namespace lde::RHI
 
 	private:
 		Ref<ID3D12CommandList>			m_CommandList;
-		Ref<ID3D12GraphicsCommandList6> m_GraphicsCommandList;
-		std::array<Ref<ID3D12CommandAllocator>, FRAME_COUNT> m_Allocators;
+		Ref<ID3D12GraphicsCommandList8> m_GraphicsCommandList;
+		Ref<ID3D12CommandAllocator>		m_Allocator;
+		//std::array<Ref<ID3D12CommandAllocator>, FRAME_COUNT> m_Allocators;
 		
 	};
 	

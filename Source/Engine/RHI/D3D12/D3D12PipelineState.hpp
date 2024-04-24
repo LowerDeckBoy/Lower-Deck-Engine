@@ -5,15 +5,12 @@
 */
 
 #include <AgilitySDK/d3d12.h>
-#include <AgilitySDK/d3dx12/d3dx12.h>
 #include <Core/CoreMinimal.hpp>
 #include <Graphics/ShaderCompiler.hpp>
 #include <RHI/Types.hpp>
-
 #include <span>
 #include <vector>
 
-//namespace lde { class Shader; }
 
 namespace lde::RHI
 {
@@ -43,7 +40,7 @@ namespace lde::RHI
 		Shader GeometryShader;
 	};
 
-	/// @brief Graphics Pipeline State builder class.
+	// Graphics Pipeline State builder class.
 	class D3D12PipelineStateBuilder
 	{
 	public:
@@ -55,6 +52,9 @@ namespace lde::RHI
 		void SetVertexShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
 		void SetPixelShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
 		void SetGeometryShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
+		void SetHullShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
+		void SetTessellationShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
+		void SetDomainShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
 	
 		// Won't be necessary for Bindless tho
 		void SetInputLayout(const std::span<D3D12_INPUT_ELEMENT_DESC>& InputLayout);
@@ -74,10 +74,6 @@ namespace lde::RHI
 	private:
 		D3D12Device* m_Device = nullptr;
 	
-		std::vector<CD3DX12_DESCRIPTOR_RANGE1>	m_Ranges;
-		std::vector<CD3DX12_ROOT_PARAMETER1>	m_Parameters;
-		std::vector<D3D12_INPUT_ELEMENT_DESC>	m_InputLayout;
-	
 		// Number of Render Targets is determine by size of vector.
 		std::vector<DXGI_FORMAT> m_RenderTargetFormats;
 
@@ -90,16 +86,19 @@ namespace lde::RHI
 
 		Shader* m_VertexShader		= nullptr;
 		Shader* m_PixelShader		= nullptr;
-		Shader* m_DomainShader		= nullptr;
-		Shader* m_HullShader		= nullptr;
 		Shader* m_GeometryShader	= nullptr;
+		Shader* m_HullShader		= nullptr;
+		Shader* m_TessellationShader= nullptr;
+		Shader* m_DomainShader		= nullptr;
 		
-		CD3DX12_RASTERIZER_DESC m_RasterizerDesc = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		D3D12_RASTERIZER_DESC m_RasterizerDesc{};
 		D3D12_CULL_MODE m_CullMode = D3D12_CULL_MODE_BACK;
 		D3D12_FILL_MODE m_FillMode = D3D12_FILL_MODE_SOLID;
-	
-		CD3DX12_DEPTH_STENCIL_DESC m_DepthDesc = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+
+		D3D12_DEPTH_STENCIL_DESC m_DepthDesc{};
 		DXGI_FORMAT m_DepthFormat = DXGI_FORMAT_D32_FLOAT;
+
+		D3D12_BLEND_DESC m_BlendDesc{};
 	
 	};
 } // namespace lde::RHI

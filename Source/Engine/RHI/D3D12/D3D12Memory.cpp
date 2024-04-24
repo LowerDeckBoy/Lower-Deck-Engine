@@ -90,6 +90,7 @@ namespace lde::RHI
 
 	// =============================================== Upload Heap ===============================================
 
+	/*
 	D3D12UploadHeap::D3D12UploadHeap(D3D12Device* pDevice, usize HeapSize)
 		: m_Device(pDevice)
 	{
@@ -274,6 +275,6 @@ namespace lde::RHI
 
 		return output;
 	}
-
+	*/
 
 } // namespace lde::RHI

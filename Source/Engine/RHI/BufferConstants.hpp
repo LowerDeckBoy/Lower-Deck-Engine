@@ -20,11 +20,14 @@ namespace lde::RHI
 
 	struct PerObject
 	{
-		DirectX::XMMATRIX World;
-		// Vertex Buffer Pointer
-		uint32 VertexBufferIndex;
-		// Vertex Buffer Offset
-		uint32 VertexBufferOffset;
+		DirectX::XMMATRIX World = DirectX::XMMatrixIdentity();
+		DirectX::XMMATRIX ViewProjection = DirectX::XMMatrixIdentity();
+
+		uint32 VertexBufferIndex = 0;
+		uint32 VertexBufferOffset = 0;
+		uint32 padding[2]{};
+
+		DirectX::XMFLOAT4 padding2[7];
 	};
 
 } // namespace lde::RHI

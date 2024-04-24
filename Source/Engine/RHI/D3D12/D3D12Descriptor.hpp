@@ -50,7 +50,8 @@ namespace lde::RHI
 		{
 			return m_Index;
 		}
-		uint32 m_Index{};
+
+		uint32 m_Index = UINT32_MAX;
 
 	private:
 		D3D12_CPU_DESCRIPTOR_HANDLE m_CpuHandle{};

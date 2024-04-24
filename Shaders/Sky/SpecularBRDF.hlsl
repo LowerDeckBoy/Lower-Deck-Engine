@@ -77,6 +77,8 @@ void CSmain(uint2 ThreadID : SV_DispatchThreadID)
 	}
 	
 	LUT[ThreadID] = float2(DFG1, DFG2) * InvNumSamples;
+	
+	// Flips Y axis
 	//LUT[float2(ThreadID.x, 255 - ThreadID.y)] = float2(DFG1, DFG2) * InvNumSamples;
 }
 

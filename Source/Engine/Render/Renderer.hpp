@@ -8,25 +8,25 @@
 
 #include "RHI/D3D12/D3D12RHI.hpp"
 
-#include "Scene/Model/Model.hpp"
-#include "Scene/SceneLighting.hpp"
-#include "Graphics/ShaderCompiler.hpp"
 #include "Graphics/AssetManager.hpp"
-#include "Graphics/TextureManager.hpp"
-
-#include <map>
-
-#include "Graphics/Skybox.hpp"
 #include "Graphics/ImageBasedLighting.hpp"
+#include "Graphics/ShaderCompiler.hpp"
+#include "Graphics/Skybox.hpp"
+#include "Graphics/TextureManager.hpp"
+#include "Scene/Model/Model.hpp"
+#include <map>
 // RenderPasses
 #include "RenderPass/GBufferPass.hpp"
 #include "RenderPass/LightPass.hpp"
 #include "RenderPass/SkyPass.hpp"
 
+// TEST
+#include "RHI/D3D12/D3D12Raytracing.hpp"
+
 namespace lde
 {
 	class Scene;
-
+	
 	/// @brief For displaying desired image
 	enum class RenderOutput : uint8
 	{
@@ -71,7 +71,7 @@ namespace lde
 
 	private:
 		RHI::D3D12RHI* m_Gfx = nullptr;
-		//RHI::RHI* m_Gfx = nullptr;
+		
 		Scene* m_ActiveScene = nullptr;
 
 		std::unique_ptr<ShaderCompiler>	m_ShaderCompiler;
@@ -92,12 +92,8 @@ namespace lde
 		void BuildPipelines();
 
 	public:
-		//D3D12RenderTexture m_BaseRTV;
-
 		std::unique_ptr<Skybox> m_Skybox;
 		std::unique_ptr<ImageBasedLighting> m_IBL;
-
-		SceneLighting* m_SceneLighting = nullptr;
 
 		GBufferPass*	m_GBufferPass = nullptr;
 		LightPass*		m_LightPass = nullptr;
@@ -108,7 +104,8 @@ namespace lde
 		uint64 GetRenderTarget();
 
 		RenderOutput SelectedRenderTarget = RenderOutput::eShaded;
-		//RenderOutput SelectedRenderTarget = RenderOutput::eSkybox;
 
+		// TEST
+		RHI::D3D12Raytracing* RaytracingCtx = nullptr;
 	};
 } // namespace lde

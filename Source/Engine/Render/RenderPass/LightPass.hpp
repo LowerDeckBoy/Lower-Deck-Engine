@@ -44,10 +44,10 @@ namespace lde
 		std::unique_ptr<RHI::D3D12RenderTexture> m_Texture;
 		RHI::D3D12RHI* m_Gfx = nullptr;
 	
-		RHI::ConstantBuffer* m_SceneConstBuffer = nullptr;
+		BufferHandle m_SceneConstBuffer = 0;
 		RHI::SceneData m_SceneData{};
 
-		RHI::ConstantBuffer* m_SceneLighting = nullptr;
+		BufferHandle m_SceneLighting = 0;
 		DirectionalLightComponent m_DirLight{};
 		LightData m_LightsData{};
 
