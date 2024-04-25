@@ -48,16 +48,15 @@ namespace lde::RHI
 		~D3D12PipelineStateBuilder();
 	
 		HRESULT Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature, const std::string& DebugName = "");
+
+		HRESULT BuildMesh(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature, const std::string& DebugName = "");
 	
-		void SetVertexShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
-		void SetPixelShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
-		void SetGeometryShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
-		void SetHullShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
-		void SetTessellationShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
-		void SetDomainShader(std::string_view Filepath, std::wstring EntryPoint = L"main");
-	
-		// Won't be necessary for Bindless tho
-		void SetInputLayout(const std::span<D3D12_INPUT_ELEMENT_DESC>& InputLayout);
+		void SetVS(std::string_view Filepath, std::wstring EntryPoint = L"main");
+		void SetPS(std::string_view Filepath, std::wstring EntryPoint = L"main");
+		void SetGS(std::string_view Filepath, std::wstring EntryPoint = L"main");
+		void SetHS(std::string_view Filepath, std::wstring EntryPoint = L"main");
+		void SetTS(std::string_view Filepath, std::wstring EntryPoint = L"main");
+		void SetDS(std::string_view Filepath, std::wstring EntryPoint = L"main");
 	
 		void SetCullMode(CullMode eMode);
 	

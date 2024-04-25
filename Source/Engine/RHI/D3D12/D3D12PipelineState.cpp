@@ -2,7 +2,7 @@
 #include "D3D12Device.hpp"
 #include "D3D12RootSignature.hpp"
 #include "D3D12Utility.hpp"
-
+#include <AgilitySDK/d3dx12/d3dx12_pipeline_state_stream.h>
 
 namespace lde::RHI
 {
@@ -25,20 +25,10 @@ namespace lde::RHI
 
 	HRESULT D3D12PipelineStateBuilder::Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature, const std::string& /* DebugName */)
 	{
-		//D3D12_PIPELINE_STATE_STREAM_DESC streamDesc{};
-		//streamDesc.pPipelineStateSubobjectStream
-		//streamDesc.SizeInBytes
-		//DX_CALL(m_Device->Device->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&OutPipeline.PipelineState)));
-
-		//d3d12_pipeline_state
-
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC desc{};
 		desc.NodeMask = DEVICE_NODE;
 		desc.pRootSignature = pRootSignature->Get();
-
-		// Not required for bindless
-		//desc.InputLayout = { m_InputLayout.data(), static_cast<uint32>(m_InputLayout.size()) };
-	 
+		
 		// States
 		// Rasterizer
 		desc.RasterizerState = m_RasterizerDesc;
@@ -53,7 +43,6 @@ namespace lde::RHI
 		desc.DSVFormat = m_DepthFormat;
 		// Blend
 		desc.BlendState = m_BlendDesc;
-		//desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 
 		desc.SampleMask = UINT_MAX;
 
@@ -109,52 +98,77 @@ namespace lde::RHI
 
 	}
 
-	void D3D12PipelineStateBuilder::SetVertexShader(std::string_view Filepath, std::wstring EntryPoint)
+	HRESULT D3D12PipelineStateBuilder::BuildMesh(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature, const std::string& DebugName)
+	{
+		struct 
+		{
+			ID3D12RootSignature*			pRootSignature;
+			D3D12_SHADER_BYTECODE			AS;
+			D3D12_SHADER_BYTECODE			MS;
+			D3D12_SHADER_BYTECODE			PS;
+			D3D12_BLEND_DESC				BlendState;
+			UINT							SampleMask;
+			D3D12_RASTERIZER_DESC			RasterizerState;
+			D3D12_DEPTH_STENCIL_DESC		DepthStencilState;
+			D3D12_PRIMITIVE_TOPOLOGY_TYPE	PrimitiveTopologyType;
+			UINT							NumRenderTargets;
+			DXGI_FORMAT						RTVFormats[D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT];
+			DXGI_FORMAT						DSVFormat;
+			DXGI_SAMPLE_DESC				SampleDesc;
+			UINT							NodeMask;
+			D3D12_CACHED_PIPELINE_STATE		CachedPSO;
+			D3D12_PIPELINE_STATE_FLAGS		Flags;
+		} MPSO{};
+
+		MPSO.NodeMask = DEVICE_NODE;
+
+		D3D12_PIPELINE_STATE_STREAM_DESC streamDesc{};
+		streamDesc.pPipelineStateSubobjectStream = &MPSO;
+		streamDesc.SizeInBytes = sizeof(MPSO);
+
+		return m_Device->GetDevice()->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&OutPipeline.PipelineState));
+	}
+
+	void D3D12PipelineStateBuilder::SetVS(std::string_view Filepath, std::wstring EntryPoint)
 	{
 		auto& shaderCompiler = ShaderCompiler::GetInstance();
 		if (m_VertexShader) m_VertexShader = nullptr;
 		m_VertexShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eVertex, EntryPoint));
 	}
 	
-	void D3D12PipelineStateBuilder::SetPixelShader(std::string_view Filepath, std::wstring EntryPoint)
+	void D3D12PipelineStateBuilder::SetPS(std::string_view Filepath, std::wstring EntryPoint)
 	{
 		auto& shaderCompiler = ShaderCompiler::GetInstance();
 		if (m_PixelShader) m_PixelShader = nullptr;
 		m_PixelShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::ePixel, EntryPoint));
 	}
 
-	void D3D12PipelineStateBuilder::SetGeometryShader(std::string_view Filepath, std::wstring EntryPoint)
+	void D3D12PipelineStateBuilder::SetGS(std::string_view Filepath, std::wstring EntryPoint)
 	{
 		auto& shaderCompiler = ShaderCompiler::GetInstance();
 		if (m_GeometryShader) m_GeometryShader = nullptr;
 		m_GeometryShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eGeometry, EntryPoint));
 	}
 
-	void D3D12PipelineStateBuilder::SetHullShader(std::string_view Filepath, std::wstring EntryPoint)
+	void D3D12PipelineStateBuilder::SetHS(std::string_view Filepath, std::wstring EntryPoint)
 	{
 		auto& shaderCompiler = ShaderCompiler::GetInstance();
 		if (m_HullShader) m_HullShader = nullptr;
 		m_HullShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eHull, EntryPoint));
 	}
 
-	void D3D12PipelineStateBuilder::SetTessellationShader(std::string_view Filepath, std::wstring EntryPoint)
+	void D3D12PipelineStateBuilder::SetTS(std::string_view Filepath, std::wstring EntryPoint)
 	{
 		auto& shaderCompiler = ShaderCompiler::GetInstance();
 		if (m_TessellationShader) m_TessellationShader = nullptr;
 		m_TessellationShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eTessellation, EntryPoint));
 	}
 
-	void D3D12PipelineStateBuilder::SetDomainShader(std::string_view Filepath, std::wstring EntryPoint)
+	void D3D12PipelineStateBuilder::SetDS(std::string_view Filepath, std::wstring EntryPoint)
 	{
 		auto& shaderCompiler = ShaderCompiler::GetInstance();
 		if (m_DomainShader) m_DomainShader = nullptr;
 		m_DomainShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eDomain, EntryPoint));
-	}
-
-	void D3D12PipelineStateBuilder::SetInputLayout(const std::span<D3D12_INPUT_ELEMENT_DESC>& InputLayout)
-	{
-		//m_InputLayout.clear();
-		//m_InputLayout.insert(m_InputLayout.begin(), InputLayout.begin(), InputLayout.end());
 	}
 	
 	void D3D12PipelineStateBuilder::SetCullMode(CullMode eMode)
@@ -210,38 +224,38 @@ namespace lde::RHI
 		m_DepthDesc = {};
 
 		// Default Depth Desc
-		m_DepthDesc.DepthEnable = TRUE;
-		m_DepthDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-		m_DepthDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
-		m_DepthDesc.StencilEnable = FALSE;
-		m_DepthDesc.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
-		m_DepthDesc.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+		m_DepthDesc.DepthEnable					= TRUE;
+		m_DepthDesc.DepthWriteMask				= D3D12_DEPTH_WRITE_MASK_ALL;
+		m_DepthDesc.DepthFunc					= D3D12_COMPARISON_FUNC_LESS;
+		m_DepthDesc.StencilEnable				= FALSE;
+		m_DepthDesc.StencilReadMask				= D3D12_DEFAULT_STENCIL_READ_MASK;
+		m_DepthDesc.StencilWriteMask			= D3D12_DEFAULT_STENCIL_WRITE_MASK;
 
 		// Default Rasterizer Desc
-		m_RasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
-		m_RasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
-		m_RasterizerDesc.FrontCounterClockwise = FALSE;
-		m_RasterizerDesc.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
-		m_RasterizerDesc.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
-		m_RasterizerDesc.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
-		m_RasterizerDesc.DepthClipEnable = TRUE;
-		m_RasterizerDesc.MultisampleEnable = FALSE;
-		m_RasterizerDesc.AntialiasedLineEnable = FALSE;
-		m_RasterizerDesc.ForcedSampleCount = 0;
-		m_RasterizerDesc.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+		m_RasterizerDesc.FillMode				= D3D12_FILL_MODE_SOLID;
+		m_RasterizerDesc.CullMode				= D3D12_CULL_MODE_BACK;
+		m_RasterizerDesc.FrontCounterClockwise	= FALSE;
+		m_RasterizerDesc.DepthBias				= D3D12_DEFAULT_DEPTH_BIAS;
+		m_RasterizerDesc.DepthBiasClamp			= D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+		m_RasterizerDesc.SlopeScaledDepthBias	= D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+		m_RasterizerDesc.DepthClipEnable		= TRUE;
+		m_RasterizerDesc.MultisampleEnable		= FALSE;
+		m_RasterizerDesc.AntialiasedLineEnable	= FALSE;
+		m_RasterizerDesc.ForcedSampleCount		= 0;
+		m_RasterizerDesc.ConservativeRaster		= D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
 		// Default Blend Desc
-		m_BlendDesc.AlphaToCoverageEnable = FALSE;
-		m_BlendDesc.IndependentBlendEnable = FALSE;
+		m_BlendDesc.AlphaToCoverageEnable		= FALSE;
+		m_BlendDesc.IndependentBlendEnable		= FALSE;
 		m_BlendDesc.RenderTarget[0].BlendEnable = FALSE;
 		m_BlendDesc.RenderTarget[0].LogicOpEnable = FALSE;
-		m_BlendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
-		m_BlendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_ZERO;
-		m_BlendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+		m_BlendDesc.RenderTarget[0].SrcBlend	= D3D12_BLEND_ONE;
+		m_BlendDesc.RenderTarget[0].DestBlend	= D3D12_BLEND_ZERO;
+		m_BlendDesc.RenderTarget[0].BlendOp		= D3D12_BLEND_OP_ADD;
 		m_BlendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
 		m_BlendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
 		m_BlendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-		m_BlendDesc.RenderTarget[0].LogicOp = D3D12_LOGIC_OP_NOOP;
+		m_BlendDesc.RenderTarget[0].LogicOp		= D3D12_LOGIC_OP_NOOP;
 		m_BlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
 	}
