@@ -73,6 +73,8 @@ namespace lde::RHI
 		void Draw(uint32 VertexCount) override;
 		void DrawIndirect(uint32 IndexCount, uint32 VertexCount);
 
+		void DispatchMesh(uint32 DispatchX, uint32 DispatchY, uint32 DispatchZ);
+
 		void BindVertexBuffer(Buffer* pBuffer) override final;
 		void BindIndexBuffer(Buffer* pBuffer) override final;
 		void BindConstantBuffer(uint32 Slot, ConstantBuffer* pBuffer) override;
@@ -97,15 +99,17 @@ namespace lde::RHI
 	extern D3D12_RESOURCE_STATES StateEnumToType(ResourceState eState);
 
 	// TODO:
-	/*
+	/**/
 	class D3D12CommandSignature
 	{
 	public:
-		D3D12CommandSignature(D3D12Device* pDevice, D3D12RootSignature* pRootSignature);
+		D3D12CommandSignature();
 	
-		inline ID3D12CommandSignature* Get() const
+		HRESULT Create(D3D12Device* pDevice, D3D12RootSignature* pRootSignature);
+
+		inline ID3D12CommandSignature* GetSignature() const
 		{
-			return m_Signature.Get();
+			return m_CommandSignature.Get();
 		}
 		
 		void AddConstant(uint32 RootIndex, uint32 Count, uint32 Offset = 0);
@@ -121,11 +125,15 @@ namespace lde::RHI
 		void AddDispatchMesh();
 		void AddDispatchRays();
 
+		void AddDrawArgument(uint32 IndexCount, uint32 IndexStart, uint32 VertexStart);
+
 	private:
-		Ref<ID3D12CommandSignature> m_Signature;
+		Ref<ID3D12CommandSignature> m_CommandSignature;
 
 		std::vector<D3D12_INDIRECT_ARGUMENT_DESC> m_Arguments;
 
+		D3D12_DRAW_INDEXED_ARGUMENTS m_DrawArgs{};
+		uint32 m_Stride = 0;
 	};
-	*/
+	
 } // namespace lde::RHI
