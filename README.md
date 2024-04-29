@@ -43,13 +43,10 @@ Lower Deck is a working name - likely to change it later.
 - [**D3D12 Agility SDK**](https://devblogs.microsoft.com/directx/directx12agility/)
 - [**D3D12 Memory Allocator**](https://github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator)
 - [**assimp**](https://github.com/assimp/assimp)
-- [**cgltf**](https://github.com/jkuhlmann/cgltf)
 - [**EnTT**](https://github.com/skypjack/entt)
 - [**stb_image**](https://github.com/nothings/stb)
 - [**ImGui**](https://github.com/ocornut/imgui)
 - [**FontAwesome**](https://github.com/juliettef/IconFontCppHeaders)
-- [**cereal**](https://github.com/USCiLab/cereal)
-- [**fast_obj**](https://github.com/thisistherk/fast_obj)
 
 ## Screenshots
 
