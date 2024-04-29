@@ -48,38 +48,30 @@ namespace lde::RHI
 	D3D12CommandList::D3D12CommandList(D3D12Device* pDevice, CommandType eType, std::string DebugName)
 	{
 		D3D12_COMMAND_LIST_TYPE type = GetCommandType(eType);
-		//for (auto& allocator : m_Allocators)
-		//{
-		//	DX_CALL(pDevice->GetDevice()->CreateCommandAllocator(type, IID_PPV_ARGS(&allocator)));
-		//}
 
 		DX_CALL(pDevice->GetDevice()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_Allocator)));
-		DX_CALL(pDevice->GetDevice()->CreateCommandList(DEVICE_NODE, type, GetAllocator(), nullptr, IID_PPV_ARGS(&m_GraphicsCommandList)));
+		DX_CALL(pDevice->GetDevice()->CreateCommandList1(DEVICE_NODE, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&m_GraphicsCommandList)));
+
 		SET_D3D12_NAME(m_GraphicsCommandList, DebugName);
 		SET_D3D12_NAME(m_Allocator, (DebugName + ": Allocator"));
-		
+
 		m_Type = eType;
 	}
 
 	D3D12CommandList::~D3D12CommandList()
 	{
 		SAFE_RELEASE(m_GraphicsCommandList);
-
 		SAFE_RELEASE(m_Allocator);
-		//for (auto& allocator : m_Allocators)
-		//{
-		//	SAFE_RELEASE(allocator);
-		//}
 	}
 
 	void D3D12CommandList::ResetAllocator()
 	{
-		DX_CALL(GetAllocator()->Reset());
+		DX_CALL(m_Allocator->Reset());
 	}
 
 	void D3D12CommandList::ResetList()
 	{
-		DX_CALL(m_GraphicsCommandList->Reset(GetAllocator(), nullptr));
+		DX_CALL(m_GraphicsCommandList->Reset(m_Allocator.Get(), nullptr));
 	}
 
 	HRESULT D3D12CommandList::Close()
@@ -89,8 +81,8 @@ namespace lde::RHI
 
 	void D3D12CommandList::Reset()
 	{
-		DX_CALL(GetAllocator()->Reset());
-		DX_CALL(m_GraphicsCommandList->Reset(GetAllocator(), nullptr));
+		DX_CALL(m_Allocator->Reset());
+		DX_CALL(m_GraphicsCommandList->Reset(m_Allocator.Get(), nullptr));
 
 	}
 	 

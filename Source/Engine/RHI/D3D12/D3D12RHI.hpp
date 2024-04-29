@@ -106,6 +106,7 @@ namespace lde::RHI
 		void CopyResource(Ref<ID3D12Resource> ppDst, Ref<ID3D12Resource> ppSrc);
 
 		void BindIndexBuffer(Buffer* pIndexBuffer) const;
+		void BindIndexBuffer(D3D12_INDEX_BUFFER_VIEW View) const;
 		/* For non-bindless only */
 		void BindVertexBuffers(std::span<D3D12Buffer*> pIndexBuffers, uint32 StartSlot) const;
 		void BindConstantBuffer(ConstantBuffer* pConstBuffer, uint32 Slot);

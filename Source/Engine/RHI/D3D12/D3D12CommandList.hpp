@@ -53,8 +53,7 @@ namespace lde::RHI
 
 		ID3D12GraphicsCommandList8*			Get() const		{ return m_GraphicsCommandList.Get();			}
 		ID3D12GraphicsCommandList8* const*	GetAddressOf()	{ return m_GraphicsCommandList.GetAddressOf();	}
-		ID3D12CommandAllocator*				GetAllocator()	{ return m_Allocator.Get();	}
-		//ID3D12CommandAllocator*				GetAllocator()	{ return m_Allocators.at(FRAME_INDEX).Get();	}
+		ID3D12CommandAllocator*				GetAllocator()	{ return m_Allocator.Get();						}
 
 		HRESULT Close();
 
@@ -87,10 +86,8 @@ namespace lde::RHI
 		void UploadResource(Ref<ID3D12Resource> ppSrc, Ref<ID3D12Resource> ppDst, D3D12_SUBRESOURCE_DATA& Subresource);
 
 	private:
-		Ref<ID3D12CommandList>			m_CommandList;
 		Ref<ID3D12GraphicsCommandList8> m_GraphicsCommandList;
 		Ref<ID3D12CommandAllocator>		m_Allocator;
-		//std::array<Ref<ID3D12CommandAllocator>, FRAME_COUNT> m_Allocators;
 		
 	};
 	

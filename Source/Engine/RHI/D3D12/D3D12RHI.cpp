@@ -128,25 +128,33 @@ namespace lde::RHI
 
 	void D3D12RHI::OpenList(D3D12CommandList* pCommandList)
 	{
+		//pCommandList->Reset();
+		//pCommandList->Close();
 		pCommandList->Reset();
+		//pCommandList->ResetList();
 	}
 	
 	void D3D12RHI::OnResize(uint32 Width, uint32 Height)
 	{
-		Device->WaitForGPU(CommandType::eGraphics);
+		Device->IdleGPU();
+		//Device->WaitForGPU(CommandType::eGraphics);
 
-		Device->GetGfxCommandList()->Reset();
+		for (usize frame = 0; frame < FRAME_COUNT; ++frame)
+		{
+			Device->m_FrameResources[frame].GraphicsCommandList->Reset();
+		}
+
+		//Device->GetGfxCommandList()->Reset();
 		
 		Device->GetFence()->OnResize();
-		//Device->GetFence()->OnResize(Device->GetFrameResources().RenderFenceValues);
 
 		SceneViewport->Set(Width, Height);
-		SwapChain->OnResize(Width, Height);
 		SceneDepth->OnResize(Device->GetDSVHeap(), SceneViewport);
+		SwapChain->OnResize(Width, Height);
 
-		Device->ExecuteCommandList(CommandType::eGraphics, false);
-
-		Device->IdleGPU();
+		//Device->ExecuteCommandList(CommandType::eGraphics, false);
+		Device->ExecuteAllCommandLists(false);
+		//Device->FlushGPU();
 	}
 
 	void D3D12RHI::SetMainRenderTarget() const
@@ -222,11 +230,12 @@ namespace lde::RHI
 	void D3D12RHI::TransitResource(ID3D12Resource* pResource, D3D12_RESOURCE_STATES Before, D3D12_RESOURCE_STATES After)
 	{
 		D3D12_RESOURCE_BARRIER barrier{};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		barrier.Transition.pResource = pResource;
-		barrier.Transition.StateBefore = Before;
-		barrier.Transition.StateAfter = After;
+		barrier.Type					= D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		barrier.Flags					= D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		barrier.Transition.pResource	= pResource;
+		barrier.Transition.StateBefore	= Before;
+		barrier.Transition.StateAfter	= After;
+		barrier.Transition.Subresource	= D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
 		Device->GetGfxCommandList()->Get()->ResourceBarrier(1, &barrier);
 	}
@@ -234,11 +243,12 @@ namespace lde::RHI
 	void D3D12RHI::TransitResource(Ref<ID3D12Resource> pResource, D3D12_RESOURCE_STATES Before, D3D12_RESOURCE_STATES After)
 	{
 		D3D12_RESOURCE_BARRIER barrier{};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		barrier.Transition.pResource = pResource.Get();
-		barrier.Transition.StateBefore = Before;
-		barrier.Transition.StateAfter = After;
+		barrier.Type					= D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		barrier.Flags					= D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		barrier.Transition.pResource	= pResource.Get();
+		barrier.Transition.StateBefore	= Before;
+		barrier.Transition.StateAfter	= After;
+		barrier.Transition.Subresource	= D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
 		Device->GetGfxCommandList()->Get()->ResourceBarrier(1, &barrier);
 	}
@@ -272,6 +282,11 @@ namespace lde::RHI
 	{
 		auto view = GetIndexView((D3D12Buffer*)pIndexBuffer);
 		Device->GetGfxCommandList()->Get()->IASetIndexBuffer(&view);
+	}
+
+	void D3D12RHI::BindIndexBuffer(D3D12_INDEX_BUFFER_VIEW View) const
+	{
+		Device->GetGfxCommandList()->Get()->IASetIndexBuffer(&View);
 	}
 
 	void D3D12RHI::BindVertexBuffers(std::span<D3D12Buffer*> pIndexBuffers, uint32 StartSlot) const

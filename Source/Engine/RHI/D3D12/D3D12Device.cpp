@@ -16,44 +16,25 @@ namespace lde::RHI
 		Release();
 	}
 
-	//void D3D12Device::WaitForGPU()
-	//{
-	//	m_Fence->Signal(GetFrameResources().GraphicsQueue, m_Fence->GetValue());
-	//
-	//	m_Fence->Wait();
-	//
-	//	//m_Fence->UpdateValue(GetFrameResources().FrameFenceValue);
-	//	m_Fence->UpdateValue(m_Fence->GetValue());
-	//}
-
 	void D3D12Device::WaitForGPU(CommandType eType)
 	{
 		switch (eType)
 		{
 		case lde::RHI::CommandType::eGraphics:
 			m_Fence->Signal(GetGfxQueue(), m_Fence->GetValue());
-			//m_Fence->Signal(GetFrameResources().GraphicsQueue, m_Fence->GetValue());
-			//m_FrameResources.GraphicsQueue->Signal(m_Fence.get(), m_FrameResources.RenderFenceValues[FRAME_INDEX]);
 			break;
 		}
 
 		m_Fence->Wait();
-		//m_Fence->Wait(m_FrameResources.RenderFenceValues[FRAME_INDEX]);
-
 		m_Fence->UpdateValue(m_Fence->GetValue());
-		//m_FrameResources.GraphicsQueue->Wait(m_Fence.get(), m_FrameResources.RenderFenceValues[FRAME_INDEX]);
-		//m_FrameResources.RenderFenceValues[FRAME_INDEX]++;
 	}
 
 	void D3D12Device::FlushGPU()
 	{
-		//ID3D12CommandQueue* queue = m_GfxQueue->Get();
-		//ID3D12CommandQueue* queue = GetFrameResources().GraphicsQueue->Get();
-		ID3D12CommandQueue* queue = GetGfxQueue()->Get();
 		ID3D12Fence* pFence = nullptr;
 		DX_CALL(m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pFence)));
 
-		DX_CALL(queue->Signal(pFence, 1));
+		DX_CALL(GetGfxQueue()->Get()->Signal(pFence, 1));
 
 		HANDLE fenceEvent = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
 		pFence->SetEventOnCompletion(1, fenceEvent);
@@ -101,16 +82,42 @@ namespace lde::RHI
 			commandList->ResetList();
 		}
 		
-		//WaitForGPU();
 		WaitForGPU(eType);
+	}
+
+	void D3D12Device::ExecuteAllCommandLists(bool bResetAllocators)
+	{
+		ID3D12CommandList* commandLists[FRAME_COUNT]{};
+
+		for (usize frame = 0; frame < FRAME_COUNT; ++frame)
+		{
+			auto commandList = m_FrameResources[frame].GraphicsCommandList;
+
+			commandLists[frame] = commandList->Get();
+
+			DX_CALL(commandList->Close());
+
+			if (bResetAllocators)
+			{
+				commandList->ResetList();
+			}
+		}
+
+		GetGfxQueue()->Get()->ExecuteCommandLists(_countof(commandLists), commandLists);
+
+		WaitForGPU(CommandType::eGraphics);
 	}
 
 	void D3D12Device::CreateFrameResources()
 	{
-		m_FrameResources.GraphicsCommandList = new D3D12CommandList(this, CommandType::eGraphics);
-		m_FrameResources.GraphicsQueue = new D3D12Queue(this, CommandType::eGraphics);
-		////m_FrameResources.RenderFenceValue = 1;
-		m_FrameResources.RenderFenceValues[0] = 1;
+		for (usize frame = 0; frame < FRAME_COUNT; frame++)
+		{
+			m_FrameResources[frame].GraphicsCommandList = new D3D12CommandList(this, CommandType::eGraphics, std::format("D3D12 Graphics Command List #{}", frame).c_str());
+		}
+		GraphicsQueue = new D3D12Queue(this, CommandType::eGraphics);
+
+		// Open first command list to allow pre-loading of assets - models and skybox + ibl.
+		m_FrameResources[0].GraphicsCommandList->Reset();
 	}
 
 	void D3D12Device::Allocate(HeapType eType, D3D12Descriptor& Descriptor, uint32 Count)

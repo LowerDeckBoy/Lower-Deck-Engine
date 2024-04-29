@@ -86,34 +86,36 @@ namespace lde::RHI
 		 * @param bResetAllocator 
 		 */
 		void ExecuteCommandList(CommandType eType, bool bResetAllocator = false);
-		void ExecuteAllCommandLists(bool bResetAllocators);
+
+		void ExecuteAllCommandLists(bool bResetAllocators = false);
 
 		D3D12Fence* GetFence() { return m_Fence.get(); }
 		
-
+		// One per frame buffer
 		struct FrameResources
 		{
-			D3D12CommandList*	GraphicsCommandList;
-			D3D12Queue*			GraphicsQueue;
-			D3D12Fence*			RenderFence;
-			//uint64				RenderFenceValue = 0;
+			D3D12CommandList*		GraphicsCommandList;
+			
+			//D3D12Fence*				RenderFence;
+			uint64				RenderFenceValue = 0;
 			// https://www.youtube.com/watch?v=KsCZDeJDXDQ
-			uint64				RenderFenceValues[FRAME_COUNT];
 
-		} m_FrameResources;
+		} m_FrameResources[FRAME_COUNT];
+
+		D3D12Queue* GraphicsQueue;
 
 		void			CreateFrameResources();
-		FrameResources& GetFrameResources()			{ return m_FrameResources; }
+		FrameResources& GetFrameResources()			{ return m_FrameResources[FRAME_INDEX]; }
 
-		D3D12Queue*			 GetGfxQueue()			{ return m_FrameResources.GraphicsQueue;		}
-		D3D12CommandList*	 GetGfxCommandList()	{ return m_FrameResources.GraphicsCommandList;	}
-
-		//D3D12Fence* GetGraphicsFence() { return m_FrameResources.GraphicsCommandList.Fence; }
+		D3D12Queue*			 GetGfxQueue()			{ return GraphicsQueue; }
+		D3D12CommandList*	 GetGfxCommandList()	{ return m_FrameResources[FRAME_INDEX].GraphicsCommandList; }
 
 		D3D12DescriptorHeap* GetSRVHeap()			{ return m_SRVHeap.get(); }
 		D3D12DescriptorHeap* GetDSVHeap()			{ return m_DSVHeap.get(); }
 		D3D12DescriptorHeap* GetRTVHeap()			{ return m_RTVHeap.get(); }
 
+		// TEST
+		D3D12CommandSignature* m_CommandSignature;
 
 		/**
 		 * @brief				Allocate given Descriptor from the Heap of given enum type.
