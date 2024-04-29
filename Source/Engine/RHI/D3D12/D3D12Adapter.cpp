@@ -32,7 +32,8 @@ namespace lde::RHI
 
 		DX_CALL(D3D12GetDebugInterface(IID_PPV_ARGS(&m_DebugDevices.D3DDebug)));
 		m_DebugDevices.D3DDebug->EnableDebugLayer();
-		m_DebugDevices.D3DDebug->SetEnableGPUBasedValidation(TRUE);
+		// Investiage: resizing window while GPU validation is on causes increases in memory usage.
+		m_DebugDevices.D3DDebug->SetEnableGPUBasedValidation(FALSE);
 #endif
 
 		DX_CALL(CreateDXGIFactory2(factoryFlags, IID_PPV_ARGS(&m_Factory)));
@@ -53,8 +54,14 @@ namespace lde::RHI
 
 	void D3D12Device::Release()
 	{
-		delete m_FrameResources.GraphicsCommandList;
-		delete m_FrameResources.GraphicsQueue;
+		//delete m_FrameResources.GraphicsCommandList;
+		//delete m_FrameResources.GraphicsQueue;
+
+		for (usize i = 0; i < FRAME_COUNT; ++i)
+		{
+			delete m_FrameResources[i].GraphicsCommandList;
+		}
+		delete GraphicsQueue;
 
 		m_RTVHeap.reset();
 		m_DSVHeap.reset();
