@@ -1,25 +1,17 @@
-#include "RHI/D3D12/D3D12RHI.hpp"
 #include "AssetManager.hpp"
+#include "RHI/D3D12/D3D12RHI.hpp"
 #include "Scene/Model/Model.hpp"
 #include "TextureManager.hpp"
-
+#include <Core/Logger.hpp>
+#include <Utility/FileSystem.hpp>
+#include <Utility/Utility.hpp>
 #include <assimp/GltfMaterial.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-#include <Core/Logger.hpp>
-#include <Utility/FileSystem.hpp>
-#include <Utility/Utility.hpp>
-
-// TODO:
-//#define CGLTF_IMPLEMENTATION
-//#include <cgltf/cgltf.h>
-
-
 namespace lde
 {
-	//using namespace DirectX;
 	AssetManager* AssetManager::m_Instance = nullptr;
 
 	AssetManager::AssetManager()
@@ -53,14 +45,15 @@ namespace lde
 			aiProcess_Triangulate |
 			aiProcess_ConvertToLeftHanded |
 			aiProcess_JoinIdenticalVertices  |
-			aiProcess_PreTransformVertices;
+			aiProcess_PreTransformVertices |
+			aiProcess_GenBoundingBoxes;
 	
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(Filepath.data(), LoadFlags);
 
 		if (!scene || !scene->mRootNode || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE)
 		{
-			::MessageBoxA(nullptr, importer.GetErrorString(), "Importer Error", MB_OK);
+			::MessageBoxA(nullptr, importer.GetErrorString(), "Import Error", MB_OK);
 			throw std::runtime_error(importer.GetErrorString());
 		}
 	
@@ -129,7 +122,16 @@ namespace lde
 		}
 	
 		if (pNode->mMeshes)
-		{
+		{	
+			const auto aabb = pScene->mMeshes[0]->mAABB;
+
+			pInMesh->AABB.Min.x = static_cast<float>(aabb.mMin.x);
+			pInMesh->AABB.Min.y = static_cast<float>(aabb.mMin.y);
+			pInMesh->AABB.Min.z = static_cast<float>(aabb.mMin.z);
+			pInMesh->AABB.Max.x = static_cast<float>(aabb.mMax.x);
+			pInMesh->AABB.Max.y = static_cast<float>(aabb.mMax.y);
+			pInMesh->AABB.Max.z = static_cast<float>(aabb.mMax.z);
+
 			for (uint32_t i = 0; i < pNode->mNumMeshes; i++)
 			{
 				pInMesh->Submeshes.emplace_back(ProcessMesh(pScene, pScene->mMeshes[pNode->mMeshes[i]], next));
@@ -140,6 +142,7 @@ namespace lde
 	SubMesh AssetManager::ProcessMesh(const aiScene* pScene, const aiMesh* pMesh, XMMATRIX Matrix)
 	{
 		SubMesh newSubMesh;
+
 		ProcessVertices(newSubMesh, pMesh);
 		ProcessIndices(newSubMesh, pMesh);
 		ProcessMaterials(pScene, newSubMesh, pMesh);
@@ -193,7 +196,8 @@ namespace lde
 		{
 			//m_Vertices.emplace_back(positions.at(i), uvs.at(i), normals.at(i), tangents.at(i));
 			m_Vertices.emplace_back(positions.at(i), uvs.at(i), normals.at(i), tangents.at(i), bitangents.at(i));
-		}	
+		}
+		
 	}
 
 	void AssetManager::ProcessIndices(SubMesh& Submesh, const aiMesh* pMesh)

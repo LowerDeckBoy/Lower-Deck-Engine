@@ -47,9 +47,9 @@ namespace lde::RHI
 		D3D12PipelineStateBuilder(D3D12Device* pDevice);
 		~D3D12PipelineStateBuilder();
 	
-		HRESULT Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature, const std::string& DebugName = "");
+		HRESULT Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature);
 
-		HRESULT BuildMesh(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature, const std::string& DebugName = "");
+		HRESULT BuildMesh(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature);
 	
 		void SetVS(std::string_view Filepath, std::wstring EntryPoint = L"main");
 		void SetPS(std::string_view Filepath, std::wstring EntryPoint = L"main");

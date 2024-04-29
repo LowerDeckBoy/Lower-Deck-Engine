@@ -7,6 +7,7 @@
 #include <Core/CoreMinimal.hpp>
 #include <DirectXMath.h>
 #include <vector>
+#include "RHI/D3D12/D3D12Buffer.hpp"
 
 namespace lde
 {
@@ -42,28 +43,44 @@ namespace lde
 
 	struct SubMesh
 	{
-		uint32 MeshID = UINT_MAX;
-		Material Mat;
-		XMMATRIX Matrix		= XMMatrixIdentity();
-		uint32 BaseIndex	= 0;
-		uint32 BaseVertex	= 0;
-		uint32 IndexCount	= 0;
-		uint32 VertexCount	= 0;
+		uint32		MeshID = UINT_MAX;
+		Material	Mat;
+		XMMATRIX	Matrix		= XMMatrixIdentity();
+		uint32		BaseIndex	= 0;
+		uint32		BaseVertex	= 0;
+		uint32		IndexCount	= 0;
+		uint32		VertexCount	= 0;
 	};
 	
 	struct BoundingBox
 	{
-		XMFLOAT3 Min;
-		XMFLOAT3 Max;
+		XMFLOAT3 Min = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		XMFLOAT3 Max = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	};
 	
 	// Treat it like a component
 	struct Mesh
 	{
 		Mesh() {}
+		std::string Name = "";
 		std::vector<SubMesh> Submeshes;
 		std::vector<Vertex> Vertices;
 		std::vector<uint32> Indices;
+
+		BufferHandle VertexBuffer = UINT32_MAX;
+		BufferHandle IndexBuffer  = UINT32_MAX;
+		BufferHandle ConstBuffer  = UINT32_MAX;
+		RHI::cbPerObject cbData{};
+		D3D12_INDEX_BUFFER_VIEW IndexView{};
+
+		BoundingBox AABB;
+
+		// TEST
+		//std::vector<MeshletDesc> Meshlets;
+		//std::vector<uint8> PrimitiveIndices;
+		//std::vector<uint32> VertexIndices;
+
+		//void Create(class RHI::D3D12Device * pDevice);
 	};
 	
 	struct Node

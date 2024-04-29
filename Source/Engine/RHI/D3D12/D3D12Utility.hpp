@@ -13,9 +13,9 @@ namespace lde::RHI
 #define LDE_ASSERT(Condition) assert(Condition)
 
 // Releasing either ComPtr or (custom) Ref pointer.
-#define SAFE_RELEASE(_Ref) if (_Ref.Get()) { _Ref.Reset(); _Ref = nullptr; }
+#define SAFE_RELEASE(_Ref) { if (_Ref.Get()) { _Ref.Reset(); _Ref = nullptr; } }
 
-#define SAFE_DELETE(_Ptr) if (_Ptr) { _Ptr->Release(); _Ptr = nullptr; }
+#define SAFE_DELETE(_Ptr) { if (_Ptr) { _Ptr->Release(); _Ptr = nullptr; } }
 
 #define DX_CALL(hResult, ...) VerifyResult(hResult, __FILE__, __LINE__, __VA_ARGS__)
 

@@ -1,7 +1,7 @@
 #ifndef GBUFFER_HLSL
 #define GBUFFER_HLSL
 
-#include "Material.hlsli"
+#include "../Material.hlsli"
 
 cbuffer cbPerObject : register(b0, space0)
 {
@@ -58,7 +58,7 @@ VSOutput VSmain(uint VertexID : SV_VertexID)
 	
 	float3x3 TBN = float3x3(vertex.Tangent, vertex.Bitangent, output.Normal);
 	output.TBN = mul((float3x3) World, transpose(TBN));
-	
+
 	return output;
 }
 
@@ -104,7 +104,7 @@ GBufferOutput PSmain(VSOutput pin)
 		Texture2D<float4> normalTexture = ResourceDescriptorHeap[material.NormalIndex];
 		float4 normalMap = normalize(2.0f * normalTexture.Sample(texSampler, pin.TexCoord) - float4(1.0f, 1.0f, 1.0f, 1.0f));
 		output.Normal = float4(normalize(mul(pin.TBN, normalMap.xyz)), normalMap.w);
-
+		
 		//float3 bitangent = normalize(GetBitangent(pin.WorldPosition, pin.TexCoord));
 		//float3x3 TBN = float3x3(pin.Tangent, bitangent, pin.Normal);
 		//TBN = mul((float3x3) World, transpose(TBN));

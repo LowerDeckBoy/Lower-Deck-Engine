@@ -257,7 +257,8 @@ namespace lde
 		pSkybox->TextureCube->MipLevels = textureCubeDesc.MipLevels;
 		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
 		
-		m_Gfx->TransitResource(pSkybox->TextureCube->Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		m_Gfx->TransitResource(pSkybox->TextureCube->Texture, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
 		m_Gfx->Device->CreateSRV(pSkybox->TextureCube->Texture.Get(), pSkybox->TextureCube->SRV, 6, 1);
 		TextureManager::GetInstance().Generate3D(pSkybox->TextureCube);
 
@@ -267,12 +268,12 @@ namespace lde
 
 	void ImageBasedLighting::CreateDiffuseTexture(Skybox* pSkybox)
 	{
-		const uint32 cubeResolution = 256;
+		const uint32 cubeResolution = 128; // 256
 
 		pSkybox->DiffuseTexture = new RHI::D3D12Texture();
 
-		const auto format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		//const auto format = DXGI_FORMAT_R11G11B10_FLOAT;
+		//const auto format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		const auto format = DXGI_FORMAT_R11G11B10_FLOAT;
 
 		D3D12_RESOURCE_DESC desc{};
 		desc.Format = format;
@@ -344,7 +345,7 @@ namespace lde
 		pSkybox->SpecularTexture->Height	= desc.Height;
 		pSkybox->SpecularTexture->MipLevels = desc.MipLevels;
 		pSkybox->SpecularTexture->Format	= format;
-
+		
 		for (uint32 arraySlice = 0; arraySlice < 6; ++arraySlice)
 		{
 			const uint32 subresourceIndex = D3D12CalcSubresource(0, arraySlice, 0, mipLevels, 1);

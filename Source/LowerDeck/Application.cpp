@@ -27,8 +27,8 @@ namespace lde
 		m_Editor->SetScene(m_ActiveScene.get());
 #endif
 		
-		m_ActiveScene->AddModel("Assets/Models/sponza/Sponza.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/DamagedHelmet/DamagedHelmet.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/sponza/Sponza.gltf");
+		m_ActiveScene->AddModel("Assets/Models/DamagedHelmet/DamagedHelmet.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/sgd162_idle_walk_run_cycle/scene.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/Bistro/Bistro.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/SciFiHelmet/SciFiHelmet.gltf");
@@ -47,6 +47,7 @@ namespace lde
 		m_Renderer->RaytracingCtx->CreateStateObject();
 		m_Renderer->RaytracingCtx->BuildShaderTable();
 		*/
+		
 		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, false);
 	}
 

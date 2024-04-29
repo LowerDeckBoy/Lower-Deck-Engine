@@ -1,10 +1,5 @@
 #pragma once
 
-//
-//
-//
-//
-
 #include <Core/CoreTypes.hpp>
 #include <Core/String.hpp>
 #include <vector>
@@ -43,9 +38,6 @@ namespace lde
 		}
 		void Import(RHI::D3D12RHI* pGfx, std::string_view Filepath, Mesh& pInMesh);
 	
-		// via cgltf
-		//void ImportGLTF(std::string_view Filepath, Model* pModel);
-
 	private:
 		//void ImportGLTF(std::string_view Filepath, Model& Target);
 		//void ImportFBX(const aiScene* pScene);

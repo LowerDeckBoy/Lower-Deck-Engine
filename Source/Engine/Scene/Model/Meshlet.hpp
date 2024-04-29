@@ -15,7 +15,7 @@ namespace lde
 		eBitangent
 	};
 
-	struct Meshlet
+	struct MeshletDesc
 	{
 		uint32 VertexCount;
 		uint32 VertexOffset;

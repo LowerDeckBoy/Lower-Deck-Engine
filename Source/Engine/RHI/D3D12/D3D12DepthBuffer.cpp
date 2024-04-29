@@ -95,8 +95,8 @@ namespace lde::RHI
 		D3D12_RESOURCE_DESC desc{};
 		desc.Dimension			= D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 		desc.Format				= m_Format;
-		desc.Width				= static_cast<uint64_t>(pViewport->GetViewport().Width);
-		desc.Height				= static_cast<uint32_t>(pViewport->GetViewport().Height);
+		desc.Width				= static_cast<uint64>(pViewport->GetViewport().Width);
+		desc.Height				= static_cast<uint32>(pViewport->GetViewport().Height);
 		desc.MipLevels			= 1;
 		desc.DepthOrArraySize	= 1;
 		desc.Flags				= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;

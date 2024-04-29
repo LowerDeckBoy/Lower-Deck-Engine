@@ -2,10 +2,8 @@
 #include "Skybox.hpp"
 #include <array>
 #include <RHI/D3D12/D3D12RHI.hpp>
-
 #include <Core/CoreTypes.hpp>
 #include <Graphics/TextureManager.hpp>
-
 #include <Scene/Components/Components.hpp>
 
 namespace lde
@@ -17,8 +15,6 @@ namespace lde
         delete DiffuseTexture;
         delete TextureCube;
         delete Texture;
-        //m_IndexBuffer->Release();
-        //m_ConstBuffer->Release();
     }
 
     void Skybox::Create(RHI::RHI* pRHI, World* pWorld, std::string_view Filepath)

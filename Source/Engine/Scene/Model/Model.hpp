@@ -1,6 +1,7 @@
 #pragma once
 #include "../Entity.hpp"
 #include "Mesh.hpp"
+#include "Meshlet.hpp"
 #include "RHI/D3D12/D3D12Buffer.hpp"
 
 namespace lde
@@ -25,12 +26,6 @@ namespace lde
 		Mesh* GetMesh();
 
 		std::string Filepath;
-	
-		BufferHandle VertexBuffer = UINT32_MAX;
-		BufferHandle IndexBuffer = UINT32_MAX;
-		//D3D12_INDEX_BUFFER_VIEW IndexView{};
-		BufferHandle ConstBuffer = UINT32_MAX;
-		RHI::cbPerObject cbData{};
 
 	private:
 		std::unique_ptr<Mesh> m_Mesh;

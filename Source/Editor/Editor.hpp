@@ -63,10 +63,10 @@ namespace lde::editor
 		void ClearLogs();
 
 	private:
-		RHI::D3D12RHI* m_Gfx = nullptr;
-		Timer* m_Timer			 = nullptr;
-		Renderer* m_Renderer	 = nullptr;
-		Scene* m_ActiveScene	 = nullptr;
+		RHI::D3D12RHI*	m_Gfx	= nullptr;
+		Timer*			m_Timer	= nullptr;
+		Renderer*		m_Renderer = nullptr;
+		Scene*			m_ActiveScene = nullptr;
 	
 		Entity m_SelectedEntity;
 	

@@ -1,6 +1,6 @@
 #include "D3D12Buffer.hpp"
-#include "D3D12Texture.hpp"
 #include "D3D12RHI.hpp"
+#include "D3D12Texture.hpp"
 #include <AgilitySDK/d3dx12/d3dx12.h>
 #include <Core/Logger.hpp>
 #include <Platform/Window.hpp>
@@ -128,51 +128,42 @@ namespace lde::RHI
 
 	void D3D12RHI::OpenList(D3D12CommandList* pCommandList)
 	{
-		//pCommandList->Reset();
-		//pCommandList->Close();
 		pCommandList->Reset();
-		//pCommandList->ResetList();
 	}
 	
 	void D3D12RHI::OnResize(uint32 Width, uint32 Height)
 	{
-		Device->IdleGPU();
-		//Device->WaitForGPU(CommandType::eGraphics);
+		Device->WaitForGPU(CommandType::eGraphics);
 
 		for (usize frame = 0; frame < FRAME_COUNT; ++frame)
 		{
 			Device->m_FrameResources[frame].GraphicsCommandList->Reset();
 		}
 
-		//Device->GetGfxCommandList()->Reset();
-		
 		Device->GetFence()->OnResize();
 
 		SceneViewport->Set(Width, Height);
 		SceneDepth->OnResize(Device->GetDSVHeap(), SceneViewport);
 		SwapChain->OnResize(Width, Height);
 
-		//Device->ExecuteCommandList(CommandType::eGraphics, false);
 		Device->ExecuteAllCommandLists(false);
-		//Device->FlushGPU();
 	}
 
 	void D3D12RHI::SetMainRenderTarget() const
 	{
-		const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
-			SwapChain->RTVHeap()->CpuStartHandle(),
-			FRAME_INDEX,
-			SwapChain->RTVHeap()->GetDescriptorSize());
-		const auto& depthHandle{ SceneDepth->DSV().GetCpuHandle() };
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = SwapChain->RTVHeap()->CpuStartHandle();
+		rtvHandle.ptr += FRAME_INDEX * SwapChain->RTVHeap()->GetDescriptorSize();
+
+		const auto& depthHandle = SceneDepth->DSV().GetCpuHandle();
+
 		Device->GetGfxCommandList()->Get()->OMSetRenderTargets(1, &rtvHandle, FALSE, &depthHandle);
 	}
 
 	void D3D12RHI::ClearMainRenderTarget() const
 	{
-		const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
-			SwapChain->RTVHeap()->CpuStartHandle(),
-			FRAME_INDEX,
-			SwapChain->RTVHeap()->GetDescriptorSize());
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = SwapChain->RTVHeap()->CpuStartHandle();
+		rtvHandle.ptr += FRAME_INDEX * SwapChain->RTVHeap()->GetDescriptorSize();
+		
 		Device->GetGfxCommandList()->Get()->ClearRenderTargetView(rtvHandle, ClearColor.data(), 0, nullptr);
 	}
 

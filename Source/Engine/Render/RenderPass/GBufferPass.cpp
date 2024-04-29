@@ -3,6 +3,7 @@
 #include "GBufferPass.hpp"
 #include "RHI/D3D12/D3D12RHI.hpp"
 #include "Scene/Scene.hpp"
+#include "RHI/D3D12/D3D12Utility.hpp"
 
 namespace lde
 {
@@ -32,8 +33,8 @@ namespace lde
 
 		// Base Pipeline
 		{
-			psoBuilder->SetVertexShader("Shaders/Deferred/GBuffer.hlsl", L"VSmain");
-			psoBuilder->SetPixelShader( "Shaders/Deferred/GBuffer.hlsl", L"PSmain");
+			psoBuilder->SetVS("Shaders/Deferred/GBuffer.hlsl", L"VSmain");
+			psoBuilder->SetPS( "Shaders/Deferred/GBuffer.hlsl", L"PSmain");
 			psoBuilder->EnableDepth(true);
 			std::array<DXGI_FORMAT, (usize)GBuffers::COUNT> formats =
 			{
@@ -47,7 +48,7 @@ namespace lde
 			};
 			psoBuilder->SetRenderTargetFormats(formats);
 
-			RHI::DX_CALL(psoBuilder->Build(m_PipelineState, &m_RootSignature, "GBuffer PSO"));
+			RHI::DX_CALL(psoBuilder->Build(m_PipelineState, &m_RootSignature));
 			psoBuilder->Reset();
 		}
 	}
@@ -76,7 +77,7 @@ namespace lde
 		
 	}
 
-	void GBufferPass::OnResize(uint32 Width, uint32 Height)
+	void GBufferPass::Resize(uint32 Width, uint32 Height)
 	{
 		for (auto& renderTarget : m_RenderTargets)
 		{

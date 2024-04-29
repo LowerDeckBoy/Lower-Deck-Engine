@@ -23,7 +23,7 @@ namespace lde::RHI
 		Reset();
 	}
 
-	HRESULT D3D12PipelineStateBuilder::Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature, const std::string& /* DebugName */)
+	HRESULT D3D12PipelineStateBuilder::Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature)
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC desc{};
 		desc.NodeMask = DEVICE_NODE;
@@ -98,7 +98,7 @@ namespace lde::RHI
 
 	}
 
-	HRESULT D3D12PipelineStateBuilder::BuildMesh(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature, const std::string& DebugName)
+	HRESULT D3D12PipelineStateBuilder::BuildMesh(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature)
 	{
 		struct 
 		{

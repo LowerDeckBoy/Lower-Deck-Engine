@@ -13,7 +13,9 @@ namespace lde
 	Scene::~Scene()
 	{
 		for (auto& model : m_Models)
+		{
 			model.reset();
+		}
 	}
 	
 	void Scene::Initialize(uint32 Width, uint32 Height, RHI::D3D12RHI* pGfx)
@@ -46,9 +48,9 @@ namespace lde
 		auto* commandList = m_Gfx->Device->GetGfxCommandList();
 		commandList->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		
-		auto* indexBuffer  = m_Gfx->Device->Buffers.at(pModel.IndexBuffer);
-		auto* vertexBuffer = m_Gfx->Device->Buffers.at(pModel.VertexBuffer);
-		auto* constBuffer  = m_Gfx->Device->ConstantBuffers.at(pModel.ConstBuffer);
+		auto* indexBuffer  = m_Gfx->Device->Buffers.at(pModel.GetMesh()->IndexBuffer);
+		auto* vertexBuffer = m_Gfx->Device->Buffers.at(pModel.GetMesh()->VertexBuffer);
+		auto* constBuffer  = m_Gfx->Device->ConstantBuffers.at(pModel.GetMesh()->ConstBuffer);
 
 		auto& transform = pModel.GetComponent<TransformComponent>();
 
@@ -70,12 +72,13 @@ namespace lde
 
 			vertex.offset = mesh.BaseVertex;
 			commandList->PushConstants(1, 2, &vertex);
-			// Push Material as constants; 64bytes
+			// Push Material as constants; 64 bytes
 			commandList->PushConstants(2, 16, &mesh.Mat, 0);
-
+			//commandList->Get()->ExecuteIndirect()
 			if (indexBuffer->GetDesc().Count != 0)
 			{
-				m_Gfx->BindIndexBuffer(indexBuffer);
+				//m_Gfx->BindIndexBuffer(indexBuffer);
+				m_Gfx->BindIndexBuffer(pModel.GetMesh()->IndexView);
 				m_Gfx->DrawIndexed(mesh.IndexCount, mesh.BaseIndex, mesh.BaseVertex);
 			}
 			else // Draw non-indexed

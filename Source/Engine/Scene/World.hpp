@@ -1,9 +1,5 @@
 #pragma once
 
-/*
-	
-*/
-
 #include <EnTT/entt.hpp>
 
 namespace lde

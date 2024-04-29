@@ -37,7 +37,6 @@ namespace lde
 		BuildRootSignatures();
 		BuildPipelines();
 		
-		
 		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/newport_loft.hdr");
 		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/kloofendal_48d_partly_cloudy_puresky_2k.hdr");
 		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/san_giuseppe_bridge_4k.hdr");
@@ -130,19 +129,18 @@ namespace lde
 	{
 		m_ActiveScene = pScene;
 
-	
-		m_Skybox->Create(m_Gfx, m_ActiveScene->World(), "Assets/Textures/newport_loft.hdr");
+		//m_Skybox->Create(m_Gfx, m_ActiveScene->World(), "Assets/Textures/newport_loft.hdr");
 	}
 
 	void Renderer::OnResize(uint32 Width, uint32 Height)
 	{
 		m_Gfx->OnResize(Width, Height);
 
-		m_GBufferPass->OnResize(Width, Height);
+		m_GBufferPass->Resize(Width, Height);
 		m_LightPass->Resize(Width, Height);
 		m_SkyPass->Resize(Width, Height);
 
-		m_Gfx->Device->WaitForGPU(RHI::CommandType::eGraphics);
+		//m_Gfx->Device->IdleGPU();
 	}
 
 	void Renderer::Release()
@@ -223,25 +221,25 @@ namespace lde
 
 		// Light Pass
 		{
-			psoBuilder->SetVertexShader("Shaders/Deferred/PBR.hlsl", L"VSmain");
-			psoBuilder->SetPixelShader( "Shaders/Deferred/PBR.hlsl", L"PSmain");
+			psoBuilder->SetVS("Shaders/Deferred/PBR.hlsl", L"VSmain");
+			psoBuilder->SetPS("Shaders/Deferred/PBR.hlsl", L"PSmain");
 			psoBuilder->EnableDepth(true);
 			std::array<DXGI_FORMAT, 1> formats{ DXGI_FORMAT_R32G32B32A32_FLOAT };
 			psoBuilder->SetRenderTargetFormats(formats);
 
-			RHI::DX_CALL(psoBuilder->Build(m_LightPSO, &m_LightRS, "LightPass PSO"));
+			RHI::DX_CALL(psoBuilder->Build(m_LightPSO, &m_LightRS));
 			psoBuilder->Reset();
 		}
 
 		// Skybox
 		{
-			psoBuilder->SetVertexShader("Shaders/Sky/Skybox.hlsl", L"VSmain");
-			psoBuilder->SetPixelShader( "Shaders/Sky/Skybox.hlsl", L"PSmain");
+			psoBuilder->SetVS("Shaders/Sky/Skybox.hlsl", L"VSmain");
+			psoBuilder->SetPS("Shaders/Sky/Skybox.hlsl", L"PSmain");
 			psoBuilder->EnableDepth(true);
 			psoBuilder->SetCullMode(RHI::CullMode::eNone);
 			std::vector<DXGI_FORMAT> formats{ DXGI_FORMAT_R32G32B32A32_FLOAT };
 			psoBuilder->SetRenderTargetFormats(formats);
-			RHI::DX_CALL(psoBuilder->Build(m_SkyboxPSO, &m_SkyboxRS, "Skybox PSO"));
+			RHI::DX_CALL(psoBuilder->Build(m_SkyboxPSO, &m_SkyboxRS));
 		}
 
 	}

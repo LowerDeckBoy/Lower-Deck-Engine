@@ -11,7 +11,7 @@
 cbuffer InputTexture	: register(b0, space0) { uint InputIndex;  }
 cbuffer OutputTexture	: register(b1, space0) { uint OutputIndex; }
 
-static const uint NumSamples = 32 * 1024; // * 64
+static const uint NumSamples = 4*1024; // * 64 32 * 
 static const float InvNumSamples = 1.0f / float(NumSamples);
 
 // Sample i-th point from Hammersley point set of NumSamples points total.
@@ -25,10 +25,11 @@ SamplerState texSampler : register(s0);
 [numthreads(DISPATCH_X, DISPATCH_Y, DISPATCH_Z)]
 void CSmain(uint3 ThreadID : SV_DispatchThreadID)
 {
-	TextureCube<float4> inputTexture = ResourceDescriptorHeap[InputIndex];
+	TextureCube<float4>		 inputTexture  = ResourceDescriptorHeap[InputIndex];
 	RWTexture2DArray<float4> outputTexture = ResourceDescriptorHeap[OutputIndex];
 	
 	float3 N = GetSamplingVector(ThreadID, outputTexture);
+	
 	
 	float3 S, T;
 	ComputeBasisVectors(N, S, T);
@@ -44,11 +45,13 @@ void CSmain(uint3 ThreadID : SV_DispatchThreadID)
 		float cosTheta = max(0.0, dot(Li, N));
 
 		// PIs here cancel out because of division by pdf.
-		irradiance += 2.0 * inputTexture.SampleLevel(texSampler, Li, 0).rgb * cosTheta;
+		irradiance += 2.0f * inputTexture.SampleLevel(texSampler, Li, 0).rgb * cosTheta;
 	}
-	irradiance /= float(NumSamples);
 	
+	irradiance /= float3(NumSamples, NumSamples, NumSamples);
+	//irradiance = PI * irradiance * (1.0 / float(1024));
 	outputTexture[ThreadID] = float4(irradiance, 1.0);
+	
 }
 
 #endif // IRRADIANCE_CS_HLSL

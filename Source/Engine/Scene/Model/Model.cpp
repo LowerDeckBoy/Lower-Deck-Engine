@@ -3,6 +3,8 @@
 #include "Model.hpp"
 #include "RHI/D3D12/D3D12RHI.hpp"
 
+#include <meshoptimizer/meshoptimizer.h>
+
 namespace lde
 {
 	Model::Model(RHI::RHI* pRHI, std::string_view Filepath, World* pWorld)
@@ -28,7 +30,7 @@ namespace lde
 		AddComponent<TagComponent>("Model");
 		AddComponent<TransformComponent>();
 		
-		VertexBuffer = pGfx->GetDevice()->CreateBuffer(
+		m_Mesh->VertexBuffer = pGfx->GetDevice()->CreateBuffer(
 			RHI::BufferDesc{
 				RHI::BufferUsage::eStructured,
 				m_Mesh->Vertices.data(),
@@ -39,7 +41,7 @@ namespace lde
 			});
 
 		
-		IndexBuffer = pGfx->GetDevice()->CreateBuffer(
+		m_Mesh->IndexBuffer = pGfx->GetDevice()->CreateBuffer(
 			RHI::BufferDesc{
 				RHI::BufferUsage::eIndex,
 				m_Mesh->Indices.data(),
@@ -48,10 +50,11 @@ namespace lde
 				static_cast<uint32>(sizeof(m_Mesh->Indices.at(0)))
 			});
 
-		//IndexView = RHI::GetIndexView(IndexBuffer);
+		m_Mesh->IndexView = RHI::GetIndexView(pGfx->Device->Buffers.at(m_Mesh->IndexBuffer));
 
-		ConstBuffer = pGfx->GetDevice()->CreateConstantBuffer(&cbData, sizeof(cbData));
+		m_Mesh->ConstBuffer = pGfx->GetDevice()->CreateConstantBuffer(&m_Mesh->cbData, sizeof(m_Mesh->cbData));
 		
+		//meshopt_buildMeshlets()
 	}
 
 	Mesh* Model::GetMesh()

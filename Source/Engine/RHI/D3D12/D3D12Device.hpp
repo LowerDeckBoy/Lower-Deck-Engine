@@ -72,11 +72,6 @@ namespace lde::RHI
 		 */
 		void WaitForGPU(CommandType eType);
 
-		/**
-		 * @brief Wait for all types of queues to finish it's work.
-		 */
-		void WaitForAllQueues();
-
 		void FlushGPU();
 		void IdleGPU();
 
@@ -95,11 +90,10 @@ namespace lde::RHI
 		struct FrameResources
 		{
 			D3D12CommandList*		GraphicsCommandList;
-			
-			//D3D12Fence*				RenderFence;
-			uint64				RenderFenceValue = 0;
-			// https://www.youtube.com/watch?v=KsCZDeJDXDQ
 
+			// TODO:
+			//D3D12CommandList*		ComputeCommandList;
+			//D3D12CommandList*		UploadCommandList;
 		} m_FrameResources[FRAME_COUNT];
 
 		D3D12Queue* GraphicsQueue;
@@ -158,7 +152,6 @@ namespace lde::RHI
 #endif
 
 	public:
-		// TODO:
 		std::vector<D3D12Buffer*>			Buffers;
 		std::vector<D3D12ConstantBuffer*>	ConstantBuffers;
 		std::vector<D3D12Texture*>			Textures;

@@ -25,7 +25,9 @@ namespace lde::RHI
 	void D3D12RenderTexture::Initialize(D3D12RHI* pGfx, DXGI_FORMAT Format, std::string_view DebugName)
 	{
 		if (m_Texture.Get())
-			m_Texture.Reset();
+		{
+			SAFE_RELEASE(m_Texture);
+		}
 
 		D3D12_CLEAR_VALUE clearValue{};
 		clearValue.Color[0] = ClearColor.at(0);
@@ -81,7 +83,9 @@ namespace lde::RHI
 	void D3D12RenderTexture::OnResize(uint32 , uint32 )
 	{
 		if (m_Texture.Get())
-			m_Texture.Reset();
+		{
+			SAFE_RELEASE(m_Texture);
+		}
 
 		D3D12_CLEAR_VALUE clearValue{};
 		clearValue.Color[0] = ClearColor.at(0);
@@ -91,12 +95,12 @@ namespace lde::RHI
 		clearValue.Format = m_Format;
 
 		D3D12_RESOURCE_DESC desc{};
-		desc.Format = m_Format;
-		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		desc.Width  = static_cast<uint64>(m_Gfx->SceneViewport->GetViewport().Width);
-		desc.Height = static_cast<uint32>(m_Gfx->SceneViewport->GetViewport().Height);
-		desc.MipLevels = 1;
+		desc.Format		= m_Format;
+		desc.Dimension	= D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		desc.Flags		= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		desc.Width		= static_cast<uint64>(m_Gfx->SceneViewport->GetViewport().Width);
+		desc.Height		= static_cast<uint32>(m_Gfx->SceneViewport->GetViewport().Height);
+		desc.MipLevels	= 1;
 		desc.DepthOrArraySize = 1;
 		desc.SampleDesc = { 1, 0 };
 
@@ -106,7 +110,7 @@ namespace lde::RHI
 			&desc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			&clearValue,
-			IID_PPV_ARGS(&m_Texture)));
+			IID_PPV_ARGS(m_Texture.ReleaseAndGetAddressOf())));
 
 		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
 		rtvDesc.Format = m_Format;

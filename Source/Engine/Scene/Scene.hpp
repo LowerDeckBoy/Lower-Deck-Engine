@@ -1,15 +1,9 @@
 #pragma once
 
-//
-//
-//
-//
-
 #include "Entity.hpp"
 #include "Model/Model.hpp"
 #include "SceneCamera.hpp"
 #include <Core/CoreMinimal.hpp>
-//#include <memory>
 
 namespace lde
 {

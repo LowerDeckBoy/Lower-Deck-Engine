@@ -1,9 +1,5 @@
 #pragma once
 
-/*
-
-*/
-
 #include "Platform.hpp"
 #include <Core/String.hpp>
 

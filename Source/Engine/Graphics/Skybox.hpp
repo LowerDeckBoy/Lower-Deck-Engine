@@ -1,7 +1,6 @@
 #pragma once
 
 #include "RHI/D3D12/D3D12Buffer.hpp"
-//#include <RHI/Buffer.hpp>
 #include <Scene/Entity.hpp>
 
 namespace lde::RHI
@@ -16,11 +15,10 @@ namespace lde
 {
 	class SceneCamera;
 	
-	// https://github.com/TheRealMJP/DXRPathTracer/blob/master/SampleFramework12/v1.02/Graphics/Skybox.cpp
 	class Skybox : public Entity
 	{
 	public:
-		Skybox() {}
+		Skybox() = default;
 		~Skybox();
 
 		void Create(RHI::RHI* pRHI, World* pWorld, std::string_view Filepath);

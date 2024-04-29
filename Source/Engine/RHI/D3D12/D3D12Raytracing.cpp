@@ -345,8 +345,8 @@ namespace lde::RHI
 
 	void D3D12Raytracing::AddBLAS(Model* pModel)
 	{
-		const auto* vertexBuffer = m_Device->Buffers.at(pModel->VertexBuffer);
-		const auto* indexBuffer  = m_Device->Buffers.at(pModel->IndexBuffer);
+		const auto* vertexBuffer = m_Device->Buffers.at(pModel->GetMesh()->VertexBuffer);
+		const auto* indexBuffer  = m_Device->Buffers.at(pModel->GetMesh()->IndexBuffer);
 
 		D3D12RaytracingBLAS blas{};
 		

@@ -55,7 +55,7 @@ namespace lde
 		GBufferPass(RHI::D3D12RHI* pGfx);
 
 		void Render(Scene* pScene);
-		void OnResize(uint32 Width, uint32 Height);
+		void Resize(uint32 Width, uint32 Height);
 
 		std::map<GBuffers, RHI::D3D12RenderTexture> GetRenderTargets() const
 		{
