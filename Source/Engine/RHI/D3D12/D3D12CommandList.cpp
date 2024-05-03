@@ -101,10 +101,9 @@ namespace lde::RHI
 		m_GraphicsCommandList->DrawInstanced(VertexCount, 1, 0, 0);
 	}
 
-	void D3D12CommandList::DrawIndirect(uint32 IndexCount, uint32 VertexCount)
+	void D3D12CommandList::DrawIndirect()
 	{
-		//m_CommandList->ExecuteIndirect()
-		
+		//m_GraphicsCommandList->ExecuteIndirect()
 	}
 
 	void D3D12CommandList::DispatchMesh(uint32 DispatchX, uint32 DispatchY, uint32 DispatchZ)
@@ -210,7 +209,7 @@ namespace lde::RHI
 		desc.NodeMask = DEVICE_NODE;
 		desc.NumArgumentDescs = static_cast<uint32>(m_Arguments.size());
 		desc.pArgumentDescs = m_Arguments.data();
-		desc.ByteStride = sizeof(m_DrawArgs);
+		desc.ByteStride = m_Stride;
 
 		return pDevice->GetDevice()->CreateCommandSignature(&desc, pRootSignature->Get(), IID_PPV_ARGS(&m_CommandSignature));
 	}
@@ -234,6 +233,8 @@ namespace lde::RHI
 		argument.Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT_BUFFER_VIEW;
 		argument.ConstantBufferView.RootParameterIndex = Slot;
 
+		m_Stride += 8;
+
 		m_Arguments.emplace_back(argument);
 	}
 
@@ -243,6 +244,7 @@ namespace lde::RHI
 		argument.Type = D3D12_INDIRECT_ARGUMENT_TYPE_SHADER_RESOURCE_VIEW;
 		argument.ShaderResourceView.RootParameterIndex = Slot;
 
+		//m_Stride += sizeof(D3D12_SRV_;
 		m_Stride += 8;
 
 		m_Arguments.emplace_back(argument);
@@ -285,6 +287,8 @@ namespace lde::RHI
 		D3D12_INDIRECT_ARGUMENT_DESC argument{};
 		argument.Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
 
+		m_Stride += sizeof(D3D12_DRAW_ARGUMENTS);
+
 		m_Arguments.emplace_back(argument);
 	}
 
@@ -293,10 +297,9 @@ namespace lde::RHI
 		D3D12_INDIRECT_ARGUMENT_DESC argument{};
 		argument.Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
 
-		m_Arguments.push_back(argument);
+		m_Stride += sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
 
-		//D3D12_DRAW_ARGUMENTS args{};
-		//args.
+		m_Arguments.push_back(argument);
 	}
 
 	void D3D12CommandSignature::AddDispatch()
