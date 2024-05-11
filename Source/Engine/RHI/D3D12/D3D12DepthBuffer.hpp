@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Core/RefPtr.hpp>
-
 namespace lde::RHI
 {
 	class D3D12Device;
@@ -9,17 +7,14 @@ namespace lde::RHI
 	class D3D12DescriptorHeap;
 	class D3D12Viewport;
 	
-	// TODO: Rework and move into other file
 	class D3D12DepthBuffer
 	{
 	public:
 		D3D12DepthBuffer() = default;
-		D3D12DepthBuffer(D3D12Device* pDevice, D3D12DescriptorHeap* pDepthHeap, D3D12Viewport* pViewport, DXGI_FORMAT Format = DXGI_FORMAT_D32_FLOAT, bool bSRV = false);
+		D3D12DepthBuffer(D3D12Device* pDevice, D3D12DescriptorHeap* pDepthHeap, D3D12Viewport* pViewport, DXGI_FORMAT Format = DXGI_FORMAT_D32_FLOAT);
 		~D3D12DepthBuffer();
 
-		void Create(D3D12Device* pDevice, D3D12DescriptorHeap* pDepthHeap, D3D12Viewport* pViewport, bool bSRV = false);
-
-		void Clear();
+		void Create(D3D12Device* pDevice, D3D12DescriptorHeap* pDepthHeap, D3D12Viewport* pViewport);
 
 		void OnResize(D3D12DescriptorHeap* pDepthHeap, D3D12Viewport* pViewport);
 
@@ -39,4 +34,4 @@ namespace lde::RHI
 		D3D12Descriptor m_SRV;
 
 	};
-}
+} // namespace lde::RHI
