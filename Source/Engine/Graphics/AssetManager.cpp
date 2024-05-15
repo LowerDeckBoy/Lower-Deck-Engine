@@ -1,3 +1,6 @@
+#define CGLTF_IMPLEMENTATION
+#include <cgltf/cgltf.h>
+
 #include "AssetManager.hpp"
 #include "RHI/D3D12/D3D12RHI.hpp"
 #include "Scene/Model/Model.hpp"
@@ -9,6 +12,8 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+
+
 
 namespace lde
 {
@@ -41,7 +46,7 @@ namespace lde
 		Utility::LoadTimer timer;
 		timer.Start();
 
-		constexpr auto LoadFlags = 
+		constexpr int32 LoadFlags = 
 			aiProcess_Triangulate |
 			aiProcess_ConvertToLeftHanded |
 			aiProcess_JoinIdenticalVertices  |
@@ -49,7 +54,7 @@ namespace lde
 			aiProcess_GenBoundingBoxes;
 	
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(Filepath.data(), LoadFlags);
+		const aiScene* scene = importer.ReadFile(Filepath.data(), (uint32)LoadFlags);
 
 		if (!scene || !scene->mRootNode || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE)
 		{
@@ -79,7 +84,7 @@ namespace lde
 		const auto transform = [&]() {
 			if (!pNode->mTransformation.IsIdentity())
 			{
-				XMFLOAT4X4 temp{ XMFLOAT4X4() };
+				XMFLOAT4X4 temp = XMFLOAT4X4();
 				temp._11 = static_cast<float>(pNode->mTransformation.a1);
 				temp._12 = static_cast<float>(pNode->mTransformation.a2);
 				temp._13 = static_cast<float>(pNode->mTransformation.a3);
@@ -105,20 +110,23 @@ namespace lde
 				aiVector3D		scale;
 	
 				pNode->mTransformation.Decompose(scale, rotation, translation);
-				newNode->Translation = XMFLOAT3(translation.x, translation.y, translation.z);
-				newNode->Rotation = XMFLOAT4(rotation.x, rotation.y, rotation.z, rotation.w);
-				newNode->Scale = XMFLOAT3(scale.x, scale.y, scale.z);
+				newNode->Translation	= XMFLOAT3(translation.x, translation.y, translation.z);
+				newNode->Rotation		= XMFLOAT4(rotation.x, rotation.y, rotation.z, rotation.w);
+				newNode->Scale			= XMFLOAT3(scale.x, scale.y, scale.z);
 			}
 			};
 		transform();
 	
-		XMMATRIX local = XMMatrixScalingFromVector(XMLoadFloat3(&newNode->Scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&newNode->Rotation)) *XMMatrixTranslationFromVector(XMLoadFloat3(&newNode->Translation));
+		//DirectX::XMMatrixDecompose
+		XMMATRIX local = newNode->Matrix * XMMatrixScalingFromVector(XMLoadFloat3(&newNode->Scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&newNode->Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&newNode->Translation));
 		XMMATRIX next = local * ParentMatrix;
 	
 		if (pNode->mChildren)
 		{
 			for (size_t i = 0; i < pNode->mNumChildren; i++)
+			{
 				ProcessNode(pScene, pInMesh, pNode->mChildren[i], newNode, next);
+			}
 		}
 	
 		if (pNode->mMeshes)
@@ -139,46 +147,46 @@ namespace lde
 		}
 	}
 
-	SubMesh AssetManager::ProcessMesh(const aiScene* pScene, const aiMesh* pMesh, XMMATRIX Matrix)
+	Submesh AssetManager::ProcessMesh(const aiScene* pScene, const aiMesh* pMesh, XMMATRIX Matrix)
 	{
-		SubMesh newSubMesh;
+		Submesh newSubmesh;
 
-		ProcessVertices(newSubMesh, pMesh);
-		ProcessIndices(newSubMesh, pMesh);
-		ProcessMaterials(pScene, newSubMesh, pMesh);
+		ProcessGeometry(newSubmesh, pMesh);
+		ProcessMaterials(pScene, newSubmesh, pMesh);
 	
-		newSubMesh.Matrix = Matrix;
-		return newSubMesh;
+		newSubmesh.Matrix = Matrix;
+
+		return newSubmesh;
 	}
 
-	void AssetManager::ProcessVertices(SubMesh& Submesh, const aiMesh* pMesh)
+	void AssetManager::ProcessGeometry(Submesh& Submesh, const aiMesh* pMesh)
 	{
 		std::vector<XMFLOAT3> positions;
 		std::vector<XMFLOAT2> uvs;
 		std::vector<XMFLOAT3> normals;
 		std::vector<XMFLOAT3> tangents;
 		std::vector<XMFLOAT3> bitangents;
-	
-		Submesh.BaseIndex  = static_cast<uint32>(m_Indices.size());
+
+		Submesh.BaseIndex = static_cast<uint32>(m_Indices.size());
 		Submesh.BaseVertex = static_cast<uint32>(m_Vertices.size());
-	
+
 		for (uint32_t i = 0; i < pMesh->mNumVertices; i++)
 		{
 			if (pMesh->HasPositions())
 				positions.emplace_back(pMesh->mVertices[i].x, pMesh->mVertices[i].y, pMesh->mVertices[i].z);
 			else
 				positions.emplace_back(0.0f, 0.0f, 0.0f);
-	
+
 			if (pMesh->mTextureCoords[0])
 				uvs.emplace_back(pMesh->mTextureCoords[0][i].x, pMesh->mTextureCoords[0][i].y);
 			else
 				uvs.emplace_back(0.0f, 0.0f);
-	
+
 			if (pMesh->HasNormals())
 				normals.emplace_back(pMesh->mNormals[i].x, pMesh->mNormals[i].y, pMesh->mNormals[i].z);
 			else
 				normals.emplace_back(0.0f, 0.0f, 0.0f);
-	
+
 			if (pMesh->HasTangentsAndBitangents())
 			{
 				tangents.emplace_back(pMesh->mTangents[i].x, pMesh->mTangents[i].y, pMesh->mTangents[i].z);
@@ -190,18 +198,14 @@ namespace lde
 				bitangents.emplace_back(0.0f, 0.0f, 0.0f);
 			}
 		}
-	
+
 		Submesh.VertexCount = static_cast<uint32_t>(positions.size());
 		for (uint32_t i = 0; i < pMesh->mNumVertices; i++)
 		{
 			//m_Vertices.emplace_back(positions.at(i), uvs.at(i), normals.at(i), tangents.at(i));
 			m_Vertices.emplace_back(positions.at(i), uvs.at(i), normals.at(i), tangents.at(i), bitangents.at(i));
 		}
-		
-	}
 
-	void AssetManager::ProcessIndices(SubMesh& Submesh, const aiMesh* pMesh)
-	{
 		uint32_t indexCount = 0;
 		if (pMesh->HasFaces())
 		{
@@ -217,10 +221,9 @@ namespace lde
 			}
 		}
 		Submesh.IndexCount = static_cast<uint32>(indexCount);
-	
 	}
 
-	void AssetManager::ProcessMaterials(const aiScene* pScene, SubMesh& Submesh, const aiMesh* pMesh)
+	void AssetManager::ProcessMaterials(const aiScene* pScene, Submesh& Submesh, const aiMesh* pMesh)
 	{
 		Material newMaterial{};
 	
@@ -288,7 +291,7 @@ namespace lde
 				newMaterial.EmissiveFactor = XMFLOAT4(colorFactor.r, colorFactor.g, colorFactor.b, colorFactor.a);
 			}
 		}
-	
+
 		aiGetMaterialFloat(material, AI_MATKEY_GLTF_ALPHACUTOFF, &newMaterial.AlphaCutoff);
 	
 		Submesh.Mat = newMaterial;
