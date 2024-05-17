@@ -42,7 +42,7 @@ namespace lde
 		void ProcessNode(const aiScene* pScene, Mesh* pInMesh, const aiNode* pNode, Node* ParentNode, DirectX::XMMATRIX ParentMatrix);
 		Submesh ProcessMesh(const aiScene* pScene, const aiMesh* pMesh, XMMATRIX Matrix);
 		void ProcessGeometry(Submesh& Submesh, const aiMesh* pMesh);
-		void ProcessMaterials(const aiScene* pScene, Submesh& Submesh, const aiMesh* pMesh);
+		void ProcessMaterials(const aiScene* pScene, Submesh& Submesh, const aiMesh* pMesh) const;
 		
 		std::vector<Vertex> m_Vertices{};
 		std::vector<uint32> m_Indices{};

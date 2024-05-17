@@ -1,6 +1,3 @@
-#define CGLTF_IMPLEMENTATION
-#include <cgltf/cgltf.h>
-
 #include "AssetManager.hpp"
 #include "RHI/D3D12/D3D12RHI.hpp"
 #include "Scene/Model/Model.hpp"
@@ -12,7 +9,6 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-
 
 
 namespace lde
@@ -117,7 +113,6 @@ namespace lde
 			};
 		transform();
 	
-		//DirectX::XMMatrixDecompose
 		XMMATRIX local = newNode->Matrix * XMMatrixScalingFromVector(XMLoadFloat3(&newNode->Scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&newNode->Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&newNode->Translation));
 		XMMATRIX next = local * ParentMatrix;
 	
@@ -161,58 +156,45 @@ namespace lde
 
 	void AssetManager::ProcessGeometry(Submesh& Submesh, const aiMesh* pMesh)
 	{
-		std::vector<XMFLOAT3> positions;
-		std::vector<XMFLOAT2> uvs;
-		std::vector<XMFLOAT3> normals;
-		std::vector<XMFLOAT3> tangents;
-		std::vector<XMFLOAT3> bitangents;
+		Submesh.BaseIndex	= static_cast<uint32>(m_Indices.size());
+		Submesh.BaseVertex	= static_cast<uint32>(m_Vertices.size());
+		Submesh.VertexCount = static_cast<uint32_t>(pMesh->mNumVertices);
 
-		Submesh.BaseIndex = static_cast<uint32>(m_Indices.size());
-		Submesh.BaseVertex = static_cast<uint32>(m_Vertices.size());
-
+		m_Vertices.reserve(m_Vertices.size() + pMesh->mNumVertices);
 		for (uint32_t i = 0; i < pMesh->mNumVertices; i++)
 		{
+			Vertex vertex{};
+
 			if (pMesh->HasPositions())
-				positions.emplace_back(pMesh->mVertices[i].x, pMesh->mVertices[i].y, pMesh->mVertices[i].z);
-			else
-				positions.emplace_back(0.0f, 0.0f, 0.0f);
+			{
+				vertex.Position = XMFLOAT3(pMesh->mVertices[i].x, pMesh->mVertices[i].y, pMesh->mVertices[i].z);
+			}
 
 			if (pMesh->mTextureCoords[0])
-				uvs.emplace_back(pMesh->mTextureCoords[0][i].x, pMesh->mTextureCoords[0][i].y);
-			else
-				uvs.emplace_back(0.0f, 0.0f);
+			{
+				vertex.TexCoord = XMFLOAT2(pMesh->mTextureCoords[0][i].x, pMesh->mTextureCoords[0][i].y);
+			}
 
 			if (pMesh->HasNormals())
-				normals.emplace_back(pMesh->mNormals[i].x, pMesh->mNormals[i].y, pMesh->mNormals[i].z);
-			else
-				normals.emplace_back(0.0f, 0.0f, 0.0f);
+			{
+				vertex.Normal = XMFLOAT3(pMesh->mNormals[i].x, pMesh->mNormals[i].y, pMesh->mNormals[i].z);
+			}
 
 			if (pMesh->HasTangentsAndBitangents())
 			{
-				tangents.emplace_back(pMesh->mTangents[i].x, pMesh->mTangents[i].y, pMesh->mTangents[i].z);
-				bitangents.emplace_back(pMesh->mBitangents[i].x, pMesh->mBitangents[i].y, pMesh->mBitangents[i].z);
+				vertex.Tangent   = XMFLOAT3(pMesh->mTangents[i].x, pMesh->mTangents[i].y, pMesh->mTangents[i].z);
+				vertex.Bitangent = XMFLOAT3(pMesh->mBitangents[i].x, pMesh->mBitangents[i].y, pMesh->mBitangents[i].z);
 			}
-			else
-			{
-				tangents.emplace_back(0.0f, 0.0f, 0.0f);
-				bitangents.emplace_back(0.0f, 0.0f, 0.0f);
-			}
-		}
 
-		Submesh.VertexCount = static_cast<uint32_t>(positions.size());
-		for (uint32_t i = 0; i < pMesh->mNumVertices; i++)
-		{
-			//m_Vertices.emplace_back(positions.at(i), uvs.at(i), normals.at(i), tangents.at(i));
-			m_Vertices.emplace_back(positions.at(i), uvs.at(i), normals.at(i), tangents.at(i), bitangents.at(i));
+			m_Vertices.push_back(vertex);
 		}
 
 		uint32_t indexCount = 0;
 		if (pMesh->HasFaces())
 		{
-			//newMesh->bHasIndices = true;
 			for (uint32_t i = 0; i < pMesh->mNumFaces; i++)
 			{
-				aiFace& face{ pMesh->mFaces[i] };
+				aiFace& face = pMesh->mFaces[i];
 				for (uint32_t j = 0; j < face.mNumIndices; j++)
 				{
 					m_Indices.push_back(face.mIndices[j]);
@@ -223,7 +205,7 @@ namespace lde
 		Submesh.IndexCount = static_cast<uint32>(indexCount);
 	}
 
-	void AssetManager::ProcessMaterials(const aiScene* pScene, Submesh& Submesh, const aiMesh* pMesh)
+	void AssetManager::ProcessMaterials(const aiScene* pScene, Submesh& Submesh, const aiMesh* pMesh) const
 	{
 		Material newMaterial{};
 	
@@ -237,61 +219,46 @@ namespace lde
 	
 		aiMaterial* material = pScene->mMaterials[pMesh->mMaterialIndex];
 	
-		for (uint32_t i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE); ++i)
+		aiString materialPath{};
+		if (material->GetTexture(aiTextureType_BASE_COLOR, 0, &materialPath) == aiReturn_SUCCESS)
 		{
-			aiString materialPath;
-			if (material->GetTexture(aiTextureType_DIFFUSE, i, &materialPath) == aiReturn_SUCCESS)
-			{
-				auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
+			auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
+
+			newMaterial.BaseColorIndex = textureManager.Create(m_Gfx, texPath);
+
+			aiColor4D colorFactor{};
+			aiGetMaterialColor(material, AI_MATKEY_BASE_COLOR, &colorFactor);
+			newMaterial.BaseColorFactor = XMFLOAT4(colorFactor.r, colorFactor.g, colorFactor.b, colorFactor.a);
+		}
 		
-				newMaterial.BaseColorIndex = textureManager.Create(m_Gfx, texPath);
-	
-				aiColor4D colorFactor{};
-				aiGetMaterialColor(material, AI_MATKEY_BASE_COLOR, &colorFactor);
-				newMaterial.BaseColorFactor = XMFLOAT4(colorFactor.r, colorFactor.g, colorFactor.b, colorFactor.a);
-			}
-		}
-	
-		for (uint32_t i = 0; i < material->GetTextureCount(aiTextureType_NORMALS); ++i)
+		if (material->GetTexture(aiTextureType_NORMALS, 0, &materialPath) == aiReturn_SUCCESS)
 		{
-			aiString materialPath;
-			if (material->GetTexture(aiTextureType_NORMALS, i, &materialPath) == aiReturn_SUCCESS)
-			{
-				auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
-	
-				newMaterial.NormalIndex = textureManager.Create(m_Gfx, texPath);
-			}
-		}
-	
-		for (uint32_t i = 0; i < material->GetTextureCount(aiTextureType_METALNESS); ++i)
-		{
-			aiString materialPath{};
-			if (material->GetTexture(aiTextureType_METALNESS, i, &materialPath) == aiReturn_SUCCESS)
-			{
-				auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
-	
-				newMaterial.MetalRoughnessIndex = textureManager.Create(m_Gfx, texPath);
-	
-			}
-				aiGetMaterialFloat(material, AI_MATKEY_METALLIC_FACTOR,  &newMaterial.MetallicFactor);
-				aiGetMaterialFloat(material, AI_MATKEY_ROUGHNESS_FACTOR, &newMaterial.RoughnessFactor);
-		}
-	
-		for (uint32_t i = 0; i < material->GetTextureCount(aiTextureType_EMISSIVE); ++i)
-		{
-			aiString materialPath{};
-			if (material->GetTexture(aiTextureType_EMISSIVE, i, &materialPath) == aiReturn_SUCCESS)
-			{
-				auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
-	
-				newMaterial.EmissiveIndex = textureManager.Create(m_Gfx, texPath);
-	
-				aiColor4D colorFactor{};
-				aiGetMaterialColor(material, AI_MATKEY_COLOR_EMISSIVE, &colorFactor);
-				newMaterial.EmissiveFactor = XMFLOAT4(colorFactor.r, colorFactor.g, colorFactor.b, colorFactor.a);
-			}
+			auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
+
+			newMaterial.NormalIndex = textureManager.Create(m_Gfx, texPath);
 		}
 
+		if (material->GetTexture(aiTextureType_METALNESS, 0, &materialPath) == aiReturn_SUCCESS)
+		{
+			auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
+
+			newMaterial.MetalRoughnessIndex = textureManager.Create(m_Gfx, texPath);
+
+			aiGetMaterialFloat(material, AI_MATKEY_METALLIC_FACTOR, &newMaterial.MetallicFactor);
+			aiGetMaterialFloat(material, AI_MATKEY_ROUGHNESS_FACTOR, &newMaterial.RoughnessFactor);
+		}
+		
+		if (material->GetTexture(aiTextureType_EMISSIVE, 0, &materialPath) == aiReturn_SUCCESS)
+		{
+			auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
+
+			newMaterial.EmissiveIndex = textureManager.Create(m_Gfx, texPath);
+
+			aiColor4D colorFactor{};
+			aiGetMaterialColor(material, AI_MATKEY_COLOR_EMISSIVE, &colorFactor);
+			newMaterial.EmissiveFactor = XMFLOAT4(colorFactor.r, colorFactor.g, colorFactor.b, colorFactor.a);
+		}
+		
 		aiGetMaterialFloat(material, AI_MATKEY_GLTF_ALPHACUTOFF, &newMaterial.AlphaCutoff);
 	
 		Submesh.Mat = newMaterial;
