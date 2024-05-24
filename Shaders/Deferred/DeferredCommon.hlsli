@@ -57,8 +57,8 @@ float GetGeometrySchlickGGX(float NdotV, float Roughness)
 
 float GetGeometrySmith(float3 Normal, float3 V, float3 L, float Roughness)
 {
-	float NdotV = max(dot(Normal, V), 0.0f);
-	float NdotL = max(dot(Normal, L), 0.0f);
+	float NdotV = max(dot(Normal, V), Epsilon);
+	float NdotL = max(dot(Normal, L), Epsilon);
 
 	float ggx1 = GetGeometrySchlickGGX(NdotL, Roughness);
 	float ggx2 = GetGeometrySchlickGGX(NdotV, Roughness);

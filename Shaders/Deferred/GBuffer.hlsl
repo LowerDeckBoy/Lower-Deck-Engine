@@ -48,7 +48,7 @@ float3 GetBitangent(float4 WorldPos, float2 UV)
 VSOutput VSmain(uint VertexID : SV_VertexID)
 {
 	StructuredBuffer<VSInput> buffer = ResourceDescriptorHeap[vertexBuffer.VertexIndex];
-	VSInput vertex = buffer.Load((vertexBuffer.VertexOffset + VertexID));
+	VSInput vertex = buffer.Load(vertexBuffer.VertexOffset + VertexID);
 	
 	VSOutput output = (VSOutput) 0;
 	output.Position			= mul(WVP, float4(vertex.Position, 1.0f));
@@ -57,7 +57,7 @@ VSOutput VSmain(uint VertexID : SV_VertexID)
 	output.Normal			= normalize(mul((float3x3) World, vertex.Normal));
 	
 	float3x3 TBN = float3x3(vertex.Tangent, vertex.Bitangent, output.Normal);
-	output.TBN = mul((float3x3) World, transpose(TBN));
+	output.TBN = mul((float3x3)World, transpose(TBN));
 
 	return output;
 }
@@ -79,13 +79,12 @@ GBufferOutput PSmain(VSOutput pin)
 {
 	GBufferOutput output = (GBufferOutput) 0;
 
-	// TexCoords
 	output.TexCoords = float4(pin.TexCoord, 0.0f, 1.0f);
-	// Gradient UVs
-	//float3 grandients = abs(float3(ddx(pin.TexCoord), ddy(pin.TexCoord).x)) * 64.0f;
-	//output.TexCoords = normalize(float4(grandients, 1.0f));
 	
-	//float3 bitangent = GetBitangent(pin.WorldPosition, pin.TexCoord);
+	const float z = pin.Position.z / pin.Position.w;
+	output.Depth = float4(z, z, z, 1.0f);
+		
+	output.WorldPosition = pin.WorldPosition;
 	
 	if (material.BaseColorIndex > INVALID_INDEX)
 	{
@@ -120,7 +119,7 @@ GBufferOutput PSmain(VSOutput pin)
 		Texture2D<float4> metalRoughnessTex = ResourceDescriptorHeap[material.MetalRoughnessIndex];
 		float4 metallic = metalRoughnessTex.Sample(texSampler, pin.TexCoord);
 		metallic.b *= material.MetallicFactor;
-		metallic.g *= material.MetallicFactor;
+		metallic.g *= material.RoughnessFactor;
 		output.MetalRoughness = metallic;
 	}
 	else
@@ -132,19 +131,11 @@ GBufferOutput PSmain(VSOutput pin)
 	if (material.EmissiveIndex > INVALID_INDEX)
 	{
 		Texture2D<float4> emissiveTex = ResourceDescriptorHeap[material.EmissiveIndex];
-		output.Emissive = emissiveTex.Sample(texSampler, pin.TexCoord) * material.EmissiveFactor;
+		output.Emissive = material.EmissiveFactor * emissiveTex.Sample(texSampler, pin.TexCoord);
 	}
 	else
 	{
 		output.Emissive = float4(0.0f, 0.0f, 0.0f, 1.0f);
-	}
-	
-	// Depth Buffer and WorldPositions
-	{
-		const float z = pin.Position.z / pin.Position.w;
-		output.Depth = float4(z, z, z, 1.0f);
-		
-		output.WorldPosition = pin.WorldPosition;
 	}
 	
 	return output;
