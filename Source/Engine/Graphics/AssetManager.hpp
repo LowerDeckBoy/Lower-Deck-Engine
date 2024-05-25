@@ -38,14 +38,11 @@ namespace lde
 		void Import(RHI::D3D12RHI* pGfx, std::string_view Filepath, Mesh& pInMesh);
 
 	private:
-	
+		[[maybe_unused]]
 		void ProcessNode(const aiScene* pScene, Mesh* pInMesh, const aiNode* pNode, Node* ParentNode, DirectX::XMMATRIX ParentMatrix);
-		Submesh ProcessMesh(const aiScene* pScene, const aiMesh* pMesh, XMMATRIX Matrix);
-		void ProcessGeometry(Submesh& Submesh, const aiMesh* pMesh);
+
+		void ProcessGeometry(Submesh& Submesh, const aiMesh* pMesh, std::vector<Vertex>& OutVertices, std::vector<uint32>& OutIndices);
 		void ProcessMaterials(const aiScene* pScene, Submesh& Submesh, const aiMesh* pMesh) const;
-		
-		std::vector<Vertex> m_Vertices{};
-		std::vector<uint32> m_Indices{};
 		
 		// For access to Device and CommandList
 		RHI::D3D12RHI* m_Gfx = nullptr;

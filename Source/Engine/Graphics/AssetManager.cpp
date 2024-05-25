@@ -10,6 +10,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
+#include <meshoptimizer/meshoptimizer.h>
 
 namespace lde
 {
@@ -60,15 +61,43 @@ namespace lde
 	
 		m_Filepath = Filepath.data();
 		
-		ProcessNode(scene, &pInMesh, scene->mRootNode, nullptr, XMMatrixIdentity());
-		pInMesh.Vertices = m_Vertices;
-		pInMesh.Indices = m_Indices;
+		//ProcessNode(scene, &pInMesh, scene->mRootNode, nullptr, XMMatrixIdentity());
+		
+		const auto aabb = scene->mMeshes[0]->mAABB;
+
+		pInMesh.AABB.Min.x = static_cast<float>(aabb.mMin.x);
+		pInMesh.AABB.Min.y = static_cast<float>(aabb.mMin.y);
+		pInMesh.AABB.Min.z = static_cast<float>(aabb.mMin.z);
+		pInMesh.AABB.Max.x = static_cast<float>(aabb.mMax.x);
+		pInMesh.AABB.Max.y = static_cast<float>(aabb.mMax.y);
+		pInMesh.AABB.Max.z = static_cast<float>(aabb.mMax.z);
+
+		if (scene->mName.length != 0)
+		{
+			pInMesh.Name = scene->mName.C_Str();
+		}
+		else
+		{
+			pInMesh.Name = Files::GetFileName(Filepath).c_str();
+		}
+
+		pInMesh.Submeshes.reserve(scene->mNumMeshes);
+		for (uint32 meshIdx = 0; meshIdx < scene->mNumMeshes; ++meshIdx)
+		{
+			const auto mesh = scene->mMeshes[meshIdx];
+
+			Submesh submesh;
+			
+			ProcessGeometry(submesh, mesh, pInMesh.Vertices, pInMesh.Indices);
+			ProcessMaterials(scene, submesh, mesh);
+
+			pInMesh.Submeshes.emplace_back(submesh);	
+		}
+
 		timer.End(Files::GetFileName(Filepath));
-	
-		m_Vertices.clear();
-		m_Vertices.shrink_to_fit();
-		m_Indices.clear();
-		m_Indices.shrink_to_fit();
+
+		//std::vector<meshopt_Meshlet> meshlets;
+		//meshopt_buildMeshlets(meshlets.data(), )
 	}
 
 	void AssetManager::ProcessNode(const aiScene* pScene, Mesh* pInMesh, const aiNode* pNode, Node* ParentNode, DirectX::XMMATRIX ParentMatrix)
@@ -124,85 +153,55 @@ namespace lde
 			}
 		}
 	
-		if (pNode->mMeshes)
-		{	
-			const auto aabb = pScene->mMeshes[0]->mAABB;
-
-			pInMesh->AABB.Min.x = static_cast<float>(aabb.mMin.x);
-			pInMesh->AABB.Min.y = static_cast<float>(aabb.mMin.y);
-			pInMesh->AABB.Min.z = static_cast<float>(aabb.mMin.z);
-			pInMesh->AABB.Max.x = static_cast<float>(aabb.mMax.x);
-			pInMesh->AABB.Max.y = static_cast<float>(aabb.mMax.y);
-			pInMesh->AABB.Max.z = static_cast<float>(aabb.mMax.z);
-
-			for (uint32_t i = 0; i < pNode->mNumMeshes; i++)
-			{
-				pInMesh->Submeshes.emplace_back(ProcessMesh(pScene, pScene->mMeshes[pNode->mMeshes[i]], next));
-			}
-		}
 	}
 
-	Submesh AssetManager::ProcessMesh(const aiScene* pScene, const aiMesh* pMesh, XMMATRIX Matrix)
+	void AssetManager::ProcessGeometry(Submesh& Submesh, const aiMesh* pMesh, std::vector<Vertex>& OutVertices, std::vector<uint32>& OutIndices)
 	{
-		Submesh newSubmesh;
+		Submesh.BaseIndex = static_cast<uint32>(OutIndices.size());
+		Submesh.BaseVertex = static_cast<uint32>(OutVertices.size());
+		Submesh.VertexCount = static_cast<uint32>(pMesh->mNumVertices);
 
-		ProcessGeometry(newSubmesh, pMesh);
-		ProcessMaterials(pScene, newSubmesh, pMesh);
-	
-		newSubmesh.Matrix = Matrix;
-
-		return newSubmesh;
-	}
-
-	void AssetManager::ProcessGeometry(Submesh& Submesh, const aiMesh* pMesh)
-	{
-		Submesh.BaseIndex	= static_cast<uint32>(m_Indices.size());
-		Submesh.BaseVertex	= static_cast<uint32>(m_Vertices.size());
-		Submesh.VertexCount = static_cast<uint32_t>(pMesh->mNumVertices);
-
-		m_Vertices.reserve(m_Vertices.size() + pMesh->mNumVertices);
-		for (uint32_t i = 0; i < pMesh->mNumVertices; i++)
+		OutVertices.reserve(OutVertices.size() + pMesh->mNumVertices);
+		for (uint32_t i = 0; i < pMesh->mNumVertices; ++i)
 		{
 			Vertex vertex{};
 
 			if (pMesh->HasPositions())
 			{
-				vertex.Position = XMFLOAT3(pMesh->mVertices[i].x, pMesh->mVertices[i].y, pMesh->mVertices[i].z);
+				vertex.Position = *(XMFLOAT3*)(reinterpret_cast<XMFLOAT3*>(&pMesh->mVertices[i]));
 			}
 
 			if (pMesh->mTextureCoords[0])
 			{
-				vertex.TexCoord = XMFLOAT2(pMesh->mTextureCoords[0][i].x, pMesh->mTextureCoords[0][i].y);
+				vertex.TexCoord = *(XMFLOAT2*)(reinterpret_cast<XMFLOAT3*>(&pMesh->mTextureCoords[0][i]));
 			}
 
 			if (pMesh->HasNormals())
 			{
-				vertex.Normal = XMFLOAT3(pMesh->mNormals[i].x, pMesh->mNormals[i].y, pMesh->mNormals[i].z);
+				vertex.Normal = *(XMFLOAT3*)(reinterpret_cast<XMFLOAT3*>(&pMesh->mNormals[i]));;
 			}
 
 			if (pMesh->HasTangentsAndBitangents())
 			{
-				vertex.Tangent   = XMFLOAT3(pMesh->mTangents[i].x, pMesh->mTangents[i].y, pMesh->mTangents[i].z);
-				vertex.Bitangent = XMFLOAT3(pMesh->mBitangents[i].x, pMesh->mBitangents[i].y, pMesh->mBitangents[i].z);
+				vertex.Tangent = *(XMFLOAT3*)(reinterpret_cast<XMFLOAT3*>(&pMesh->mTangents[i]));
+				vertex.Bitangent = *(XMFLOAT3*)(reinterpret_cast<XMFLOAT3*>(&pMesh->mBitangents[i]));
 			}
 
-			m_Vertices.push_back(vertex);
+			OutVertices.push_back(vertex);
 		}
 
-		uint32_t indexCount = 0;
 		if (pMesh->HasFaces())
 		{
-			for (uint32_t i = 0; i < pMesh->mNumFaces; i++)
+			for (uint32_t i = 0; i < pMesh->mNumFaces; ++i)
 			{
 				aiFace& face = pMesh->mFaces[i];
-				for (uint32_t j = 0; j < face.mNumIndices; j++)
+				for (uint32_t j = 0; j < face.mNumIndices; ++j)
 				{
-					m_Indices.push_back(face.mIndices[j]);
-					indexCount++;
+					OutIndices.push_back(face.mIndices[j]);
+					Submesh.IndexCount++;
 				}
 			}
 		}
-		Submesh.IndexCount = static_cast<uint32>(indexCount);
 	}
 
 	void AssetManager::ProcessMaterials(const aiScene* pScene, Submesh& Submesh, const aiMesh* pMesh) const
@@ -243,11 +242,8 @@ namespace lde
 			auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
 
 			newMaterial.MetalRoughnessIndex = textureManager.Create(m_Gfx, texPath);
-
-			aiGetMaterialFloat(material, AI_MATKEY_METALLIC_FACTOR, &newMaterial.MetallicFactor);
-			aiGetMaterialFloat(material, AI_MATKEY_ROUGHNESS_FACTOR, &newMaterial.RoughnessFactor);
 		}
-		
+			
 		if (material->GetTexture(aiTextureType_EMISSIVE, 0, &materialPath) == aiReturn_SUCCESS)
 		{
 			auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
@@ -259,8 +255,10 @@ namespace lde
 			newMaterial.EmissiveFactor = XMFLOAT4(colorFactor.r, colorFactor.g, colorFactor.b, colorFactor.a);
 		}
 		
+		aiGetMaterialFloat(material, AI_MATKEY_METALLIC_FACTOR,  &newMaterial.MetallicFactor);
+		aiGetMaterialFloat(material, AI_MATKEY_ROUGHNESS_FACTOR, &newMaterial.RoughnessFactor);
 		aiGetMaterialFloat(material, AI_MATKEY_GLTF_ALPHACUTOFF, &newMaterial.AlphaCutoff);
-	
+		
 		Submesh.Mat = newMaterial;
 	}
 
