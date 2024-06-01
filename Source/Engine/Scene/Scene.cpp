@@ -2,6 +2,7 @@
 #include "Graphics/AssetManager.hpp"
 #include "RHI/D3D12/D3D12RHI.hpp"
 #include "Scene.hpp"
+#include "Components/LightComponent.hpp"
 
 namespace lde
 {
@@ -25,6 +26,14 @@ namespace lde
 		m_Camera->InitializeInputs();
 		m_Gfx = pGfx;
 		
+		PointLights.reserve(4);
+		AddPointLight(XMFLOAT3(-8.0f, 1.0f, 0.5f));
+		AddPointLight(XMFLOAT3(-5.0f, 1.0f, 0.5f));
+		AddPointLight(XMFLOAT3(0.0f, 1.0f, 0.5f));
+		AddPointLight(XMFLOAT3(5.0f, 1.0f, 0.5f));
+
+		AddDirectionalLight();
+
 	}
 
 	void Scene::OnResize(float AspectRatio)
@@ -34,9 +43,6 @@ namespace lde
 	
 	void Scene::DrawScene()
 	{
-		if (m_Models.empty())
-			return;
-	
 		for (auto& model : m_Models)
 		{
 			DrawModel(*model);
@@ -54,6 +60,11 @@ namespace lde
 
 		auto& transform = pModel.GetComponent<TransformComponent>();
 
+		if (indexBuffer->GetDesc().Count != 0)
+		{
+			m_Gfx->BindIndexBuffer(pModel.GetMesh()->IndexView);
+		}
+
 		struct meshVertex
 		{
 			uint32 index;
@@ -64,7 +75,8 @@ namespace lde
 		{
 			auto& mesh = pModel.GetMesh()->Submeshes.at(i);
 
-			auto WVP = mesh.Matrix * transform.WorldMatrix * m_Camera->GetViewProjection();
+			//const auto WVP = mesh.Matrix * transform.WorldMatrix * m_Camera->GetViewProjection();
+			const auto WVP = transform.WorldMatrix * m_Camera->GetViewProjection();
 			
 			RHI::cbPerObject update = { XMMatrixTranspose(WVP), DirectX::XMMatrixTranspose(transform.WorldMatrix) };
 			constBuffer->Update(&update);
@@ -73,12 +85,10 @@ namespace lde
 			vertex.offset = mesh.BaseVertex;
 			commandList->PushConstants(1, 2, &vertex);
 			// Push Material as constants; 64 bytes
-			commandList->PushConstants(2, 16, &mesh.Mat, 0);
-			//commandList->Get()->ExecuteIndirect()
+			commandList->PushConstants(2, 16, &mesh.Material, 0);
+			
 			if (indexBuffer->GetDesc().Count != 0)
 			{
-				//m_Gfx->BindIndexBuffer(indexBuffer);
-				m_Gfx->BindIndexBuffer(pModel.GetMesh()->IndexView);
 				m_Gfx->DrawIndexed(mesh.IndexCount, mesh.BaseIndex, mesh.BaseVertex);
 			}
 			else // Draw non-indexed
@@ -91,6 +101,26 @@ namespace lde
 	void Scene::AddModel(std::string_view Filepath)
 	{
 		m_Models.emplace_back(std::make_unique<Model>(m_Gfx, Filepath, m_World));
+	}
+
+	void Scene::AddPointLight(XMFLOAT3 Position)
+	{
+		Entity* newLight = new Entity();
+		newLight->Create(m_World);
+		newLight->AddComponent<TagComponent>(std::format("Point Light #{}", PointLights.size()).c_str());
+		newLight->AddComponent<PointLightComponent>(Position);
+		
+		PointLights.push_back(newLight);
+	}
+
+	void Scene::AddDirectionalLight(XMFLOAT3 Direction)
+	{
+		Entity* newLight = new Entity();
+		newLight->Create(m_World);
+		newLight->AddComponent<TagComponent>(std::format("Directional Light #{}", DirectionalLights.size()).c_str());
+		newLight->AddComponent<DirectionalLightComponent>(Direction);
+
+		DirectionalLights.push_back(newLight);
 	}
 
 } // namespace lde
