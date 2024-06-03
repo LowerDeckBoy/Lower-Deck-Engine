@@ -6,11 +6,11 @@
 
 namespace lde::RHI
 {
-	D3D12DepthBuffer::D3D12DepthBuffer(D3D12Device* pDevice, D3D12DescriptorHeap* pDepthHeap, D3D12Viewport* pViewport, DXGI_FORMAT Format)
+	D3D12DepthBuffer::D3D12DepthBuffer(D3D12Device* pDevice, D3D12Viewport* pViewport, DXGI_FORMAT Format)
 	{
 		m_Format = Format;
 		m_Device = pDevice;
-		Create(pDevice, pDepthHeap, pViewport);
+		Create(pDevice, pViewport);
 	}
 
 	D3D12DepthBuffer::~D3D12DepthBuffer()
@@ -18,15 +18,13 @@ namespace lde::RHI
 		Release();
 	}
 
-	void D3D12DepthBuffer::Create(D3D12Device* pDevice, D3D12DescriptorHeap* pDepthHeap, D3D12Viewport* pViewport)
+	void D3D12DepthBuffer::Create(D3D12Device* pDevice, D3D12Viewport* pViewport)
 	{
 		D3D12_CLEAR_VALUE clearValue{};
 		clearValue.Format = m_Format;
 		clearValue.DepthStencil.Depth = D3D12_MAX_DEPTH;
 		clearValue.DepthStencil.Stencil = 0;
-
-		D3D12_HEAP_PROPERTIES heapProperties = D3D12Utility::HeapDefault;
-
+		
 		D3D12_RESOURCE_DESC desc{};
 		desc.Dimension			= D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 		desc.Width				= static_cast<uint64>(pViewport->GetViewport().Width);
@@ -38,34 +36,26 @@ namespace lde::RHI
 		desc.SampleDesc			= { 1, 0 };
 
 		DX_CALL(pDevice->GetDevice()->CreateCommittedResource(
-			&heapProperties,
+			&D3D12Utility::HeapDefault,
 			D3D12_HEAP_FLAG_NONE,
 			&desc,
 			D3D12_RESOURCE_STATE_DEPTH_WRITE,
 			&clearValue,
 			IID_PPV_ARGS(&m_Resource)
 		));
-		m_Resource->SetName(L"Depth Buffer");
+		m_Resource->SetName(L"D3D12 Depth Buffer");
 
-		D3D12_DEPTH_STENCIL_VIEW_DESC view{};
-		view.Flags = D3D12_DSV_FLAG_NONE;
-		view.Format = m_Format;
-		view.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-		view.Texture2D.MipSlice = 0;
-
-		pDepthHeap->Allocate(m_DSV);
-		pDevice->GetDevice()->CreateDepthStencilView(m_Resource.Get(), &view, m_DSV.GetCpuHandle());
-		
+		pDevice->CreateDSV(m_Resource.Get(), m_DSV);
 	}
 	
-	void D3D12DepthBuffer::OnResize(D3D12DescriptorHeap* pDepthHeap, D3D12Viewport* pViewport)
+	void D3D12DepthBuffer::OnResize(D3D12Viewport* pViewport)
 	{
 		if (m_Resource.Get())
 		{
 			SAFE_RELEASE(m_Resource);
 		}
 
-		Create(m_Device, pDepthHeap, pViewport);
+		Create(m_Device, pViewport);
 	}
 
 	void D3D12DepthBuffer::Release()

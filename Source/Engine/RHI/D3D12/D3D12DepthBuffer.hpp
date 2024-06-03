@@ -11,12 +11,12 @@ namespace lde::RHI
 	{
 	public:
 		D3D12DepthBuffer() = default;
-		D3D12DepthBuffer(D3D12Device* pDevice, D3D12DescriptorHeap* pDepthHeap, D3D12Viewport* pViewport, DXGI_FORMAT Format = DXGI_FORMAT_D32_FLOAT);
+		D3D12DepthBuffer(D3D12Device* pDevice, D3D12Viewport* pViewport, DXGI_FORMAT Format = DXGI_FORMAT_D32_FLOAT);
 		~D3D12DepthBuffer();
 
-		void Create(D3D12Device* pDevice, D3D12DescriptorHeap* pDepthHeap, D3D12Viewport* pViewport);
+		void Create(D3D12Device* pDevice, D3D12Viewport* pViewport);
 
-		void OnResize(D3D12DescriptorHeap* pDepthHeap, D3D12Viewport* pViewport);
+		void OnResize(D3D12Viewport* pViewport);
 
 		ID3D12Resource* Get() { return m_Resource.Get(); }
 
