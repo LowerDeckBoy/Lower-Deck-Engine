@@ -12,6 +12,7 @@
 #include <RHI/D3D12/D3D12Fence.hpp>
 #include <RHI/D3D12/D3D12Memory.hpp>
 #include <RHI/D3D12/D3D12Queue.hpp>
+#include <RHI/D3D12/D3D12Texture.hpp>
 #include <RHI/Types.hpp>
 #include <unordered_map>
 
@@ -92,17 +93,23 @@ namespace lde::RHI
 			D3D12CommandList*		GraphicsCommandList;
 
 			// TODO:
-			//D3D12CommandList*		ComputeCommandList;
+			D3D12CommandList*		ComputeCommandList;
 			//D3D12CommandList*		UploadCommandList;
 		} m_FrameResources[FRAME_COUNT];
 
 		D3D12Queue* GraphicsQueue;
+		// TODO:
+		// https://www.codeproject.com/Articles/5341403/Getting-Started-with-Path-Tracing-using-Diligent-E
+		D3D12Queue* ComputeQueue;
 
-		void			CreateFrameResources();
-		FrameResources& GetFrameResources()			{ return m_FrameResources[FRAME_INDEX]; }
+		void				CreateFrameResources();
+		FrameResources&		GetFrameResources()		{ return m_FrameResources[FRAME_INDEX]; }
 
 		D3D12Queue*			 GetGfxQueue()			{ return GraphicsQueue; }
+		D3D12Queue*			 GetComputeQueue()		{ return ComputeQueue;  }
+
 		D3D12CommandList*	 GetGfxCommandList()	{ return m_FrameResources[FRAME_INDEX].GraphicsCommandList; }
+		D3D12CommandList*	 GetComputeCommandList(){ return m_FrameResources[FRAME_INDEX].ComputeCommandList; }
 
 		D3D12DescriptorHeap* GetSRVHeap()			{ return m_SRVHeap.get(); }
 		D3D12DescriptorHeap* GetDSVHeap()			{ return m_DSVHeap.get(); }
@@ -162,7 +169,7 @@ namespace lde::RHI
 		BufferHandle	CreateConstantBuffer(void* pData, usize Size) override final;
 		// Temporal
 		TextureHandle	CreateTexture(D3D12Texture* pTexture);
-		//TextureHandle	CreateTexture(TextureDesc Desc) override final;
+		TextureHandle	CreateTexture(TextureDesc Desc);
 
 		void			DestroyBuffer(BufferHandle Handle);
 		void			DestroyConstantBuffer(BufferHandle Handle);
@@ -171,6 +178,8 @@ namespace lde::RHI
 
 		void CreateSRV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 Mips, uint32 Count);
 		void CreateUAV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 MipSlice, uint32 Count);
+		void CreateRTV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, DXGI_FORMAT Format);
+		void CreateDSV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, DXGI_FORMAT Format = DXGI_FORMAT_D32_FLOAT);
 
 	private:
 

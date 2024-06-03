@@ -1,7 +1,6 @@
 #include "D3D12Buffer.hpp"
 #include "D3D12Device.hpp"
 #include "D3D12RootSignature.hpp"
-#include "D3D12Texture.hpp"
 #include "D3D12Utility.hpp"
 
 namespace lde::RHI
@@ -20,8 +19,11 @@ namespace lde::RHI
 	{
 		switch (eType)
 		{
-		case lde::RHI::CommandType::eGraphics:
+		case CommandType::eGraphics:
 			m_Fence->Signal(GetGfxQueue(), m_Fence->GetValue());
+			break;
+		case CommandType::eCompute:
+			m_Fence->Signal(GetComputeQueue(), m_Fence->GetValue());
 			break;
 		}
 
@@ -61,10 +63,16 @@ namespace lde::RHI
 	
 		switch (eType)
 		{
-		case lde::RHI::CommandType::eGraphics:
+		case CommandType::eGraphics:
 		{
 			commandList  = GetGfxCommandList();
 			commandQueue = GetGfxQueue()->Get();
+			break;
+		}
+		case CommandType::eCompute:
+		{
+			commandList  = GetComputeCommandList();
+			commandQueue = GetComputeQueue()->Get();
 			break;
 		}
 		default:
@@ -113,11 +121,16 @@ namespace lde::RHI
 		for (usize frame = 0; frame < FRAME_COUNT; frame++)
 		{
 			m_FrameResources[frame].GraphicsCommandList = new D3D12CommandList(this, CommandType::eGraphics, std::format("D3D12 Graphics Command List #{}", frame).c_str());
+
+			//m_FrameResources[frame].ComputeCommandList = new D3D12CommandList(this, CommandType::eCompute, std::format("D3D12 Compute Command List #{}", frame).c_str());
 		}
+
 		GraphicsQueue = new D3D12Queue(this, CommandType::eGraphics);
+		//ComputeQueue = new D3D12Queue(this, CommandType::eCompute);
 
 		// Open first command list to allow pre-loading of assets - models and skybox + ibl.
 		m_FrameResources[0].GraphicsCommandList->Reset();
+		//m_FrameResources[0].ComputeCommandList->Reset();
 	}
 
 	void D3D12Device::Allocate(HeapType eType, D3D12Descriptor& Descriptor, uint32 Count)
@@ -159,6 +172,17 @@ namespace lde::RHI
 		TextureHandle handle = static_cast<TextureHandle>(Textures.size());
 
 		Textures.push_back(pTexture);
+
+		return handle;
+	}
+
+	TextureHandle D3D12Device::CreateTexture(TextureDesc Desc)
+	{
+		TextureHandle handle = static_cast<TextureHandle>(Textures.size());
+
+		D3D12Texture* texture;
+
+		Textures.push_back(texture);
 
 		return handle;
 	}
@@ -250,4 +274,29 @@ namespace lde::RHI
 		m_Device->CreateUnorderedAccessView(pResource, nullptr, &uavDesc, Descriptor.GetCpuHandle());
 
 	}
+
+	void D3D12Device::CreateRTV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, DXGI_FORMAT Format)
+	{
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+		rtvDesc.Format					= Format;
+		rtvDesc.ViewDimension			= D3D12_RTV_DIMENSION_TEXTURE2D;
+		rtvDesc.Texture2D.MipSlice		= 0;
+		rtvDesc.Texture2D.PlaneSlice	= 0;
+
+		GetRTVHeap()->Allocate(Descriptor);
+		m_Device->CreateRenderTargetView(pResource, &rtvDesc, Descriptor.GetCpuHandle());
+	}
+
+	void D3D12Device::CreateDSV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, DXGI_FORMAT Format)
+	{
+		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+		dsvDesc.Format				= Format;
+		dsvDesc.ViewDimension		= D3D12_DSV_DIMENSION_TEXTURE2D;
+		dsvDesc.Texture2D.MipSlice	= 0;
+		dsvDesc.Flags				= D3D12_DSV_FLAG_NONE;
+
+		GetDSVHeap()->Allocate(Descriptor);
+		m_Device->CreateDepthStencilView(pResource, &dsvDesc, Descriptor.GetCpuHandle());
+	}
+
 } // namespace lde::RHI
