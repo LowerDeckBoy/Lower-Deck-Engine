@@ -32,6 +32,7 @@ namespace lde::RHI
 
 		void Release() override final;
 
+		[[maybe_unused]]
 		void* GetCpuAddress() const override final;
 		uint64 GetGpuAddress() const override final;
 
