@@ -21,8 +21,8 @@ namespace lde::editor
 
 	bool Editor::bSceneOnly = true;
 
-	constexpr auto EDITOR_FONT	= "Assets/Fonts/CascadiaCode-Bold.ttf";
-	constexpr auto ICONS_FONT	= "Assets/Fonts/fa-solid-900.ttf";
+	constexpr auto EDITOR_FONT		= "Assets/Fonts/CascadiaCode-SemiBold.ttf";
+	constexpr auto ICONS_FONT		= "Assets/Fonts/fa-solid-900.ttf";
 
 	Editor::Editor(RHI::D3D12RHI* pGfx, Renderer* pRenderer, Timer* pTimer)
 		: m_Gfx(pGfx), m_Renderer(pRenderer), m_Timer(pTimer)
@@ -55,13 +55,15 @@ namespace lde::editor
 		IO.ConfigFlags	|= ImGuiConfigFlags_DockingEnable;
 		IO.ConfigFlags	|= ImGuiConfigFlags_ViewportsEnable;
 		
+		//m_EditorHeap = std::make_unique<RHI::D3D12DescriptorHeap>(m_Gfx->Device.get(), RHI::HeapType::eSRV, 32768, "Editor SRV Heap");
+
 		ImGui_ImplWin32_Init(lde::Window::GetHWnd());
 		ImGui_ImplDX12_Init(m_Gfx->Device->GetDevice(),
 			FRAME_COUNT,
 			DXGI_FORMAT_R8G8B8A8_UNORM,
-			((RHI::D3D12Device*)m_Gfx->GetDevice())->GetSRVHeap()->Get(),
-			((RHI::D3D12Device*)m_Gfx->GetDevice())->GetSRVHeap()->Get()->GetCPUDescriptorHandleForHeapStart(),
-			((RHI::D3D12Device*)m_Gfx->GetDevice())->GetSRVHeap()->Get()->GetGPUDescriptorHandleForHeapStart());
+			m_Gfx->Device->GetSRVHeap()->Get(),
+			m_Gfx->Device->GetSRVHeap()->Get()->GetCPUDescriptorHandleForHeapStart(),
+			m_Gfx->Device->GetSRVHeap()->Get()->GetGPUDescriptorHandleForHeapStart());
 
 		// Main font
 		{
@@ -132,12 +134,14 @@ namespace lde::editor
 
 	void Editor::DrawComponentsData(Entity& Entity)
 	{
-		if (Entity.HasComponent<TagComponent>())
+		if (!Entity.HasComponent<TagComponent>())
 		{
-			auto& tag{ Entity.GetComponent<TagComponent>() };
-			ImGui::Text(tag.Name.c_str());
-			ImGui::Separator();
+			return;
 		}
+		
+		auto& tag{ Entity.GetComponent<TagComponent>() };
+		ImGui::Text(tag.Name.c_str());
+		ImGui::Separator();
 
 		DrawProperties<CameraComponent>(Entity, [&](auto& Component)
 			{
@@ -190,25 +194,26 @@ namespace lde::editor
 
 		DrawProperties<PointLightComponent>(Entity, [&](auto& Component)
 			{
-				auto position = XMFLOAT3(Component.Position.x, Component.Position.y, Component.Position.z);
-				DrawFloat3("Position", position);
+				DrawPointLight(tag.Name, Component);	
 			});
 
-		//DrawProperties<DirectionalLightComponent>(Entity, [&](auto& Component)
-		//	{
-		//		ImGui::Text("Test");
-		//		//if (ImGui::CollapsingHeader("Transforms", ImGuiTreeNodeFlags_DefaultOpen))
-		//		//{
-		//		//	//DrawFloat3("Position",  (XMFLOAT3*)Component.Position);
-		//		//	//DrawFloat3("Direction", (XMFLOAT3*)Component.Direction);
-		//		//	//ImColor("Scale", Component.Scale, 1.0f);
-		//		//	// TODO: Gotta add checking for update call
-		//		//	//Component.Update();
-		//		//
-		//		//	//if (ImGui::Button("Reset"))
-		//		//	//	Component.Reset();
-		//		//}
-		//	});
+		DrawProperties<DirectionalLightComponent>(Entity, [&](auto& Component)
+			{
+				DrawFloat3("Direction", Component.Direction);
+				DrawColorEdit("Ambient", Component.Ambient);
+				ImGui::Text("Visibility");
+				ImGui::SameLine();
+				ImGui::SliderFloat("##Visibility", &Component.Visibility, 0.0f, 1.0f);
+				ImGui::Text("Casts shadows");
+				ImGui::SameLine();
+				ImGui::Checkbox("##Casts shadows", &Component.bCastShadows);
+
+				if (Component.bCastShadows)
+				{
+					ImGui::Text("Shadow map lookup...");
+					//ImGui::Image((ImTextureID))
+				}
+			});
 	}
 
 	template<typename T, typename UI>
@@ -220,72 +225,6 @@ namespace lde::editor
 		auto& component = Entity.GetComponent<T>();
 
 		ui(component);
-	}
-
-	void Editor::DrawFloat3(std::string Label, DirectX::XMFLOAT3& Float3, float ResetValue)
-	{
-		if (ImGui::BeginTable("XYZ", 2, ImGuiTableFlags_BordersInner | ImGuiTableFlags_Resizable))
-		{
-			ImGui::PushID(Label.c_str());
-			ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_IndentDisable | ImGuiTableColumnFlags_WidthFixed, 90.0f);
-			ImGui::TableNextRow();
-			ImGui::TableNextColumn();
-			ImGui::Text(Label.c_str());
-			ImGui::TableNextColumn();
-
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-			ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth() * 1.25f);
-			// X
-			{
-				ImGui::PushStyleColor(ImGuiCol_Button, Colors::Red);
-				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
-				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-				if (ImGui::Button("X"))
-					Float3.x = ResetValue;
-
-				ImGui::PopStyleColor(3);
-
-				ImGui::SameLine();
-				ImGui::DragFloat("##X", &Float3.x);
-				ImGui::PopItemWidth();
-				ImGui::SameLine();
-			}
-			// Y
-			{
-				ImGui::PushStyleColor(ImGuiCol_Button, Colors::Green);
-				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
-				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
-				if (ImGui::Button("Y"))
-					Float3.y = ResetValue;
-
-				ImGui::PopStyleColor(3);
-
-				ImGui::SameLine();
-				ImGui::DragFloat("##Y", &Float3.y);
-				ImGui::PopItemWidth();
-				ImGui::SameLine();
-			}
-			// Z
-			{
-				ImGui::PushStyleColor(ImGuiCol_Button, Colors::Blue);
-				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
-				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
-				if (ImGui::Button("Z"))
-					Float3.z = ResetValue;
-
-				ImGui::PopStyleColor(3);
-
-				ImGui::SameLine();
-				ImGui::DragFloat("##Z", &Float3.z);
-				ImGui::PopItemWidth();
-			}
-
-			ImGui::PopStyleVar();
-			ImGui::PopID();
-			ImGui::EndTable();
-		}
-
-		ImGui::Separator();
 	}
 
 	void Editor::OnBeginFrame()
@@ -328,7 +267,8 @@ namespace lde::editor
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
 		}
-
+		
+		//m_Gfx->Device->GetGfxCommandList()->Get()->SetDescriptorHeaps(1, m_EditorHeap->GetAddressOf());
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_Gfx->Device->GetGfxCommandList()->Get());
 	}
 
@@ -447,19 +387,24 @@ namespace lde::editor
 			ImGui::EndMenu();
 		}
 
-		ImGui::Separator();
-		ImGui::Text("V-Sync");
-		ImGui::Checkbox("##V-Sync", &Renderer::bVSync);
+		{
+			ImGui::Separator();
+			ImGui::Text("V-Sync");
+			ImGui::Checkbox("##V-Sync", &Renderer::bVSync);
 
-		ImGui::SetNextItemWidth(350.0f);
-		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 350.0f);
-		ImGui::Text("%d FPS %.2f ms", m_Timer->FPS, m_Timer->Miliseconds);
-		ImGui::Separator();
-		ImGui::Text("RAM: %.2fMB", Utility::MemoryUsage::ReadRAM());
-		ImGui::Separator();
-		ImGui::Text("VRAM: %d MB", m_Gfx->QueryAdapterMemory());
-
+			ImGui::SetNextItemWidth(350.0f);
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 350.0f);
+			ImGui::Text("%d FPS %.2f ms", m_Timer->FPS, m_Timer->Miliseconds);
+			ImGui::SameLine();
+			ImGui::Text("RAM: %.2fMB", Utility::MemoryUsage::ReadRAM());
+			ImGui::SameLine();
+			ImGui::Text("VRAM: %d MB", m_Gfx->QueryAdapterMemory());
+			ImGui::SameLine();
+	
+		}
+		
 		ImGui::EndMainMenuBar();
+		
 	}
 
 	void Editor::DrawScene()
@@ -485,6 +430,14 @@ namespace lde::editor
 		}
 
 		// Scene Lighting here
+
+		//auto light = m_ActiveScene->Registry()->view<PointLightComponent>();
+		//for (auto [entity, comp] : light.each())
+		//{
+		//	Entity e(m_ActiveScene->World(), entity);
+		//	DrawNode(e);
+		//	ImGui::Separator();
+		//}
 
 		//m_ActiveScene->Registry()->view<DirectionalLightComponent>();
 		//m_ActiveScene->Registry()->view<PointLightComponent>();

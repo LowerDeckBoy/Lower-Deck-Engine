@@ -14,18 +14,10 @@ namespace lde
 
 namespace lde::editor
 {
-	class EditorComponents
-	{
-	public:
-		void DrawFloat3();
+	extern void DrawFloat3(std::string_view Label, DirectX::XMFLOAT3& Float3, float ResetValue = 0.0f);
 
-		void DrawDirectLight();
+	extern void DrawColorEdit(std::string_view Label, DirectX::XMFLOAT4& Float4);
+	
+	extern void DrawPointLight(std::string_view Label, PointLightComponent& LightComponent);
 
-		/**
-		 * @brief Draw all lights that are inside of SceneLighting object.
-		 */
-		void DrawLightData(SceneLighting* pSceneLighting);
-
-
-	};
 } // namespace lde::editor

@@ -12,6 +12,7 @@ namespace lde
 {
 	class Window;
 	class D3D12RHI;
+	class D3D12DescriptorHeap;
 	class Renderer;
 	class Timer;
 	class Scene;
@@ -56,9 +57,7 @@ namespace lde::editor
 		void DrawComponentsData(Entity& Entity);
 		template<typename T, typename UI>
 		void DrawProperties(Entity& Entity, UI ui);
-	
-		void DrawFloat3(std::string Label, DirectX::XMFLOAT3& Float3, float ResetValue = 0.0f);
-	
+		
 		void PrintLogs();
 		void ClearLogs();
 
@@ -77,6 +76,9 @@ namespace lde::editor
 		Theme m_CurrentTheme{ Theme::eDark };
 	
 		static bool bSceneOnly;
+
+		std::unique_ptr<RHI::D3D12DescriptorHeap> m_EditorHeap;
+
 	};
 
 } // namespace lde::editor

@@ -2,7 +2,12 @@
 project(Editor)
 
 file(GLOB IMGUI ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/ImGui/*.h ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/ImGui/*.cpp)
-add_library(${PROJECT_NAME} STATIC "Editor.cpp" "Editor.hpp" "EditorTheme.hpp" "EditorColors.hpp" "Components/Components.hpp" ${IMGUI})
+add_library(${PROJECT_NAME} STATIC 
+	"Editor.cpp" "Editor.hpp" 
+	"EditorTheme.hpp" "EditorColors.hpp" 
+	"Components/Components.hpp" "Components/Components.cpp" 
+	${IMGUI}
+)
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
