@@ -12,6 +12,9 @@
 
 #include <meshoptimizer/meshoptimizer.h>
 
+#define CGLTF_IMPLEMENTATION
+#include <cgltf/cgltf.h>
+
 namespace lde
 {
 	AssetManager* AssetManager::m_Instance = nullptr;
@@ -46,9 +49,12 @@ namespace lde
 		constexpr int32 LoadFlags = 
 			aiProcess_Triangulate |
 			aiProcess_ConvertToLeftHanded |
-			aiProcess_JoinIdenticalVertices  |
+			aiProcess_JoinIdenticalVertices  | 
 			aiProcess_PreTransformVertices |
-			aiProcess_GenBoundingBoxes;
+			aiProcess_GenBoundingBoxes |
+			aiProcess_ImproveCacheLocality;
+			//aiProcess_OptimizeGraph |
+			//aiProcess_OptimizeMeshes |
 	
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(Filepath.data(), (uint32)LoadFlags);
@@ -62,15 +68,6 @@ namespace lde
 		m_Filepath = Filepath.data();
 		
 		//ProcessNode(scene, &pInMesh, scene->mRootNode, nullptr, XMMatrixIdentity());
-		
-		const auto aabb = scene->mMeshes[0]->mAABB;
-
-		pInMesh.AABB.Min.x = static_cast<float>(aabb.mMin.x);
-		pInMesh.AABB.Min.y = static_cast<float>(aabb.mMin.y);
-		pInMesh.AABB.Min.z = static_cast<float>(aabb.mMin.z);
-		pInMesh.AABB.Max.x = static_cast<float>(aabb.mMax.x);
-		pInMesh.AABB.Max.y = static_cast<float>(aabb.mMax.y);
-		pInMesh.AABB.Max.z = static_cast<float>(aabb.mMax.z);
 
 		if (scene->mName.length != 0)
 		{
@@ -96,16 +93,89 @@ namespace lde
 
 		timer.End(Files::GetFileName(Filepath));
 
-		//std::vector<meshopt_Meshlet> meshlets;
-		//meshopt_buildMeshlets(meshlets.data(), )
+	}
+
+	void AssetManager::ImportGLTF(RHI::D3D12RHI* /* pGfx */, std::string_view Filepath, Mesh& pInMesh)
+	{
+		Utility::LoadTimer timer;
+		timer.Start();
+
+		cgltf_options options{};
+		cgltf_data* data = nullptr;
+
+		cgltf_result result = cgltf_parse_file(&options, Filepath.data(), &data);
+		if (result != cgltf_result_success)
+		{
+			LOG_ERROR("Failed to load via cgltf!");
+		}
+
+		if (cgltf_load_buffers(&options, data, Filepath.data()) != cgltf_result_success)
+		{
+			LOG_ERROR("Failed to load buffers via cgltf!");
+		}
+
+		if (cgltf_validate(data) != cgltf_result_success)
+		{
+			LOG_ERROR("Failed to validate cgltf!");
+		}
+
+		//std::vector<Vertex> verts;
+		//std::vector<uint32> indices;
+		
+		for (uint32 meshIdx = 0; meshIdx < data->meshes_count; ++meshIdx)
+		{
+			auto mesh = &data->meshes[meshIdx];
+
+			Submesh submesh{};
+
+			//ProcessGeometry(submesh, mesh, verts, indices);
+			ProcessGeometry(mesh, pInMesh.Submeshes, pInMesh.Vertices, pInMesh.Indices);
+
+			pInMesh.Submeshes.push_back(submesh);
+		}
+
+		OptimizeMesh(pInMesh.Vertices, pInMesh.Indices);
+
+		cgltf_free(data);
+
+		timer.End("cgltf load time: ");
+	}
+
+	void AssetManager::OptimizeMesh(std::vector<Vertex>& Vertices, std::vector<uint32>& Indices)
+	{
+		std::vector<Vertex> tempVertices;
+		std::vector<uint32> tempIndices;
+
+		std::vector<uint32> remap(Indices.size());
+		size_t remapSize = meshopt_generateVertexRemap(remap.data(),
+			Indices.data(), Indices.size(), 
+			Vertices.data(), Vertices.size(),
+			sizeof(Vertex));
+
+		tempIndices.resize(Indices.size());
+		tempVertices.resize(remapSize);
+
+		meshopt_remapVertexBuffer(tempVertices.data(), Vertices.data(), Vertices.size(), sizeof(Vertex), remap.data());
+		meshopt_remapIndexBuffer(tempIndices.data(), Indices.data(), Indices.size(), remap.data());
+		//meshopt_optimizeVertexCache(tempIndices.data(), tempIndices.data(), tempIndices.size(), tempVertices.size());
+		//meshopt_optimizeOverdraw(tempIndices.data(), tempIndices.data(), tempIndices.size(), &(tempVertices[0].Position.x), tempVertices.size(), sizeof(Vertex), 1.05f);
+		//meshopt_optimizeVertexFetch(tempVertices.data(), tempIndices.data(), tempIndices.size(), tempVertices.data(), remapSize, sizeof(Vertex));
+
+		//Vertices.insert(Vertices.end(), tempVertices.begin(), tempVertices.end());
+		//Indices.insert(Indices.end(), tempIndices.begin(), tempIndices.end());
+
+		Vertices = tempVertices;
+		Indices = tempIndices;
+
 	}
 
 	void AssetManager::ProcessNode(const aiScene* pScene, Mesh* pInMesh, const aiNode* pNode, Node* ParentNode, DirectX::XMMATRIX ParentMatrix)
 	{
 		Node* newNode = new Node();
 		newNode->Parent = ParentNode;
-		newNode->Name = std::string(pNode->mName.C_Str());
-	
+		newNode->Name	= std::string(pNode->mName.C_Str());
+		newNode->Matrix = ParentMatrix;
+
 		const auto transform = [&]() {
 			if (!pNode->mTransformation.IsIdentity())
 			{
@@ -153,13 +223,26 @@ namespace lde
 			}
 		}
 	
+
+		if (!ParentNode)
+		{
+			// push_back nodes
+		}
+		else
+		{
+			// push_back children
+		}
+
 	}
 
 	void AssetManager::ProcessGeometry(Submesh& Submesh, const aiMesh* pMesh, std::vector<Vertex>& OutVertices, std::vector<uint32>& OutIndices)
 	{
-		Submesh.BaseIndex = static_cast<uint32>(OutIndices.size());
-		Submesh.BaseVertex = static_cast<uint32>(OutVertices.size());
+		Submesh.BaseIndex	= static_cast<uint32>(OutIndices.size());
+		Submesh.BaseVertex	= static_cast<uint32>(OutVertices.size());
 		Submesh.VertexCount = static_cast<uint32>(pMesh->mNumVertices);
+		
+		Submesh.AABB.Min = *(XMFLOAT3*)&pMesh->mAABB.mMin;
+		Submesh.AABB.Max = *(XMFLOAT3*)&pMesh->mAABB.mMax;
 
 		OutVertices.reserve(OutVertices.size() + pMesh->mNumVertices);
 		for (uint32_t i = 0; i < pMesh->mNumVertices; ++i)
@@ -169,16 +252,18 @@ namespace lde
 			if (pMesh->HasPositions())
 			{
 				vertex.Position = *(XMFLOAT3*)(reinterpret_cast<XMFLOAT3*>(&pMesh->mVertices[i]));
+				// If right-handed
+				//vertex.Position = XMFLOAT3(pMesh->mVertices[i].z, pMesh->mVertices[i].y, pMesh->mVertices[i].x);
 			}
 
 			if (pMesh->mTextureCoords[0])
 			{
-				vertex.TexCoord = *(XMFLOAT2*)(reinterpret_cast<XMFLOAT3*>(&pMesh->mTextureCoords[0][i]));
+				vertex.TexCoord = *(XMFLOAT2*)(reinterpret_cast<XMFLOAT2*>(&pMesh->mTextureCoords[0][i]));
 			}
 
 			if (pMesh->HasNormals())
 			{
-				vertex.Normal = *(XMFLOAT3*)(reinterpret_cast<XMFLOAT3*>(&pMesh->mNormals[i]));;
+				vertex.Normal = *(XMFLOAT3*)(reinterpret_cast<XMFLOAT3*>(&pMesh->mNormals[i]));
 			}
 
 			if (pMesh->HasTangentsAndBitangents())
@@ -190,6 +275,7 @@ namespace lde
 			OutVertices.push_back(vertex);
 		}
 
+		OutIndices.reserve(OutIndices.size() + (size_t)(pMesh->mNumFaces * 3));
 		if (pMesh->HasFaces())
 		{
 			for (uint32_t i = 0; i < pMesh->mNumFaces; ++i)
@@ -210,7 +296,7 @@ namespace lde
 	
 		if (pMesh->mMaterialIndex < 0)
 		{
-			Submesh.Mat = newMaterial;
+			Submesh.Material = newMaterial;
 			return;
 		}
 	
@@ -259,7 +345,155 @@ namespace lde
 		aiGetMaterialFloat(material, AI_MATKEY_ROUGHNESS_FACTOR, &newMaterial.RoughnessFactor);
 		aiGetMaterialFloat(material, AI_MATKEY_GLTF_ALPHACUTOFF, &newMaterial.AlphaCutoff);
 		
-		Submesh.Mat = newMaterial;
+		Submesh.Material = newMaterial;
+	}
+
+	void AssetManager::ProcessGeometry(const cgltf_mesh* pMesh, std::vector<Submesh>& Submeshes, std::vector<Vertex>& OutVertices, std::vector<uint32>& OutIndices)
+	{
+		for (uint32 prim = 0; prim < pMesh->primitives_count; ++prim)
+		{
+			auto primitive = pMesh->primitives[prim];
+
+			Submesh submesh{};
+
+			submesh.BaseIndex	= static_cast<uint32>(OutIndices.size());
+			submesh.BaseVertex	= static_cast<uint32>(OutVertices.size());
+			
+			// Indices
+			{
+				auto accessor = primitive.indices;
+				auto bufferView = accessor->buffer_view;
+				auto buffer = bufferView->buffer;
+
+				uint8_t* data = (uint8_t*)buffer->data + accessor->offset + bufferView->offset;
+
+				submesh.IndexCount = static_cast<uint32>(accessor->count);
+
+				if (accessor->stride == 1)
+				{
+					for (uint32 i = 0; i < accessor->count; i += 3)
+					{
+						OutIndices.push_back(((uint8_t*)data)[i + 0]);
+						OutIndices.push_back(((uint8_t*)data)[i + 1]);
+						OutIndices.push_back(((uint8_t*)data)[i + 2]);
+					}
+				}
+				else if (accessor->stride == 2)
+				{
+					for (uint32 i = 0; i < accessor->count; i += 3)
+					{
+						OutIndices.push_back(((uint16_t*)data)[i + 0]);
+						OutIndices.push_back(((uint16_t*)data)[i + 1]);
+						OutIndices.push_back(((uint16_t*)data)[i + 2]);
+					}
+				}
+				else if (accessor->stride == 4)
+				{
+					for (uint32 i = 0; i < accessor->count; i += 3)
+					{
+						OutIndices.push_back(((uint32_t*)data)[i + 0]);
+						OutIndices.push_back(((uint32_t*)data)[i + 1]);
+						OutIndices.push_back(((uint32_t*)data)[i + 2]);
+					}
+				}
+
+				Submeshes.push_back(submesh);
+			}
+
+			std::vector<DirectX::XMFLOAT3> positions;
+			std::vector<DirectX::XMFLOAT2> texcoords;
+			std::vector<DirectX::XMFLOAT3> normals;
+			std::vector<DirectX::XMFLOAT3> tangents;
+			std::vector<float>			   tangents_ws;
+
+			// Vertices
+			for (uint32 attrib = 0; attrib < primitive.attributes_count; ++attrib)
+			{
+				auto attribute = &primitive.attributes[attrib];
+
+				auto accessor = attribute->data;
+				auto bufferView = accessor->buffer_view;
+				auto buffer = bufferView->buffer;
+
+				uint8_t* data = (uint8_t*)buffer->data + bufferView->offset + accessor->offset;
+
+				submesh.VertexCount = static_cast<uint32>(accessor->count);
+				
+				switch (attribute->type)
+				{
+				case cgltf_attribute_type_position:
+				{
+					for (usize i = 0; i < accessor->count; ++i)
+					{	
+						XMFLOAT3 pos = *(DirectX::XMFLOAT3*)(data + i * accessor->stride);
+						//positions.emplace_back(pos.z, pos.y, pos.x);
+						positions.emplace_back(pos.x, pos.y, pos.z);
+
+					}
+					break;
+				}
+				case cgltf_attribute_type_texcoord:
+				{
+					for (usize i = 0; i < accessor->count; ++i)
+					{
+						texcoords.push_back(*(DirectX::XMFLOAT2*)(data + i * accessor->stride));
+
+					}
+					break;
+				}
+				case cgltf_attribute_type_normal:
+				{
+					for (usize i = 0; i < accessor->count; ++i)
+					{
+						normals.push_back(*(DirectX::XMFLOAT3*)(data + i * accessor->stride));
+
+					}
+					break;
+				}
+				case cgltf_attribute_type_tangent:
+				{
+					for (usize i = 0; i < accessor->count; ++i)
+					{
+						//XMFLOAT4 tangent 
+						//tangents.push_back(*(DirectX::XMFLOAT3*)(data + i * accessor->stride));
+
+						DirectX::XMFLOAT4 tangent = *(DirectX::XMFLOAT4*)((size_t)data + i * accessor->stride);
+						tangents.push_back({ tangent.x, tangent.y, tangent.z });
+
+						tangents_ws.push_back(tangent.w);
+					}
+					break;
+				}
+				}
+			}
+
+			if (texcoords.size() != positions.size())
+				texcoords.resize(positions.size());
+			if (normals.size() != positions.size())
+				normals.resize(positions.size());
+			if (tangents.size() != positions.size())
+				tangents.resize(positions.size());
+			if (tangents_ws.size() != positions.size())
+				tangents_ws.resize(positions.size());
+
+			for (usize i = 0; i < positions.size(); ++i)
+			{
+				XMFLOAT3 bitangent;
+				XMVECTOR _bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&normals.at(i)), XMLoadFloat3(&tangents.at(i))), tangents_ws.at(i));
+				XMStoreFloat3(&bitangent, XMVector3Normalize(_bitangent));
+
+				Vertex vertex{
+					.Position = positions.at(i),
+					.TexCoord = texcoords.at(i),
+					.Normal = normals.at(i),
+					.Tangent = tangents.at(i),
+					.Bitangent = bitangent
+				};
+				OutVertices.push_back(vertex);
+				//Submesh.VertexCount = positions.size();
+			}
+		}
+
 	}
 
 } // namespace lde
