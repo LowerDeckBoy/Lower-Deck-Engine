@@ -107,7 +107,7 @@ namespace lde::editor
 			ImGui::TableNextColumn();
 			ImGui::Text("Range");
 			ImGui::TableNextColumn();
-			ImGui::DragFloat("##Range", &LightComponent.Range);
+			ImGui::DragFloat("##Range", &LightComponent.Range, 1.0f, 0.0f, 100.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
 			ImGui::PopID();
 			ImGui::EndTable();
