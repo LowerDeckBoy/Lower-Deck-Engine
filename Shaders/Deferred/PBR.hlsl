@@ -3,22 +3,7 @@
 
 #include "DeferredCommon.hlsli"
 #include "../Camera.hlsli"
-
-struct DirectionalLight
-{
-	float4 Direction;
-	float4 Ambient;
-	float4 Diffuse;
-};
-
-struct PointLight
-{
-	float3 Position;
-	float Intensity;
-	float4 Ambient;
-	float Range;
-	float3 padding;
-};
+#include "../Lights.hlsli"
 
 struct LightsData
 {
@@ -40,7 +25,6 @@ struct GBuffers
 
 struct IBLTextures
 {
-	int SkyboxIndex;
 	int IrradianceIndex;
 	int SpecularIndex;
 	int SpecularBRDFIndex;
@@ -79,7 +63,7 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 
 	float depth			= texDepth.Load(int3(position, 0)).r;
 	float4 baseColor	= pow(texBaseColor.Sample(texSampler, position), 2.2f);
-	float4 normal		= normalize(texNormal.Sample(texSampler, position));
+	float4 normal		= (texNormal.Sample(texSampler, position));
 	float metalness		= texMetalRoughness.Sample(texSampler, position).b;
 	float roughness		= texMetalRoughness.Sample(texSampler, position).g;
 	float4 positions	= texWorldPosition.Sample(texSampler, position);
@@ -88,9 +72,9 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 	float3 output = float3(0.0f, 0.0f, 0.0f);
 	
 	float3 N = normal.rgb;
-	float3 V = normalize(Camera.Position.xyz - positions.rgb);
+	float3 V = normalize(Camera.Position.xyz - positions.xyz);
 	
-	float NdotV = max(dot(N, V), Epsilon);
+	float NdotV = max(dot(N, V), 0.0f);
 	
 	float3 F0 = lerp(Fdielectric, baseColor.rgb, metalness);
 	float3 Lo = float3(0.0f, 0.0f, 0.0f);
@@ -100,10 +84,10 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 		float3 L = normalize(Lights.Light[i].Position.xyz - positions.xyz);
 		float3 H = normalize(L + V);
 	
-		float NdotL = max(dot(N, L), Epsilon);
+		float NdotL = max(dot(N, L), 0.0f);
 			
 		float  distance = length(Lights.Light[i].Position.xyz - positions.xyz);
-		float  attenuation = 1.0f / (distance * distance);
+		float  attenuation = 1.0f / (distance * distance + 1.0f);
 		float3 radiance = Lights.Light[i].Ambient.rgb * (attenuation * Lights.Light[i].Range);
 
 		// Cook-Torrance BRDF
@@ -118,8 +102,32 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 		float  denominator = 4.0f * NdotV * NdotL;
 		float3 specular = numerator / max(denominator, Epsilon);
 		
-		Lo += ((kD * (baseColor.rgb / PI)) + specular) * radiance * NdotL;
+		Lo += Lights.Light[i].Visibility * ((kD * (baseColor.rgb / PI)) + specular) * radiance * NdotL;
 	}
+	
+	float3 directional = float3(0.0f, 0.0f, 0.0f);
+	{
+		float3 L = normalize(Lights.Directional.Direction.xyz - positions.xyz);
+		//float3 L = -normalize(Lights.Directional.Direction.xyz);
+		float3 H = normalize(L + V);
+		
+		//float NdotH = max(dot(N, H), 0.0f);
+		float NdotL = max(dot(N, L), 0.0f);
+		
+		float NDF = GetDistributionGGX(N, H, roughness);
+		float G = GetGeometrySmith(N, V, L, roughness);
+		float3 F = GetFresnelSchlick(max(dot(H, V), 0.0f), F0);
+		
+		float3 kD = lerp(float3(1.0f, 1.0f, 1.0f) - F, float3(0.0f, 0.0f, 0.0f), metalness);
+		kD *= (1.0f - metalness);
+		
+		float3 numerator = NDF * G * F;
+		float denominator = 4.0f * NdotV * NdotL;
+		float3 specular = numerator / max(denominator, Epsilon);
+		
+		directional += Lights.Directional.Visibility * ((kD * baseColor.rgb) + specular) * NdotL * Lights.Directional.Ambient.rgb;
+	}
+	
 	
 	// Reflection vector
 	float3 Lr = normalize(reflect(-V, N));
@@ -148,8 +156,7 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 		ambientLighting = diffuseIBL + specularIBL;
 	}
 	
-	
-	output += texEmissive.Sample(texSampler, pin.TexCoord).rgb + Lo + ambientLighting;
+	output += texEmissive.Sample(texSampler, pin.TexCoord).rgb + Lo + directional + ambientLighting;
 	
 	output = output / (output + float3(1.0f, 1.0f, 1.0f));
 	output = lerp(output, pow(output, 1.0f / 2.2f), 0.4f);

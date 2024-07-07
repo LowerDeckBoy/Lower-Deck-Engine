@@ -51,7 +51,7 @@ namespace lde
 		{
 			return m_Title;
 		}
-
+		
 	protected:
 		static HINSTANCE s_hInstance;
 		static HWND s_hWnd;

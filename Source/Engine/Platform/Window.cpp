@@ -24,7 +24,8 @@ namespace lde
 
 	Window::Window(HINSTANCE hInstance, WindowParameters StartUpParams)
 	{
-		s_hInstance = hInstance;
+		//s_hInstance = hInstance;
+		s_hInstance = ::GetModuleHandleA(0);
 
 		window = this;
 
@@ -59,27 +60,37 @@ namespace lde
 
 		m_WindowRect = { 0, 0, static_cast<LONG>(Width), static_cast<LONG>(Height) };
 		::AdjustWindowRect(&m_WindowRect, WS_OVERLAPPEDWINDOW, false);
-
+		//WS_EX_NOREDIRECTIONBITMAP
 		const int width = static_cast<int>(m_WindowRect.right - m_WindowRect.left);
 		const int height = static_cast<int>(m_WindowRect.bottom - m_WindowRect.top);
 
+		/*
 		s_hWnd = ::CreateWindow(
 			m_WindowClass, String::ToWide(m_Title).c_str(), 
-			WS_OVERLAPPEDWINDOW, 
+			WS_OVERLAPPEDWINDOW,
 			0, 0, width, height, 
 			nullptr, nullptr, 
-			s_hInstance, 0);
+			s_hInstance, this);
+		*/
 
-		//ASSERT(s_hWnd);
+		s_hWnd = ::CreateWindowExW(WS_EX_NOREDIRECTIONBITMAP,
+			m_WindowClass, String::ToWide(m_Title).c_str(), 
+			WS_OVERLAPPEDWINDOW,
+			0, 0, width, height, 
+			nullptr, nullptr, 
+			s_hInstance, this);
 
 		// Centering window position upon first appearing
 		const int xPos = (::GetSystemMetrics(SM_CXSCREEN) - m_WindowRect.right) / 2;
 		const int yPos = (::GetSystemMetrics(SM_CYSCREEN) - m_WindowRect.bottom) / 2;
 
-		::SetWindowPos(s_hWnd, 0, xPos, yPos, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+		::SetWindowPos(s_hWnd, 0, xPos, yPos, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_FRAMECHANGED);
 
 		BOOL bDarkMode = TRUE;
 		::DwmSetWindowAttribute(s_hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &bDarkMode, sizeof(bDarkMode));
+
+		const MARGINS shadows{ 1, 1, 1, 1 };
+		::DwmExtendFrameIntoClientArea(s_hWnd, &shadows);
 
 	}
 
@@ -110,4 +121,5 @@ namespace lde
 		while (::ShowCursor(false) >= 0)
 			bCursorVisible = false;
 	}
+
 }
