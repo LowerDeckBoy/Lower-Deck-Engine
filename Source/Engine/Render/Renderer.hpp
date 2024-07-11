@@ -30,7 +30,6 @@ namespace lde
 	/// @brief For displaying desired image
 	enum class RenderOutput : uint8
 	{
-		//eShaded = 0,
 		eShaded = 0,
 		eDepth,
 		eBaseColor,
@@ -42,6 +41,7 @@ namespace lde
 		eSkybox,
 		eAmbientOcclusion,
 		eRaytracing,
+
 		COUNT
 	};
 
@@ -74,6 +74,8 @@ namespace lde
 		
 		Scene* m_ActiveScene = nullptr;
 
+		RHI::D3D12RenderTexture SceneImage;
+
 		std::unique_ptr<ShaderCompiler>	m_ShaderCompiler;
 		std::unique_ptr<TextureManager> m_TextureManager;
 		std::unique_ptr<AssetManager>	m_AssetManager;
@@ -88,8 +90,14 @@ namespace lde
 		RHI::D3D12RootSignature m_SkyboxRS;
 		RHI::D3D12PipelineState m_SkyboxPSO;
 
+		RHI::D3D12RootSignature m_MeshletRS;
+		RHI::D3D12PipelineState m_MeshletPSO;
+
 		void BuildRootSignatures();
 		void BuildPipelines();
+
+		BufferHandle   m_SceneConstBuffer = 0;
+		RHI::SceneData m_SceneData{};
 
 	public:
 		std::unique_ptr<Skybox> m_Skybox;

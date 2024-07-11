@@ -90,11 +90,14 @@ GBufferOutput PSmain(VSOutput pin)
 	{
 		Texture2D<float4> texture = ResourceDescriptorHeap[material.BaseColorIndex];
 		output.BaseColor = texture.Sample(texSampler, pin.TexCoord) * material.BaseColorFactor;
+
+		//if (output.BaseColor.a < material.AlphaCutoff)
+		//	clip(-1);
 		clip(output.BaseColor.a - material.AlphaCutoff);
 	}
 	else
 	{
-		output.BaseColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
+		output.BaseColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
 	
 	// Load and transform Normal texture

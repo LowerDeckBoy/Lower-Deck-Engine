@@ -51,7 +51,7 @@ SamplerState spBRDFSampler : register(s1, space0);
 
 float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 {
-	float2 position = pin.TexCoord;
+	const float2 position = pin.Position.xy;
 
 	// All textures that come from GBuffer
 	Texture2D<float4> texDepth			= ResourceDescriptorHeap[GBufferIndices.DepthIndex];
@@ -62,11 +62,11 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 	Texture2D<float4> texWorldPosition	= ResourceDescriptorHeap[GBufferIndices.WorldPositionIndex];
 
 	float depth			= texDepth.Load(int3(position, 0)).r;
-	float4 baseColor	= pow(texBaseColor.Sample(texSampler, position), 2.2f);
-	float4 normal		= (texNormal.Sample(texSampler, position));
-	float metalness		= texMetalRoughness.Sample(texSampler, position).b;
-	float roughness		= texMetalRoughness.Sample(texSampler, position).g;
-	float4 positions	= texWorldPosition.Sample(texSampler, position);
+	float4 baseColor	= pow(texBaseColor.Load(int3(position, 0)), 2.2f);
+	float4 normal		= texNormal.Load(int3(position, 0));
+	float metalness		= texMetalRoughness.Load(int3(position, 0)).b;
+	float roughness		= max(0.1f, texMetalRoughness.Load(int3(position, 0)).g);
+	float4 positions	= texWorldPosition.Load(int3(position, 0));
 
 	float3 ambient = float3(0.03f, 0.03f, 0.03f) * baseColor.rgb * float3(1.0f, 1.0f, 1.0f);
 	float3 output = float3(0.0f, 0.0f, 0.0f);

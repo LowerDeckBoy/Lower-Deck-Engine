@@ -15,16 +15,14 @@ namespace lde::RHI
 	class D3D12RHI;
 	class D3D12RenderTexture;
 	class D3D12RootSignature;
+	class D3D12CommandSignature;
 	struct D3D12PipelineState;
 }
 
 namespace lde
 {
 	class Scene;
-
-	/*
-		
-	*/
+	
 	struct PassContent
 	{
 		RHI::D3D12RenderTexture GeometryDepth;
@@ -53,6 +51,7 @@ namespace lde
 		/// @brief Initializes Root Signature and Pipeline State
 		/// @param pGfx 
 		GBufferPass(RHI::D3D12RHI* pGfx);
+		~GBufferPass();
 
 		void Render(Scene* pScene);
 		void Resize(uint32 Width, uint32 Height);
@@ -85,6 +84,8 @@ namespace lde
 			{ GBuffers::eWorldPosition,		RHI::D3D12RenderTexture() },
 		};
 
-	};
 
-}
+		RHI::D3D12CommandSignature* m_CommandSignature;
+
+	};
+} // namespace lde

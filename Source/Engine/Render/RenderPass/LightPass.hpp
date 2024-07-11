@@ -16,6 +16,7 @@ namespace lde
 	class SceneCamera;
 	class GBufferPass;
 	class Skybox;
+	class Scene;
 
 	struct LightData
 	{
@@ -30,7 +31,7 @@ namespace lde
 		LightPass(RHI::D3D12RHI* pGfx);
 		~LightPass();
 
-		void Render(SceneCamera* pCamera, GBufferPass* pGBuffer, Skybox* pSkybox);
+		void Render(SceneCamera* pCamera, GBufferPass* pGBuffer, Skybox* pSkybox, Scene* pScene);
 
 		void Resize(uint32 Width, uint32 Height);
 

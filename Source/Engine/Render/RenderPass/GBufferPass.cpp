@@ -1,5 +1,6 @@
 #include "RHI/D3D12/D3D12PipelineState.hpp"
 #include "RHI/D3D12/D3D12RootSignature.hpp"
+#include "RHI/D3D12/D3D12CommandList.hpp"
 #include "GBufferPass.hpp"
 #include "RHI/D3D12/D3D12RHI.hpp"
 #include "Scene/Scene.hpp"
@@ -14,7 +15,7 @@ namespace lde
 		m_RenderTargets.at(GBuffers::eDepth).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, "GBuffer Depth");
 		m_RenderTargets.at(GBuffers::eBaseColor).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, "GBuffer BaseColor");
 		m_RenderTargets.at(GBuffers::eTexCoords).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, "GBuffer TexCoords");
-		m_RenderTargets.at(GBuffers::eNormal).Initialize(m_Gfx, DXGI_FORMAT_R16G16B16A16_FLOAT, "GBuffer Normal");
+		m_RenderTargets.at(GBuffers::eNormal).Initialize(m_Gfx, DXGI_FORMAT_R32G32B32A32_FLOAT, "GBuffer Normal");
 		m_RenderTargets.at(GBuffers::eMetalRoughness).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, "GBuffer MetalRoughness");
 		m_RenderTargets.at(GBuffers::eEmissive).Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, "GBuffer Emissive");
 		m_RenderTargets.at(GBuffers::eWorldPosition).Initialize(m_Gfx, DXGI_FORMAT_R32G32B32A32_FLOAT, "GBuffer WorldPosition");
@@ -29,13 +30,14 @@ namespace lde
 		}
 
 		// Pipeline State
-		auto* psoBuilder = new RHI::D3D12PipelineStateBuilder(m_Gfx->Device.get());
+		RHI::D3D12PipelineStateBuilder psoBuilder(m_Gfx->Device.get());
 
 		// Base Pipeline
 		{
-			psoBuilder->SetVS("Shaders/Deferred/GBuffer.hlsl", L"VSmain");
-			psoBuilder->SetPS( "Shaders/Deferred/GBuffer.hlsl", L"PSmain");
-			psoBuilder->EnableDepth(true);
+			psoBuilder.SetVS("Shaders/Deferred/GBuffer.hlsl", L"VSmain");
+			psoBuilder.SetPS( "Shaders/Deferred/GBuffer.hlsl", L"PSmain");
+			psoBuilder.EnableDepth(true);
+			psoBuilder.SetCullMode(RHI::CullMode::eNone);
 			std::array<DXGI_FORMAT, (usize)GBuffers::COUNT> formats =
 			{
 				m_RenderTargets.at(GBuffers::eDepth).GetFormat(),
@@ -46,11 +48,24 @@ namespace lde
 				m_RenderTargets.at(GBuffers::eEmissive).GetFormat(),
 				m_RenderTargets.at(GBuffers::eWorldPosition).GetFormat()
 			};
-			psoBuilder->SetRenderTargetFormats(formats);
+			psoBuilder.SetRenderTargetFormats(formats);
 
-			RHI::DX_CALL(psoBuilder->Build(m_PipelineState, &m_RootSignature));
-			psoBuilder->Reset();
+			RHI::DX_CALL(psoBuilder.Build(m_PipelineState, &m_RootSignature));
+			psoBuilder.Reset();
 		}
+
+		m_CommandSignature = new RHI::D3D12CommandSignature();
+		m_CommandSignature->AddCBV(0);			// 8 bytes
+		m_CommandSignature->AddConstant(1, 2);	// 8 bytes
+		m_CommandSignature->AddConstant(2, 16);	// 64 bytes
+		m_CommandSignature->AddDrawIndexed();	// 20 bytes
+		//RHI::DX_CALL(m_CommandSignature->Create(m_Gfx->Device.get(), &m_RootSignature));
+
+	}
+
+	GBufferPass::~GBufferPass()
+	{
+		Release();
 	}
 
 	void GBufferPass::Render(Scene* pScene)
@@ -66,6 +81,7 @@ namespace lde
 			rtvs.push_back(renderTarget.second.GetRTV().GetCpuHandle());
 		}
 
+		//m_Gfx->ClearDepthStencil();
 		m_Gfx->SetRenderTargets(rtvs, m_Gfx->SceneDepth->DSV().GetCpuHandle());
 
 		pScene->DrawScene();
@@ -91,7 +107,10 @@ namespace lde
 		//{
 		//	//renderTarget.second.
 		//}
+		m_RootSignature.Release();
+		m_CommandSignature->Release();
 	}
+
 	std::array<int, 7> GBufferPass::GetTextureIndices()
 	{
 		std::array<int, 7> indices{};
