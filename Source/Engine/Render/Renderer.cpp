@@ -80,7 +80,9 @@ namespace lde
 		{
 			m_Gfx->SetRootSignature(&m_LightRS);
 			m_Gfx->SetPipeline(&m_LightPSO);
+			m_Gfx->TransitResource(m_Gfx->SceneDepth->Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_GENERIC_READ);
 			m_LightPass->Render(m_ActiveScene->GetCamera(), m_GBufferPass, m_Skybox.get(), m_ActiveScene);
+			m_Gfx->TransitResource(m_Gfx->SceneDepth->Get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		}	
 
 		//m_Gfx->TransitResource(SceneImage.Get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COPY_DEST);
@@ -91,15 +93,17 @@ namespace lde
 
 		//m_Gfx->SetRenderTarget(SceneImage.GetRTV().GetCpuHandle(), &m_Gfx->SceneDepth->DSV().GetCpuHandle());
 		//m_Gfx->ClearRenderTarget(SceneImage.GetRTV().GetCpuHandle());
+		//m_Gfx->ClearDepthStencil();
 
 		// Sky Pass
 		{
 			m_Gfx->SetRootSignature(&m_SkyboxRS);
 			m_Gfx->SetPipeline(&m_SkyboxPSO);
+			//m_Gfx->ClearDepthStencil();
 			m_Skybox->Draw(-1, m_ActiveScene->GetCamera()); 
 		}
 		
-		m_Gfx->TransitResource(SceneImage.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
+			m_Gfx->TransitResource(SceneImage.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
 		//RaytracingCtx->DispatchRaytrace();
 
 		//m_Gfx->SetViewport();

@@ -34,10 +34,6 @@ namespace lde::RHI
 		desc.RasterizerState = m_RasterizerDesc;
 		desc.RasterizerState.CullMode = m_CullMode;
 		desc.RasterizerState.FillMode = m_FillMode;
-		desc.RasterizerState.MultisampleEnable = true;
-		desc.RasterizerState.AntialiasedLineEnable = false;
-		//desc.RasterizerState.DepthBias = 1;
-		//desc.RasterizerState.DepthBiasClamp = 1.0f;
 		// Depth
 		desc.DepthStencilState = m_DepthDesc;
 		desc.DSVFormat = m_DepthFormat;
@@ -94,41 +90,10 @@ namespace lde::RHI
 
 		OutPipeline.Type = PipelineType::eGraphics;
 		OutPipeline.RootSignature = pRootSignature;
+
 		return m_Device->GetDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&OutPipeline.PipelineState));
-
 	}
-
-	HRESULT D3D12PipelineStateBuilder::BuildMesh(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature)
-	{
-		struct 
-		{
-			ID3D12RootSignature*			pRootSignature;
-			D3D12_SHADER_BYTECODE			AS;
-			D3D12_SHADER_BYTECODE			MS;
-			D3D12_SHADER_BYTECODE			PS;
-			D3D12_BLEND_DESC				BlendState;
-			UINT							SampleMask;
-			D3D12_RASTERIZER_DESC			RasterizerState;
-			D3D12_DEPTH_STENCIL_DESC		DepthStencilState;
-			D3D12_PRIMITIVE_TOPOLOGY_TYPE	PrimitiveTopologyType;
-			UINT							NumRenderTargets;
-			DXGI_FORMAT						RTVFormats[D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT];
-			DXGI_FORMAT						DSVFormat;
-			DXGI_SAMPLE_DESC				SampleDesc;
-			UINT							NodeMask;
-			D3D12_CACHED_PIPELINE_STATE		CachedPSO;
-			D3D12_PIPELINE_STATE_FLAGS		Flags;
-		} MPSO{};
-
-		MPSO.NodeMask = DEVICE_NODE;
-
-		D3D12_PIPELINE_STATE_STREAM_DESC streamDesc{};
-		streamDesc.pPipelineStateSubobjectStream = &MPSO;
-		streamDesc.SizeInBytes = sizeof(MPSO);
-
-		return m_Device->GetDevice()->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&OutPipeline.PipelineState));
-	}
-
+	
 	void D3D12PipelineStateBuilder::SetVS(std::string_view Filepath, std::wstring EntryPoint)
 	{
 		auto& shaderCompiler = ShaderCompiler::GetInstance();
@@ -219,44 +184,67 @@ namespace lde::RHI
 		
 		m_RasterizerDesc = {};
 		m_FillMode = D3D12_FILL_MODE_SOLID;
-		m_CullMode = D3D12_CULL_MODE_BACK;
+		m_CullMode = D3D12_CULL_MODE_NONE;
 	
 		m_DepthDesc = {};
 
 		// Default Depth Desc
-		m_DepthDesc.DepthEnable					= TRUE;
-		m_DepthDesc.DepthWriteMask				= D3D12_DEPTH_WRITE_MASK_ALL;
-		m_DepthDesc.DepthFunc					= D3D12_COMPARISON_FUNC_LESS;
-		m_DepthDesc.StencilEnable				= FALSE;
-		m_DepthDesc.StencilReadMask				= D3D12_DEFAULT_STENCIL_READ_MASK;
-		m_DepthDesc.StencilWriteMask			= D3D12_DEFAULT_STENCIL_WRITE_MASK;
+		m_DepthDesc.DepthEnable						= TRUE;
+		m_DepthDesc.DepthWriteMask					= D3D12_DEPTH_WRITE_MASK_ALL;
+		m_DepthDesc.DepthFunc						= D3D12_COMPARISON_FUNC_LESS_EQUAL;
+		//m_DepthDesc.DepthFunc						= D3D12_COMPARISON_FUNC_LESS;
+		m_DepthDesc.StencilEnable					= FALSE;
+		m_DepthDesc.StencilReadMask					= D3D12_DEFAULT_STENCIL_READ_MASK;
+		m_DepthDesc.StencilWriteMask				= D3D12_DEFAULT_STENCIL_WRITE_MASK;
+		const D3D12_DEPTH_STENCILOP_DESC defaultStencilOp =
+		{ D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS };
+		m_DepthDesc.FrontFace = defaultStencilOp;
+		m_DepthDesc.BackFace = defaultStencilOp;
 
 		// Default Rasterizer Desc
-		m_RasterizerDesc.FillMode				= D3D12_FILL_MODE_SOLID;
-		m_RasterizerDesc.CullMode				= D3D12_CULL_MODE_BACK;
-		m_RasterizerDesc.FrontCounterClockwise	= FALSE;
-		m_RasterizerDesc.DepthBias				= D3D12_DEFAULT_DEPTH_BIAS;
-		m_RasterizerDesc.DepthBiasClamp			= D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
-		m_RasterizerDesc.SlopeScaledDepthBias	= D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
-		m_RasterizerDesc.DepthClipEnable		= TRUE;
-		m_RasterizerDesc.MultisampleEnable		= FALSE;
-		m_RasterizerDesc.AntialiasedLineEnable	= FALSE;
-		m_RasterizerDesc.ForcedSampleCount		= 0;
-		m_RasterizerDesc.ConservativeRaster		= D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+		m_RasterizerDesc.FillMode					= m_FillMode;
+		m_RasterizerDesc.CullMode					= m_CullMode;
+		m_RasterizerDesc.FrontCounterClockwise		= FALSE;
+		m_RasterizerDesc.DepthBias					= D3D12_DEFAULT_DEPTH_BIAS;
+		m_RasterizerDesc.DepthBiasClamp				= D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+		m_RasterizerDesc.SlopeScaledDepthBias		= D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+		m_RasterizerDesc.DepthClipEnable			= TRUE;
+		m_RasterizerDesc.MultisampleEnable			= FALSE;
+		m_RasterizerDesc.AntialiasedLineEnable		= FALSE;
+		m_RasterizerDesc.ForcedSampleCount			= 0;
+		m_RasterizerDesc.ConservativeRaster			= D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
 		// Default Blend Desc
-		m_BlendDesc.AlphaToCoverageEnable		= FALSE;
-		m_BlendDesc.IndependentBlendEnable		= FALSE;
-		m_BlendDesc.RenderTarget[0].BlendEnable = FALSE;
-		m_BlendDesc.RenderTarget[0].LogicOpEnable = FALSE;
-		m_BlendDesc.RenderTarget[0].SrcBlend	= D3D12_BLEND_ONE;
-		m_BlendDesc.RenderTarget[0].DestBlend	= D3D12_BLEND_ZERO;
-		m_BlendDesc.RenderTarget[0].BlendOp		= D3D12_BLEND_OP_ADD;
-		m_BlendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
-		m_BlendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
-		m_BlendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-		m_BlendDesc.RenderTarget[0].LogicOp		= D3D12_LOGIC_OP_NOOP;
+		m_BlendDesc = {};
+		m_BlendDesc.AlphaToCoverageEnable			= FALSE;
+		m_BlendDesc.IndependentBlendEnable			= FALSE;
+		m_BlendDesc.RenderTarget[0].BlendEnable		= FALSE;
+		m_BlendDesc.RenderTarget[0].LogicOpEnable	= FALSE;
+		m_BlendDesc.RenderTarget[0].SrcBlend		= D3D12_BLEND_ONE;
+		m_BlendDesc.RenderTarget[0].DestBlend		= D3D12_BLEND_ZERO;
+		m_BlendDesc.RenderTarget[0].BlendOp			= D3D12_BLEND_OP_ADD;
+		m_BlendDesc.RenderTarget[0].SrcBlendAlpha	= D3D12_BLEND_ONE;
+		m_BlendDesc.RenderTarget[0].DestBlendAlpha	= D3D12_BLEND_ZERO;
+		m_BlendDesc.RenderTarget[0].BlendOpAlpha	= D3D12_BLEND_OP_ADD;
+		m_BlendDesc.RenderTarget[0].LogicOp			= D3D12_LOGIC_OP_NOOP;
 		m_BlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
 	}
+	
+	// Mesh
+	HRESULT D3D12MeshPipelineBuilder::Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature)
+	{
+		MeshPSO pipeline{};
+
+		pipeline.NodeMask = DEVICE_NODE;
+
+		D3D12_PIPELINE_STATE_STREAM_DESC streamDesc{};
+		streamDesc.pPipelineStateSubobjectStream = &pipeline;
+		streamDesc.SizeInBytes = sizeof(pipeline);
+
+		return HRESULT();
+		//return m_Device->GetDevice()->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&OutPipeline.PipelineState));
+	}
+
+
 } // namespace lde::RHI
