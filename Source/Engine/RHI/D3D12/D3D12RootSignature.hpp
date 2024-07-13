@@ -35,7 +35,7 @@ namespace lde::RHI
 		// If possible, use instead of DescriptorTables.
 		void AddUAV(uint32 RegisterSlot, uint32 Space = 0, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
 		// Least preferable; slowest. Go for bindless instead.
-		void AddDescriptorTable(uint32 RegisterSlot, uint32 Space, uint32 NumDescriptors, std::span<D3D12_DESCRIPTOR_RANGE1> Ranges, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
+		void AddDescriptorTable(std::span<D3D12_DESCRIPTOR_RANGE1> Ranges, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
 		
 		void AddStaticSampler(uint32 RegisterSlot, uint32 Space, 
 			D3D12_FILTER Filter, D3D12_TEXTURE_ADDRESS_MODE AddressMode, 
@@ -48,9 +48,10 @@ namespace lde::RHI
 		/**
 		 * @brief Note: when adding Paramters and StaticSamplers they are being pushed to the vector;
 		 * order of Parameters is from top-to-bottom.
-		 * @param pDevice Parent Device
-		 * @param eType Whether RootSignature is for Graphics or Compute state.
-		 * @param DebugName [Optional]
+		 * 
+		 * @param pDevice		Parent Device
+		 * @param eType			Whether RootSignature is for Graphics or Compute state.
+		 * @param DebugName		[Optional]
 		 * @return 
 		 */
 		HRESULT Build(D3D12Device* pDevice, PipelineType eType, std::string DebugName = "");

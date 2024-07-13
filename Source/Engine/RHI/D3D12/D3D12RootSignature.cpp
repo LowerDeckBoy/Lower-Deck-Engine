@@ -58,7 +58,7 @@ namespace lde::RHI
 		m_Parameters.emplace_back(parameter);
 	}
 
-	void D3D12RootSignature::AddDescriptorTable(uint32 RegisterSlot, uint32 Space, uint32 NumDescriptors, std::span<D3D12_DESCRIPTOR_RANGE1> Ranges, D3D12_SHADER_VISIBILITY Visibility)
+	void D3D12RootSignature::AddDescriptorTable(std::span<D3D12_DESCRIPTOR_RANGE1> Ranges, D3D12_SHADER_VISIBILITY Visibility)
 	{
 		D3D12_ROOT_PARAMETER1 parameter{};
 		parameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
