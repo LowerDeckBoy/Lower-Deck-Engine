@@ -70,6 +70,7 @@ namespace lde
 		target += position;
 	
 		XMStoreFloat4x4(&m_View, XMMatrixLookAtLH(position, target, up));
+		XMStoreFloat4x4(&m_InvView, GetView());
 		CameraSlider = { XMVectorGetX(position), XMVectorGetY(position), XMVectorGetZ(position) };
 	
 		// Store vector and matrices
@@ -93,6 +94,7 @@ namespace lde
 	{
 		m_FieldOfView = 45.0f;
 		XMStoreFloat4x4(&m_Projection, XMMatrixPerspectiveFovLH(XMConvertToRadians(m_FieldOfView), m_AspectRatio, m_zNear, m_zFar));
+		XMStoreFloat4x4(&m_InvProjection, XMMatrixInverse(nullptr, GetProjection()));
 	}
 
 	void SceneCamera::ResetCamera() noexcept
@@ -112,6 +114,7 @@ namespace lde
 	{
 		m_AspectRatio = NewAspectRatio;
 		XMStoreFloat4x4(&m_Projection, XMMatrixPerspectiveFovLH(XMConvertToRadians(m_FieldOfView), NewAspectRatio, m_zNear, m_zFar));
+		XMStoreFloat4x4(&m_InvProjection, XMMatrixInverse(nullptr, GetProjection()));
 	}
 
 	void SceneCamera::InitializeInputs()

@@ -39,7 +39,10 @@ namespace lde
 		const XMMATRIX GetView() const noexcept { return XMLoadFloat4x4(&m_View); }
 		const XMMATRIX GetProjection() const noexcept { return XMLoadFloat4x4(&m_Projection); }
 		const XMMATRIX GetViewProjection() const noexcept { return XMMatrixMultiply(XMLoadFloat4x4(&m_View), XMLoadFloat4x4(&m_Projection)); }
-	
+
+		const XMMATRIX GetInvView() const noexcept { return XMLoadFloat4x4(&m_InvView); }
+		const XMMATRIX GetInvProjection() const noexcept { return XMLoadFloat4x4(&m_InvProjection); }
+
 		const XMFLOAT4X4 GetViewFloats() const noexcept { return m_View; }
 		const XMFLOAT4X4 GetProjectionFloats() const noexcept { return m_Projection; }
 	
@@ -64,6 +67,9 @@ namespace lde
 		XMFLOAT4X4 m_Projection		= XMFLOAT4X4();
 		XMFLOAT4X4 m_ViewProjection	= XMFLOAT4X4();
 	
+		XMFLOAT4X4 m_InvView		= XMFLOAT4X4();
+		XMFLOAT4X4 m_InvProjection	= XMFLOAT4X4();
+
 		XMFLOAT3 m_Position	= XMFLOAT3(0.0f, 1.0f, -10.0f);
 		XMFLOAT3 m_Target	= XMFLOAT3(0.0f, 5.0f, 0.0f);
 		XMFLOAT3 m_Up		= XMFLOAT3(0.0f, 1.0f, 0.0f);
