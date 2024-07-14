@@ -5,18 +5,18 @@
 
 struct Material
 {
-	int BaseColorIndex;
-	int NormalIndex;
-	int MetalRoughnessIndex;
-	int EmissiveIndex;
+	int		BaseColorIndex;
+	int		NormalIndex;
+	int		MetalRoughnessIndex;
+	int		EmissiveIndex;
 	
-	float MetallicFactor;
-	float RoughnessFactor;
-	float AlphaCutoff;
-	bool  bDoubleSided;
+	float	MetallicFactor;
+	float	RoughnessFactor;
+	float	AlphaCutoff;
+	bool	bDoubleSided;
 	
-	float4 BaseColorFactor;
-	float4 EmissiveFactor;
+	float4	BaseColorFactor;
+	float4	EmissiveFactor;
 };
 
 #endif // MATERIAL_HLSL

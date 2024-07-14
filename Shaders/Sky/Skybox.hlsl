@@ -25,35 +25,24 @@ struct TextureIndices
 
 ConstantBuffer<TextureIndices> Textures : register(b1, space0);
 
+static const float3 Vertices[8] =
+{
+	float3(-1.0f, +1.0f, +1.0f),
+	float3(+1.0f, +1.0f, +1.0f),
+	float3(+1.0f, -1.0f, +1.0f),
+	float3(-1.0f, -1.0f, +1.0f),
+	float3(+1.0f, +1.0f, -1.0f),
+	float3(-1.0f, +1.0f, -1.0f),
+	float3(-1.0f, -1.0f, -1.0f),
+	float3(+1.0f, -1.0f, -1.0f)
+};
+
 VS_OUTPUT VSmain(uint VertexID : SV_VertexID)
 {
 	VS_OUTPUT output = (VS_OUTPUT)0;
-	
-	float3 vertices[8] =
-	{
-		float3(-1.0f, -1.0f, -1.0f),
-		float3(-1.0f, +1.0f, -1.0f),
-		float3(+1.0f, +1.0f, -1.0f),
-		float3(+1.0f, -1.0f, -1.0f),
-		float3(-1.0f, -1.0f, +1.0f),
-		float3(-1.0f, +1.0f, +1.0f),
-		float3(+1.0f, +1.0f, +1.0f),
-		float3(+1.0f, -1.0f, +1.0f)
-		
-		/*float3(-1.0f, +1.0f, +1.0f),
-		float3(+1.0f, +1.0f, +1.0f),
-		float3(+1.0f, -1.0f, +1.0f),
-		float3(-1.0f, -1.0f, +1.0f),
-		float3(+1.0f, +1.0f, -1.0f),
-		float3(-1.0f, +1.0f, -1.0f),
-		float3(-1.0f, -1.0f, -1.0f),
-		float3(+1.0f, -1.0f, -1.0f)
-		*/
-	};
-	
-	output.Position = mul(WVP, float4(vertices[VertexID], 1.0f)).xyww;
-	//output.TexCoord = normalize(output.Position.xyz);
-	output.TexCoord = (vertices[VertexID]);
+
+	output.Position = mul(WVP, float4(Vertices[VertexID], 1.0f)).xyww;
+	output.TexCoord = Vertices[VertexID];
 
 	return output;
 }

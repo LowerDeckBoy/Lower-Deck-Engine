@@ -74,7 +74,7 @@ struct GBufferOutput
 	float4 Emissive			: SV_Target5;
 	float4 WorldPosition	: SV_Target6;
 };
-
+//[earlydepthstencil()]
 GBufferOutput PSmain(VSOutput pin)
 {
 	GBufferOutput output = (GBufferOutput) 0;
@@ -91,13 +91,14 @@ GBufferOutput PSmain(VSOutput pin)
 		Texture2D<float4> texture = ResourceDescriptorHeap[material.BaseColorIndex];
 		output.BaseColor = texture.Sample(texSampler, pin.TexCoord) * material.BaseColorFactor;
 
-		//if (output.BaseColor.a < material.AlphaCutoff)
-		//	clip(-1);
-		clip(output.BaseColor.a - material.AlphaCutoff);
+		if (output.BaseColor.a < material.AlphaCutoff)
+			discard;
+			//clip(-1);
+		//clip(output.BaseColor.a - material.AlphaCutoff);
 	}
 	else
 	{
-		output.BaseColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
+		output.BaseColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	
 	// Load and transform Normal texture
@@ -127,7 +128,7 @@ GBufferOutput PSmain(VSOutput pin)
 	}
 	else
 	{
-		output.MetalRoughness = float4(0.0f, material.MetallicFactor, material.MetallicFactor, 0.0f);
+		output.MetalRoughness = float4(0.0f, material.MetallicFactor, material.MetallicFactor, 1.0f);
 	}
 	
 	// Load Emissive texture.

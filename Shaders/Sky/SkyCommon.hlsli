@@ -6,8 +6,8 @@
 // Commonly shared constants and functions used across sky related shaders.
 // ==========================================================================
 
-#define DISPATCH_X 32
-#define DISPATCH_Y 32
+#define DISPATCH_X 8
+#define DISPATCH_Y 8
 #define DISPATCH_Z 1
 
 static const float PI = 3.141592f;
@@ -35,7 +35,7 @@ float RadicalInverse_VdC(uint bits)
 // See: "Physically Based Rendering" 2nd ed., section 13.6.1.
 float3 SampleHemisphere(float u1, float u2)
 {
-	const float u1p = sqrt(max(0.0, 1.0 - u1 * u1));
+	const float u1p = sqrt(max(0.0f, 1.0f - u1 * u1));
 	return float3(cos(TwoPI * u2) * u1p, sin(TwoPI * u2) * u1p, u1);
 }
 
@@ -67,7 +67,7 @@ float3 GetSamplingVector(uint3 ThreadID, in RWTexture2DArray<float4> OutputTextu
 	OutputTexture.GetDimensions(width, height, depth);
 
 	float2 st = ThreadID.xy / float2(width, height);
-	float2 uv = 2.0 * float2(st.x, 1.0f - st.y) - 1.0f;
+	float2 uv = 2.0f * float2(st.x, 1.0f - st.y) - 1.0f;
 
 	// Select vector based on cubemap face index.
 	float3 result = float3(0.0f, 0.0f, 0.0f);

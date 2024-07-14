@@ -69,7 +69,8 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 	float4 positions	= texWorldPosition.Load(int3(position, 0));
 
 	float3 ambient = float3(0.03f, 0.03f, 0.03f) * baseColor.rgb * float3(1.0f, 1.0f, 1.0f);
-	float3 output = float3(0.0f, 0.0f, 0.0f);
+	//float3 output = float3(0.0f, 0.0f, 0.0f);
+	float3 output = ambient;
 	
 	float3 N = normal.rgb;
 	float3 V = normalize(Camera.Position.xyz - positions.xyz);
@@ -106,28 +107,27 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 	}
 	
 	float3 directional = float3(0.0f, 0.0f, 0.0f);
-	{
-		float3 L = normalize(Lights.Directional.Direction.xyz - positions.xyz);
-		//float3 L = -normalize(Lights.Directional.Direction.xyz);
-		float3 H = normalize(L + V);
-		
-		//float NdotH = max(dot(N, H), 0.0f);
-		float NdotL = max(dot(N, L), 0.0f);
-		
-		float NDF = GetDistributionGGX(N, H, roughness);
-		float G = GetGeometrySmith(N, V, L, roughness);
-		float3 F = GetFresnelSchlick(max(dot(H, V), 0.0f), F0);
-		
-		float3 kD = lerp(float3(1.0f, 1.0f, 1.0f) - F, float3(0.0f, 0.0f, 0.0f), metalness);
-		kD *= (1.0f - metalness);
-		
-		float3 numerator = NDF * G * F;
-		float denominator = 4.0f * NdotV * NdotL;
-		float3 specular = numerator / max(denominator, Epsilon);
-		
-		directional += Lights.Directional.Visibility * ((kD * baseColor.rgb) + specular) * NdotL * Lights.Directional.Ambient.rgb;
-	}
-	
+	//{
+	//	float3 L = normalize(Lights.Directional.Direction.xyz - positions.xyz);
+	//	//float3 L = -normalize(Lights.Directional.Direction.xyz);
+	//	float3 H = normalize(L + V);
+	//	
+	//	//float NdotH = max(dot(N, H), 0.0f);
+	//	float NdotL = max(dot(N, L), 0.0f);
+	//	
+	//	float NDF = GetDistributionGGX(N, H, roughness);
+	//	float G = GetGeometrySmith(N, V, L, roughness);
+	//	float3 F = GetFresnelSchlick(max(dot(H, V), 0.0f), F0);
+	//	
+	//	float3 kD = lerp(float3(1.0f, 1.0f, 1.0f) - F, float3(0.0f, 0.0f, 0.0f), metalness);
+	//	kD *= (1.0f - metalness);
+	//	
+	//	float3 numerator = NDF * G * F;
+	//	float denominator = 4.0f * NdotV * NdotL;
+	//	float3 specular = numerator / max(denominator, Epsilon);
+	//	
+	//	directional += Lights.Directional.Visibility * ((kD * baseColor.rgb) + specular) * NdotL * Lights.Directional.Ambient.rgb;
+	//}
 	
 	// Reflection vector
 	float3 Lr = normalize(reflect(-V, N));
@@ -157,11 +157,12 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 	}
 	
 	output += texEmissive.Sample(texSampler, pin.TexCoord).rgb + Lo + directional + ambientLighting;
+	output *= baseColor.a;
 	
 	output = output / (output + float3(1.0f, 1.0f, 1.0f));
 	output = lerp(output, pow(output, 1.0f / 2.2f), 0.4f);
 	
-	return float4(output, 1.0f);
+	return float4(output, baseColor.a);
 }
 
 #endif // PBR_HLSL

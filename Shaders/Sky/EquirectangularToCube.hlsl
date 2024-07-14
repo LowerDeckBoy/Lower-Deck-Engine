@@ -55,7 +55,7 @@ float3 TransformCoords(uint3 ThreadID)
 	return normalize(output);
 }
 
-[numthreads(32, 32, 1)]
+[numthreads(8, 8, 1)]
 void CSmain(uint3 ThreadID : SV_DispatchThreadID)
 {
 	float3 coords = TransformCoords(ThreadID);

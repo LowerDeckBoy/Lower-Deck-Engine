@@ -1,9 +1,6 @@
 #ifndef SHARED_HLSLI
 #define SHARED_HLSLI
 
-//RWTexture2D<float4>				gSceneBVH : register(u0, space0);
-//RaytracingAccelerationStructure gTopLevel : register(t0, space0);
-
 SamplerState textureSampler : register(s0, space0);
 
 struct SceneData
@@ -13,6 +10,13 @@ struct SceneData
 };
 
 ConstantBuffer<SceneData> SceneImages : register(b0, space0);
+
+struct SceneCamera
+{
+	float4x4 ViewProjection;
+	float4 CameraPosition;
+};
+ConstantBuffer<SceneCamera> Camera : register(b1, space0);
 
 struct Vertex
 {
@@ -37,5 +41,23 @@ float3 WorldPosition()
 {
 	return WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
 }
+
+struct SkyTextures
+{
+	uint SkyboxIndex;
+};
+
+ConstantBuffer<SkyTextures> Sky : register(b2, space0);
+
+
+struct InstanceData
+{
+	uint Vertex;
+	uint Index;
+};
+
+StructuredBuffer<InstanceData> PerInstance;
+
+StructuredBuffer<Vertex> VertexBuffers[] : register(t5, space0);
 
 #endif // SHARED_HLSLI
