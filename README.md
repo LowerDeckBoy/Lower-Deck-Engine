@@ -51,3 +51,4 @@ Lower Deck is a working name - likely to change it later.
 ## Screenshots
 
 ![Sponza](Media/Sponza_pbr.jpg)
+![Damaged_helmet](Media/Damaged_helmet_pbr.png)
