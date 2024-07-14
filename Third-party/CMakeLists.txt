@@ -17,6 +17,13 @@ file(COPY
 	${COPY_DESTINATION}
 )
 
+# meshoptimizer libraries
+file(COPY 
+	${CMAKE_CURRENT_SOURCE_DIR}/Libs/meshoptimizer/ 
+	DESTINATION 
+	${COPY_DESTINATION}
+)
+
 # D3D12 dll
 file(COPY
 	${CMAKE_CURRENT_SOURCE_DIR}/Libs/D3D12AgilitySDK/D3D12Core.dll
