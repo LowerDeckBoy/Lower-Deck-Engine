@@ -1,5 +1,9 @@
 {
 	"dependencies": [
-		"assimp"
+		"assimp",
+		{
+			"name": "directxmesh",
+			"features": ["dx12"]
+		}
 	]
 }
