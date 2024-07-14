@@ -7,7 +7,9 @@
 
 #include <AgilitySDK/d3d12.h>
 #include <Core/CoreMinimal.hpp>
+#pragma warning(push, 0)
 #include <D3D12MA/D3D12MemAlloc.h>
+#pragma warning(pop)
 #include <vector>
 
 namespace lde::RHI
@@ -50,6 +52,9 @@ namespace lde::RHI
 			AllocType eType,
 			D3D12MA::ALLOCATION_FLAGS AllocationFlags = D3D12MA::ALLOCATION_FLAG_STRATEGY_MIN_MEMORY);
 
+		ID3D12Resource* CreateUploadBuffer(D3D12Device* pDevice, uint64 Size, D3D12_RESOURCE_FLAGS Flags = D3D12_RESOURCE_FLAG_NONE);
+
+
 		static void SetFrameIndex(uint32 FrameIndex);
 
 		static Ref<D3D12MA::Allocator> Allocator;
@@ -58,6 +63,8 @@ namespace lde::RHI
 		//Ref<ID3D12Heap1> m_AllocHeap;
 		//Ref<ID3D12Heap1> m_Heap;
 	};
+
+	
 
 	// TODO: Finish this already
 	/*

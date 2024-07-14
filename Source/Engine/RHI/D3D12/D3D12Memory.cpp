@@ -83,6 +83,30 @@ namespace lde::RHI
 		DX_CALL(Allocator->CreateResource(&allocDesc, &HeapDesc, state, nullptr, ppAllocation, IID_PPV_ARGS(ppResource)));
 	}
 
+	ID3D12Resource* D3D12Memory::CreateUploadBuffer(D3D12Device* pDevice, uint64 Size, D3D12_RESOURCE_FLAGS Flags)
+	{
+		D3D12_RESOURCE_DESC desc{};
+		desc.Dimension			= D3D12_RESOURCE_DIMENSION_BUFFER;
+		desc.Width				= Size;
+		desc.Height				= 1;
+		desc.MipLevels			= 1;
+		desc.DepthOrArraySize	= 1;
+		desc.SampleDesc			= { 1, 0 };
+		desc.Flags				= Flags;
+
+		ID3D12Resource* resource = nullptr;
+
+		pDevice->GetDevice()->CreateCommittedResource(
+			&D3D12Utility::HeapUpload, 
+			D3D12_HEAP_FLAG_NONE,
+			&desc,
+			D3D12_RESOURCE_STATE_COMMON,
+			nullptr,
+			IID_PPV_ARGS(&resource));
+
+		return resource;
+	}
+
 	void D3D12Memory::SetFrameIndex(uint32 FrameIndex)
 	{
 		Allocator->SetCurrentFrameIndex(FrameIndex);

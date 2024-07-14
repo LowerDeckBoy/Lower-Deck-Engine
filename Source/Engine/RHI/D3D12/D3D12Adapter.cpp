@@ -54,14 +54,13 @@ namespace lde::RHI
 
 	void D3D12Device::Release()
 	{
-		//delete m_FrameResources.GraphicsCommandList;
-		//delete m_FrameResources.GraphicsQueue;
-
 		for (usize i = 0; i < FRAME_COUNT; ++i)
 		{
 			delete m_FrameResources[i].GraphicsCommandList;
+			//delete m_FrameResources[i].ComputeCommandList;
 		}
 		delete GraphicsQueue;
+		//delete ComputeQueue;
 
 		m_RTVHeap.reset();
 		m_DSVHeap.reset();
@@ -122,21 +121,21 @@ namespace lde::RHI
 	void D3D12Device::QueryShaderModel()
 	{
 		D3D12_FEATURE_DATA_SHADER_MODEL shaderModel{};
-#if defined(NTDDI_WIN10_VB) && (NTDDI_VERSION >= NTDDI_WIN10_VB)
-#define HLSL_SM6_6 1
-		shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_6;
-#elif defined (NTDDI_WIN10_19H1) && (NTDDI_VERSION >= NTDDI_WIN10_19H1)
-		shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_5;
-#elif defined (NTDDI_WIN10_RS5) && (NTDDI_VERSION >= NTDDI_WIN10_RS5)
-		shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_4;
-#elif defined (NTDDI_WIN10_RS4) && (NTDDI_VERSION >= NTDDI_WIN10_RS4)
-		shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_2;
-#elif defined (NTDDI_WIN10_RS3) && (NTDDI_VERSION >= NTDDI_WIN10_RS3)
-		shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_1;
-#else
-#define HLSL_USE_SM6_6 0
-		shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_0;
-#endif
+		#if defined(NTDDI_WIN10_VB) && (NTDDI_VERSION >= NTDDI_WIN10_VB)
+			#define HLSL_SM6_6 1
+			shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_6;
+		#elif defined (NTDDI_WIN10_19H1) && (NTDDI_VERSION >= NTDDI_WIN10_19H1)
+			shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_5;
+		#elif defined (NTDDI_WIN10_RS5) && (NTDDI_VERSION >= NTDDI_WIN10_RS5)
+			shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_4;
+		#elif defined (NTDDI_WIN10_RS4) && (NTDDI_VERSION >= NTDDI_WIN10_RS4)
+			shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_2;
+		#elif defined (NTDDI_WIN10_RS3) && (NTDDI_VERSION >= NTDDI_WIN10_RS3)
+			shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_1;
+		#else
+			#define HLSL_USE_SM6_6 0
+			shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_0;
+		#endif
 
 		Capabilities.HighestShaderModel = shaderModel.HighestShaderModel;
 
@@ -161,7 +160,7 @@ namespace lde::RHI
 	void D3D12Device::CreateHeaps()
 	{
 		// Needs to be bigger as is also meant for generating mip chains.
-		m_SRVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 32768, "SRV Descriptor Heap");
+		m_SRVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 65536, "SRV Descriptor Heap");
 		m_DSVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eDSV, 64,    "DSV Descriptor Heap");
 		m_RTVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eRTV, 64,    "RTV Descriptor Heap");
 	}
