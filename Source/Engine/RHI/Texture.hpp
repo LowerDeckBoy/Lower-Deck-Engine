@@ -2,11 +2,6 @@
 
 namespace lde::RHI
 {
-	struct TextureDesc
-	{
-
-	};
-
 	class Texture
 	{
 	public:

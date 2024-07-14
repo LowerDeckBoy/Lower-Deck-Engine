@@ -28,6 +28,8 @@ namespace lde::RHI
 		~D3D12SwapChain();
 
 		IDXGISwapChain4* Get() { return m_SwapChain.Get(); }
+		
+		void Present(bool EnableVSync = false);
 
 		void OnResize(uint32 Width, uint32 Height);
 

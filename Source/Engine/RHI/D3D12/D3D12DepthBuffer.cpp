@@ -43,7 +43,7 @@ namespace lde::RHI
 			&clearValue,
 			IID_PPV_ARGS(&m_Resource)
 		));
-		m_Resource->SetName(L"D3D12 Depth Buffer");
+		SET_D3D12_NAME(m_Resource, "D3D12 Depth Buffer");
 
 		pDevice->CreateDSV(m_Resource.Get(), m_DSV);
 	}

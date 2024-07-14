@@ -1,9 +1,7 @@
 #pragma once
 
-/*
-	RHI/D3D12/D3D12Viewport.hpp
-
-*/
+#include <AgilitySDK/d3d12.h>
+#include "Core/CoreTypes.hpp"
 
 namespace lde::RHI
 {
@@ -28,18 +26,18 @@ namespace lde::RHI
 		{
 			m_Viewport.TopLeftX = 0.0f;
 			m_Viewport.TopLeftY = 0.0f;
-			m_Viewport.Width = static_cast<float>(Width);
-			m_Viewport.Height = static_cast<float>(Height);
+			m_Viewport.Width	= static_cast<float>(Width);
+			m_Viewport.Height	= static_cast<float>(Height);
 			m_Viewport.MinDepth = D3D12_MIN_DEPTH;
 			m_Viewport.MaxDepth = D3D12_MAX_DEPTH;
 		}
 
 		void SetScissor(uint32 Width, uint32 Height)
 		{
-			m_Scissor.left = 0L;
-			m_Scissor.top = 0L;
-			m_Scissor.right = static_cast<uint64>(Width);
-			m_Scissor.bottom = static_cast<uint64>(Height);
+			m_Scissor.left		= 0L;
+			m_Scissor.top		= 0L;
+			m_Scissor.right		= static_cast<uint64>(Width);
+			m_Scissor.bottom	= static_cast<uint64>(Height);
 		}
 
 		D3D12_VIEWPORT GetViewport() const

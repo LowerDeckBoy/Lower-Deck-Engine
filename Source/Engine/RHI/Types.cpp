@@ -18,9 +18,11 @@ namespace lde::RHI
             return L"as_6_6";
         case lde::RHI::ShaderStage::eMesh:
             return L"ms_6_6";
-        case lde::RHI::ShaderStage::eRaytracing:    [[fallthrough]];
-        case lde::RHI::ShaderStage::eClosestHit:    [[fallthrough]];
-        case lde::RHI::ShaderStage::eMiss:          [[fallthrough]];
+        case lde::RHI::ShaderStage::eRaytracing:
+            [[fallthrough]];
+        case lde::RHI::ShaderStage::eClosestHit:
+            [[fallthrough]];
+        case lde::RHI::ShaderStage::eMiss:
             return L"lib_6_6";
         case lde::RHI::ShaderStage::eHull:
             return L"hs_6_6";
