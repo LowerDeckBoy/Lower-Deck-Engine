@@ -49,8 +49,6 @@ namespace lde::RHI
 	
 		HRESULT Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature);
 
-		HRESULT BuildMesh(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature);
-	
 		void SetVS(std::string_view Filepath, std::wstring EntryPoint = L"main");
 		void SetPS(std::string_view Filepath, std::wstring EntryPoint = L"main");
 		void SetGS(std::string_view Filepath, std::wstring EntryPoint = L"main");
@@ -100,4 +98,33 @@ namespace lde::RHI
 		D3D12_BLEND_DESC m_BlendDesc{};
 	
 	};
+
+	typedef struct
+	{
+		ID3D12RootSignature*			pRootSignature;
+		D3D12_SHADER_BYTECODE			AS;
+		D3D12_SHADER_BYTECODE			MS;
+		D3D12_SHADER_BYTECODE			PS;
+		D3D12_BLEND_DESC				BlendState;
+		UINT							SampleMask;
+		D3D12_RASTERIZER_DESC			RasterizerState;
+		D3D12_DEPTH_STENCIL_DESC		DepthStencilState;
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE	PrimitiveTopologyType;
+		UINT							NumRenderTargets;
+		DXGI_FORMAT						RTVFormats[D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT];
+		DXGI_FORMAT						DSVFormat;
+		DXGI_SAMPLE_DESC				SampleDesc;
+		UINT							NodeMask;
+		D3D12_CACHED_PIPELINE_STATE		CachedPSO;
+		D3D12_PIPELINE_STATE_FLAGS		Flags;
+	} MeshPSO;
+
+	class D3D12MeshPipelineBuilder
+	{
+	public:
+
+		HRESULT Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature);
+
+	};
+
 } // namespace lde::RHI
