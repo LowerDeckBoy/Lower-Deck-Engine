@@ -142,18 +142,22 @@ namespace lde
 			if (m_Ptr) delete m_Ptr;
 		}
 	private:
-		T* m_Ptr{ nullptr };
+		T* m_Ptr = nullptr;
 
 		void AddRef()
 		{
 			if (m_Ptr)
+			{
 				m_Ptr->AddRef();
+			}
 		}
 
 		unsigned long InternalRelease()
 		{
-			unsigned long RefCount{ 0 };
-			if (T* Temp = m_Ptr; Temp)
+			unsigned long RefCount = 0;
+
+			T* Temp = m_Ptr;
+			if (Temp)
 			{
 				m_Ptr = nullptr;
 				RefCount = Temp->Release();

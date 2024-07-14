@@ -25,7 +25,7 @@ namespace lde
 		auto& depthHandle = m_Gfx->SceneDepth->DSV().GetCpuHandle();
 
 		m_Gfx->ClearRenderTarget(rtvHandle);
-		m_Gfx->ClearDepthStencil();
+		//m_Gfx->ClearDepthStencil();
 		m_Gfx->SetRenderTarget(rtvHandle, &depthHandle);
 
 		pSkybox->Draw(-1, pCamera);

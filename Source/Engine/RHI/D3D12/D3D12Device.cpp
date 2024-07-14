@@ -149,6 +149,21 @@ namespace lde::RHI
 		}
 	}
 
+	D3D12Buffer* D3D12Device::GetBuffer(uint32 Index)
+	{
+		return Buffers.at(Index);
+	}
+
+	D3D12ConstantBuffer* D3D12Device::GetConstantBuffer(uint32 Index)
+	{
+		return ConstantBuffers.at(Index);
+	}
+
+	D3D12Texture* D3D12Device::GetTexture(uint32 Index)
+	{
+		return Textures.at(Index);
+	}
+
 	BufferHandle D3D12Device::CreateBuffer(BufferDesc Desc)
 	{
 		BufferHandle handle = static_cast<BufferHandle>(Buffers.size());

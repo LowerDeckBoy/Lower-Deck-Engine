@@ -6,11 +6,20 @@
 namespace lde
 {
 	class Model;
+	class SceneCamera;
+	class Scene;
+	class Skybox;
 }
 
 namespace lde::RHI
 {
 	class D3D12Device;
+
+	struct GeometryInfo
+	{
+		uint32 VertexOffset;
+		uint32 IndexOffset;
+	};
 
 	class D3D12RaytracingBLAS
 	{
@@ -21,8 +30,7 @@ namespace lde::RHI
 		Ref<ID3D12Resource> ResultBuffer;
 		uint64 ScratchSize = 0;
 		uint64 ResultSize = 0;
-
-		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS BuildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
+		
 	};
 
 	class D3D12RaytracingTLAS
@@ -55,7 +63,6 @@ namespace lde::RHI
 		D3D12Descriptor SRV;
 
 	};
-
 
 	class TableRecord
 	{
@@ -115,7 +122,7 @@ namespace lde::RHI
 	class D3D12Raytracing
 	{
 	public:
-		D3D12Raytracing(D3D12Device* pDevice);
+		D3D12Raytracing(D3D12Device* pDevice, SceneCamera* pCamera, Skybox* pSkybox);
 		~D3D12Raytracing();
 
 		void Release();
@@ -128,15 +135,16 @@ namespace lde::RHI
 		void BuildShaders();
 		void CreateRootSignature();
 		void CreateSceneUAV();
-		// https://github.com/acmarrs/IntroToDXR/blob/master/src/Graphics.cpp#L1163
 		void CreateStateObject();
-		void BuildShaderTable();
+		void BuildShaderTable(Scene* pScene);
 
 		D3D12RaytracingTLAS TLAS;
 		// Output resource; UAV.
 		D3D12Texture* m_SceneOutput;
 	private:
 		D3D12Device* m_Device = nullptr; // Parent Device
+		SceneCamera* m_Camera = nullptr;
+		Skybox* m_Skybox = nullptr;
 
 		Ref<ID3D12StateObject>				m_StateObject;
 		Ref<ID3D12StateObjectProperties>	m_StateObjectProperties;
@@ -148,11 +156,12 @@ namespace lde::RHI
 			Shader* Miss;
 		} Shaders;
 		
+		// Local Root Signatures are not needed for now.
 		struct 
 		{
 			D3D12RootSignature* Global;
-			D3D12RootSignature* ClosestHit;
-			D3D12RootSignature* Miss;
+			//D3D12RootSignature* ClosestHit;
+			//D3D12RootSignature* Miss;
 		} RootSignatures;
 
 		struct
@@ -172,6 +181,7 @@ namespace lde::RHI
 
 	};
 
+	// TODO:
 	class D3D12StateObjectBuilder
 	{
 	public:

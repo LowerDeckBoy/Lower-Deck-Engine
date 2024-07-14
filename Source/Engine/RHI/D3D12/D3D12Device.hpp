@@ -59,7 +59,7 @@ namespace lde::RHI
 	public:
 		D3D12Device();
 		~D3D12Device();
-
+		
 		IDXGIFactory7* GetFactory() { return m_Factory.Get(); }
 		IDXGIAdapter4* GetAdapter() { return m_Adapter.Get(); }
 		ID3D12Device8* GetDevice()  { return m_Device.Get();  }
@@ -163,6 +163,9 @@ namespace lde::RHI
 		std::vector<D3D12ConstantBuffer*>	ConstantBuffers;
 		std::vector<D3D12Texture*>			Textures;
 
+		D3D12Buffer*			GetBuffer(uint32 Index);
+		D3D12ConstantBuffer*	GetConstantBuffer(uint32 Index);
+		D3D12Texture*			GetTexture(uint32 Index);
 		/* ======================== RHI implementations ======================== */
 
 		BufferHandle	CreateBuffer(BufferDesc Desc) override final;
@@ -180,6 +183,8 @@ namespace lde::RHI
 		void CreateUAV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 MipSlice, uint32 Count);
 		void CreateRTV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, DXGI_FORMAT Format);
 		void CreateDSV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, DXGI_FORMAT Format = DXGI_FORMAT_D32_FLOAT);
+
+		void CreateTlasSRV();
 
 	private:
 

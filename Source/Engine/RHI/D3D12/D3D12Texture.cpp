@@ -33,7 +33,8 @@ namespace lde::RHI
 		clearValue.Color[0] = ClearColor.at(0);
 		clearValue.Color[1] = ClearColor.at(1);
 		clearValue.Color[2] = ClearColor.at(2);
-		clearValue.Color[3] = 1.0f;
+		clearValue.Color[3] = ClearColor.at(3);
+		//clearValue.Color[3] = 1.0f;
 		clearValue.Format   = Format;
 
 		D3D12_RESOURCE_DESC desc{};
@@ -54,10 +55,11 @@ namespace lde::RHI
 			&clearValue,
 			IID_PPV_ARGS(&Texture)));
 
-		Texture->SetName(String::ToWide(DebugName).c_str());
+		//Texture->SetName(String::ToWide(DebugName).c_str());
+		Texture->SetName(L"Light Pass Render Texture");
 
 		pGfx->Device->CreateRTV(Texture.Get(), GetRTV(), Format);
-		pGfx->Device->CreateSRV(Texture.Get(), m_SRV, 1, 1);
+		pGfx->Device->CreateSRV(Texture.Get(), GetSRV(), 1, 1);
 
 		m_Format = Format;
 		m_Gfx = pGfx;
@@ -99,7 +101,7 @@ namespace lde::RHI
 		Texture->SetName(String::ToWide(DebugName).c_str());
 
 		pGfx->Device->CreateRTV(Texture.Get(), GetRTV(), Format);
-		pGfx->Device->CreateSRV(Texture.Get(), m_SRV, 1, 1);
+		pGfx->Device->CreateSRV(Texture.Get(), GetSRV(), 1, 1);
 
 		m_Format = Format;
 		m_Gfx = pGfx;
@@ -135,10 +137,12 @@ namespace lde::RHI
 			&desc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			&clearValue,
-			IID_PPV_ARGS(Texture.ReleaseAndGetAddressOf())));
+			IID_PPV_ARGS(Texture.GetAddressOf())));
+
+		Texture->SetName(L"Light Pass Render Texture");
 
 		m_Gfx->Device->CreateRTV(Texture.Get(), m_RTV, m_Format);
-		m_Gfx->Device->CreateSRV(Texture.Get(), m_SRV, 1, 1);
+		m_Gfx->Device->CreateSRV(Texture.Get(), GetSRV(), 1, 1);
 
 	}
 } // namespace lde::RHI

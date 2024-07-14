@@ -30,5 +30,7 @@ namespace lde
 	private:
 		std::unique_ptr<Mesh> m_Mesh;
 
+		std::vector<Material> m_Materials;
+
 	};
 } // namespace lde

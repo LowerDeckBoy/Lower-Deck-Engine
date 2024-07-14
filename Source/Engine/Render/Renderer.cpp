@@ -40,8 +40,8 @@ namespace lde
 		//SceneImage.Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, "Scene final image");
 		SceneImage.Initialize(m_Gfx, DXGI_FORMAT_R32G32B32A32_FLOAT, "Scene final image");
 
-		m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/newport_loft.hdr");
-		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/environment.hdr");
+		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/newport_loft.hdr");
+		m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/environment.hdr");
 		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/kloofendal_48d_partly_cloudy_puresky_2k.hdr");
 		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/san_giuseppe_bridge_4k.hdr");
 		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/animestyled_hdr.hdr");
@@ -80,36 +80,23 @@ namespace lde
 		{
 			m_Gfx->SetRootSignature(&m_LightRS);
 			m_Gfx->SetPipeline(&m_LightPSO);
-			m_Gfx->TransitResource(m_Gfx->SceneDepth->Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_GENERIC_READ);
 			m_LightPass->Render(m_ActiveScene->GetCamera(), m_GBufferPass, m_Skybox.get(), m_ActiveScene);
-			m_Gfx->TransitResource(m_Gfx->SceneDepth->Get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		}	
-
-		//m_Gfx->TransitResource(SceneImage.Get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COPY_DEST);
-		//m_Gfx->TransitResource(m_LightPass->GetRenderTexture()->Get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COPY_SOURCE);
-		//m_Gfx->CopyResource(SceneImage.Get(), m_LightPass->GetRenderTexture()->Get());
-		//m_Gfx->TransitResource(SceneImage.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		//m_Gfx->TransitResource(m_LightPass->GetRenderTexture()->Get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_GENERIC_READ);
-
-		//m_Gfx->SetRenderTarget(SceneImage.GetRTV().GetCpuHandle(), &m_Gfx->SceneDepth->DSV().GetCpuHandle());
-		//m_Gfx->ClearRenderTarget(SceneImage.GetRTV().GetCpuHandle());
-		//m_Gfx->ClearDepthStencil();
 
 		// Sky Pass
 		{
 			m_Gfx->SetRootSignature(&m_SkyboxRS);
 			m_Gfx->SetPipeline(&m_SkyboxPSO);
-			//m_Gfx->ClearDepthStencil();
 			m_Skybox->Draw(-1, m_ActiveScene->GetCamera()); 
 		}
 		
-			m_Gfx->TransitResource(SceneImage.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
+		m_Gfx->TransitResource(SceneImage.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
+
 		//RaytracingCtx->DispatchRaytrace();
 
 		//m_Gfx->SetViewport();
 		m_Gfx->SetMainRenderTarget();
 		m_Gfx->ClearMainRenderTarget();
-		//m_Gfx->ClearDepthStencil();
 
 	}
 
@@ -300,8 +287,6 @@ namespace lde
 		}
 
 		return SceneImage.GetSRV().GetGpuHandle().ptr;
-		//return m_GBufferPass->GetRenderTargets().at(GBuffers::eBaseColor).GetSRV().GetGpuHandle().ptr;
-		//return m_LightPass->GetRenderTexture()->GetSRV().GetGpuHandle().ptr;
 	}
 
 } // namespace lde

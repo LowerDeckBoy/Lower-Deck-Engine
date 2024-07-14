@@ -37,7 +37,7 @@ namespace lde
 			psoBuilder.SetVS("Shaders/Deferred/GBuffer.hlsl", L"VSmain");
 			psoBuilder.SetPS( "Shaders/Deferred/GBuffer.hlsl", L"PSmain");
 			psoBuilder.EnableDepth(true);
-			psoBuilder.SetCullMode(RHI::CullMode::eNone);
+			psoBuilder.SetCullMode(RHI::CullMode::eBack);
 			std::array<DXGI_FORMAT, (usize)GBuffers::COUNT> formats =
 			{
 				m_RenderTargets.at(GBuffers::eDepth).GetFormat(),

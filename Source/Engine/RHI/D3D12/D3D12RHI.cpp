@@ -47,10 +47,12 @@ namespace lde::RHI
 	void D3D12RHI::Present(bool bVSync)
 	{
 		TransitResource(SwapChain->GetBackbuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+
 		Device->ExecuteCommandList(CommandType::eGraphics, true);
+
 		DX_CALL(Device->GetGfxCommandList()->Close());
 
-		DX_CALL(SwapChain->Get()->Present((bVSync ? 1 : 0), 0));
+		SwapChain->Present(bVSync);
 
 		MoveToNextFrame();
 	}
@@ -62,14 +64,14 @@ namespace lde::RHI
 		D3D12MA::ALLOCATOR_DESC desc{};
 		desc.pAdapter = Device->GetAdapter();
 		desc.pDevice  = Device->GetDevice();
-
+		
 		DX_CALL(D3D12MA::CreateAllocator(&desc, &D3D12Memory::Allocator));
 
 		SwapChain = std::make_unique<D3D12SwapChain>(Device.get(), Device->GetGfxQueue(), lde::Window::Width, lde::Window::Height);
 
 		SceneViewport = new D3D12Viewport(lde::Window::Width, lde::Window::Height);
 
-		SceneDepth = new D3D12DepthBuffer(Device.get(), Device->GetDSVHeap(), SceneViewport);
+		SceneDepth = new D3D12DepthBuffer(Device.get(), SceneViewport);
 
 		LOG_INFO("Backend: D3D12 initialized.");
 	}
@@ -95,6 +97,7 @@ namespace lde::RHI
 			buffer->Release();
 			delete buffer;
 		}
+
 		SAFE_RELEASE(D3D12Memory::Allocator);
 		Device.reset();
 		LOG_INFO("Backend: D3D12 released.");
@@ -103,8 +106,8 @@ namespace lde::RHI
 	uint32 D3D12RHI::QueryAdapterMemory() const
 	{
 		DXGI_QUERY_VIDEO_MEMORY_INFO memoryInfo{};
-		Device->GetAdapter()->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &memoryInfo);
-
+		Device->GetAdapter()->QueryVideoMemoryInfo(DEVICE_NODE, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &memoryInfo);
+		
 		return static_cast<uint32>(memoryInfo.CurrentUsage / 1024 / 1024);
 	}
 
@@ -114,7 +117,7 @@ namespace lde::RHI
 
 		Device->GetFence()->Signal(Device->GetGfxQueue(), Device->GetFence()->GetValue());
 
-		FRAME_INDEX = SwapChain->Get()->GetCurrentBackBufferIndex();
+		//FRAME_INDEX = SwapChain->Get()->GetCurrentBackBufferIndex();
 
 		if (Device->GetFence()->IsValueCompleted(Device->GetFence()->GetValue()))
 		{
@@ -143,8 +146,8 @@ namespace lde::RHI
 		Device->GetFence()->OnResize();
 
 		SceneViewport->Set(Width, Height);
-		SceneDepth->OnResize(Device->GetDSVHeap(), SceneViewport);
 		SwapChain->OnResize(Width, Height);
+		SceneDepth->OnResize(SceneViewport);
 
 		Device->ExecuteAllCommandLists(false);
 	}
@@ -152,7 +155,7 @@ namespace lde::RHI
 	void D3D12RHI::SetMainRenderTarget() const
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = SwapChain->RTVHeap()->CpuStartHandle();
-		rtvHandle.ptr += FRAME_INDEX * SwapChain->RTVHeap()->GetDescriptorSize();
+		rtvHandle.ptr += static_cast<uint64>(FRAME_INDEX * SwapChain->RTVHeap()->GetDescriptorSize());
 
 		const auto& depthHandle = SceneDepth->DSV().GetCpuHandle();
 
@@ -162,7 +165,7 @@ namespace lde::RHI
 	void D3D12RHI::ClearMainRenderTarget() const
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = SwapChain->RTVHeap()->CpuStartHandle();
-		rtvHandle.ptr += FRAME_INDEX * SwapChain->RTVHeap()->GetDescriptorSize();
+		rtvHandle.ptr += static_cast<uint64>(FRAME_INDEX * SwapChain->RTVHeap()->GetDescriptorSize());
 		
 		Device->GetGfxCommandList()->Get()->ClearRenderTargetView(rtvHandle, ClearColor.data(), 0, nullptr);
 	}
@@ -188,7 +191,7 @@ namespace lde::RHI
 
 	void D3D12RHI::SetRenderTargets(std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>& RtvCpuHandles, D3D12_CPU_DESCRIPTOR_HANDLE DepthCpuHandle)
 	{
-		Device->GetGfxCommandList()->Get()->OMSetRenderTargets(static_cast<uint32>(RtvCpuHandles.size()), RtvCpuHandles.data(), TRUE, &DepthCpuHandle);
+		Device->GetGfxCommandList()->Get()->OMSetRenderTargets(static_cast<uint32>(RtvCpuHandles.size()), RtvCpuHandles.data(), FALSE, &DepthCpuHandle);
 	}
 
 	void D3D12RHI::ClearRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE RtvCpuHandle)
@@ -207,12 +210,7 @@ namespace lde::RHI
 			Device->GetGfxCommandList()->Get()->SetComputeRootSignature(pRootSignature->Get());
 		}
 	}
-
-	void D3D12RHI::SetRootSignature(ID3D12RootSignature* pRootSignature) const
-	{
-		Device->GetGfxCommandList()->Get()->SetGraphicsRootSignature(pRootSignature);
-	}
-
+	
 	void D3D12RHI::SetPipeline(D3D12PipelineState* pPipelineState) const
 	{
 		Device->GetGfxCommandList()->Get()->SetPipelineState(pPipelineState->Get());

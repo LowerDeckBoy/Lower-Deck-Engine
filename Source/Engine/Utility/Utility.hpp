@@ -13,8 +13,6 @@ namespace lde::Utility
 	class MemoryUsage
 	{
 	public:
-		/// @brief 
-		/// @return 
 		static float ReadRAM()
 		{
 			::MEMORYSTATUSEX mem{};

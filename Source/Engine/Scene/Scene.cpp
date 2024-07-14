@@ -32,7 +32,7 @@ namespace lde
 		AddPointLight(XMFLOAT3(0.0f, 1.0f, 0.5f));
 		AddPointLight(XMFLOAT3(5.0f, 1.0f, 0.5f));
 
-		AddDirectionalLight();
+		//AddDirectionalLight();
 
 	}
 
@@ -54,9 +54,9 @@ namespace lde
 		auto* commandList = m_Gfx->Device->GetGfxCommandList();
 		commandList->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		
-		auto* indexBuffer  = m_Gfx->Device->Buffers.at(pModel.GetMesh()->IndexBuffer);
-		auto* vertexBuffer = m_Gfx->Device->Buffers.at(pModel.GetMesh()->VertexBuffer);
-		auto* constBuffer  = m_Gfx->Device->ConstantBuffers.at(pModel.GetMesh()->ConstBuffer);
+		auto* indexBuffer	= m_Gfx->Device->GetBuffer(pModel.GetMesh()->IndexBuffer);
+		auto* vertexBuffer	= m_Gfx->Device->GetBuffer(pModel.GetMesh()->VertexBuffer);
+		auto* constBuffer	= m_Gfx->Device->GetConstantBuffer(pModel.GetMesh()->ConstBuffer);
 
 		auto& transform = pModel.GetComponent<TransformComponent>();
 
@@ -107,7 +107,7 @@ namespace lde
 	{
 		Entity* newLight = new Entity();
 		newLight->Create(m_World);
-		newLight->AddComponent<TagComponent>(std::format("Point Light #{}", PointLights.size()).c_str());
+		newLight->AddComponent<TagComponent>(std::format("Point Light {}", PointLights.size()).c_str());
 		newLight->AddComponent<PointLightComponent>(Position);
 		
 		PointLights.push_back(newLight);
@@ -117,8 +117,9 @@ namespace lde
 	{
 		Entity* newLight = new Entity();
 		newLight->Create(m_World);
-		newLight->AddComponent<TagComponent>(std::format("Directional Light #{}", DirectionalLights.size()).c_str());
+		newLight->AddComponent<TagComponent>(std::format("Directional Light {}", DirectionalLights.size()).c_str());
 		newLight->AddComponent<DirectionalLightComponent>(Direction);
+		//newLight->AddComponent<DirectionalLightShadowMap>();
 
 		DirectionalLights.push_back(newLight);
 	}

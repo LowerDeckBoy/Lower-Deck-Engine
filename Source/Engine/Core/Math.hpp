@@ -10,7 +10,7 @@ namespace lde
 {
 #define ALIGN(Value, Alignment) (Value + (Alignment - 1)) & ~(Alignment - 1)
 
-	constexpr const float PI		= 3.1215926535f;
+	constexpr const float PI		= 3.1415926535f;
 	constexpr const float TwoPI		= 2.0f * PI;
 	//constexpr const float Epsilon	= 0.000001f;
 	constexpr const float Rad2Deg	= 57.29578f;

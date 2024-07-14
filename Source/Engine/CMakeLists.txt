@@ -30,7 +30,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 # MSVC is a preferable compiler
 if (MSVC)
-	# Can't set /W4 directly without getting a heck lot of warnings
+	# Can't set /W4 directly without getting a heck lot of warnings; 
 	string(REGEX REPLACE "/W[1-3]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 	# In order to properly set O2 and Ot flags RTC must be disabled
 	string(REGEX REPLACE "/RTC(su|[1su])" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
@@ -40,9 +40,12 @@ elseif (${CMAKE_CXX_COMPILER_ID} MATCHES "CLANG") # Add Clang specific compiler 
 endif()
 
 find_package(assimp CONFIG REQUIRED)
+find_package(directxmesh CONFIG REQUIRED)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/Third-party)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC d3d12 dxgi dxguid dinput8)
 target_link_libraries(${PROJECT_NAME} PUBLIC assimp::assimp)
+target_link_libraries(${PROJECT_NAME} PUBLIC Microsoft::DirectXMesh)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/Third-party/Libs/meshoptimizer/meshoptimizer.lib)

@@ -62,7 +62,7 @@ namespace lde::RHI
 
 		void OnResize(uint32 Width, uint32 Height);
 
-		D3D12Descriptor& GetSRV() { return m_SRV; }
+		D3D12Descriptor& GetSRV() { return SRV; }
 		D3D12Descriptor& GetRTV() { return m_RTV; }
 		D3D12Descriptor& GetDSV() { return m_DSV; }
 
@@ -80,7 +80,7 @@ namespace lde::RHI
 		//Ref<ID3D12Resource> m_Texture;
 		//DXGI_FORMAT m_Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-		D3D12Descriptor m_SRV;
+		//D3D12Descriptor m_SRV;
 		D3D12Descriptor m_RTV;
 		D3D12Descriptor m_DSV; // Shadow maps
 

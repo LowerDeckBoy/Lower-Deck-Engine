@@ -46,6 +46,5 @@ namespace lde
 #if EDITOR_MODE
 		std::unique_ptr<editor::Editor> m_Editor;
 #endif
-
 	};
 }

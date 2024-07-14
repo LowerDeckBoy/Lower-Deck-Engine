@@ -46,8 +46,10 @@ namespace lde
 	
 		void Update()
 		{
-			WorldMatrix = XMMatrixIdentity();
-			WorldMatrix = XMMatrixScalingFromVector(XMLoadFloat3(&Scale)) * XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&Rotation))		*XMMatrixTranslationFromVector(XMLoadFloat3(&Translation));
+			WorldMatrix = 
+				XMMatrixScalingFromVector(XMLoadFloat3(&Scale)) * 
+				XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&Rotation))	*
+				XMMatrixTranslationFromVector(XMLoadFloat3(&Translation));
 		}
 		
 		void Reset()

@@ -35,8 +35,7 @@ namespace lde::RHI
 	public:
 		D3D12RHI();
 		~D3D12RHI();
-
-		
+	
 		void BeginFrame() override;
 		void RecordCommandLists() override;
 		void Update() override;
@@ -55,8 +54,6 @@ namespace lde::RHI
 		 */
 		SwapChain* GetSwapChain() override { return ((D3D12SwapChain*)SwapChain.get()); }
 
-		//CommandList* GetGfxCommandList() override { return (D3D12CommandList*)Device->GetGfxCommandList()->Get(); }
-		
 		void Initialize();
 		void Release();
 
@@ -65,10 +62,7 @@ namespace lde::RHI
 		std::unique_ptr<D3D12Device>	Device;
 		std::unique_ptr<D3D12SwapChain> SwapChain;
 		
-		/// @brief Scene viewport
 		D3D12Viewport* SceneViewport = nullptr;
-
-		/// @brief 
 		D3D12DepthBuffer* SceneDepth = nullptr;
 		
 		uint32 QueryAdapterMemory() const;
@@ -92,7 +86,6 @@ namespace lde::RHI
 		void SetViewport() const;
 
 		void SetRootSignature(D3D12RootSignature* pRootSignature) const;
-		void SetRootSignature(ID3D12RootSignature* pRootSignature) const;
 		void SetPipeline(D3D12PipelineState* pState) const;
 
 		void TransitResource(ID3D12Resource* pResource, D3D12_RESOURCE_STATES Before, D3D12_RESOURCE_STATES After);
@@ -107,7 +100,7 @@ namespace lde::RHI
 
 		void BindIndexBuffer(Buffer* pIndexBuffer) const;
 		void BindIndexBuffer(D3D12_INDEX_BUFFER_VIEW View) const;
-		/* For non-bindless only */
+		// For non-bindless only
 		void BindVertexBuffers(std::span<D3D12Buffer*> pIndexBuffers, uint32 StartSlot) const;
 		void BindConstantBuffer(ConstantBuffer* pConstBuffer, uint32 Slot);
 

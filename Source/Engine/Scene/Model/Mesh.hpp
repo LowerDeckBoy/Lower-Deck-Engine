@@ -4,25 +4,25 @@
 
 */
 
+#include "RHI/D3D12/D3D12Buffer.hpp"
+#include "RHI/D3D12/D3D12Device.hpp"
 #include <Core/CoreMinimal.hpp>
 #include <DirectXMath.h>
 #include <vector>
-#include "RHI/D3D12/D3D12Buffer.hpp"
 
 namespace lde
 {
-
 	class D3D12Texture;
 	
 	using namespace DirectX;
 	
 	struct Vertex
 	{
-		XMFLOAT3 Position;
-		XMFLOAT2 TexCoord;
-		XMFLOAT3 Normal;
-		XMFLOAT3 Tangent;
-		XMFLOAT3 BiTangent;
+		XMFLOAT3 Position	= XMFLOAT3(0.0f, 0.0f, 0.0f);
+		XMFLOAT2 TexCoord	= XMFLOAT2(0.0f, 0.0f);
+		XMFLOAT3 Normal		= XMFLOAT3(0.0f, 0.0f, 0.0f);
+		XMFLOAT3 Tangent	= XMFLOAT3(0.0f, 0.0f, 0.0f);
+		XMFLOAT3 Bitangent	= XMFLOAT3(0.0f, 0.0f, 0.0f);
 	};
 	
 	struct Material
@@ -32,7 +32,7 @@ namespace lde
 		int32 MetalRoughnessIndex	= -1;
 		int32 EmissiveIndex			= -1;
 	
-		float MetallicFactor		= 0.5f;
+		float MetallicFactor		= 0.04f;
 		float RoughnessFactor		= 0.5f;
 		float AlphaCutoff			= 0.5f;
 		int32 bDoubleSided			= -1;
@@ -41,31 +41,33 @@ namespace lde
 		XMFLOAT4 EmissiveFactor		= XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	};
 
-	struct SubMesh
-	{
-		uint32		MeshID = UINT_MAX;
-		Material	Mat;
-		XMMATRIX	Matrix		= XMMatrixIdentity();
-		uint32		BaseIndex	= 0;
-		uint32		BaseVertex	= 0;
-		uint32		IndexCount	= 0;
-		uint32		VertexCount	= 0;
-	};
-	
 	struct BoundingBox
 	{
 		XMFLOAT3 Min = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		XMFLOAT3 Max = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	};
+
+	struct Submesh
+	{
+		Material	Material;
+		//XMMATRIX	Matrix		= XMMatrixIdentity();
+		uint32		BaseIndex	= 0;
+		uint32		BaseVertex	= 0;
+		uint32		IndexCount	= 0;
+		uint32		VertexCount	= 0;
+
+		BoundingBox AABB;
+	};
 	
-	// Treat it like a component
 	struct Mesh
 	{
-		Mesh() {}
-		std::string Name = "";
-		std::vector<SubMesh> Submeshes;
-		std::vector<Vertex> Vertices;
-		std::vector<uint32> Indices;
+		Mesh() = default;
+		std::string				Name = "";
+		std::vector<Submesh>	Submeshes;
+		std::vector<Vertex>		Vertices;
+		std::vector<uint32>		Indices;
+
+		//uint32	MeshID = UINT_MAX;
 
 		BufferHandle VertexBuffer = UINT32_MAX;
 		BufferHandle IndexBuffer  = UINT32_MAX;
@@ -73,21 +75,37 @@ namespace lde
 		RHI::cbPerObject cbData{};
 		D3D12_INDEX_BUFFER_VIEW IndexView{};
 
-		BoundingBox AABB;
+		void Create(class RHI::D3D12Device* pDevice)
+		{
+			VertexBuffer = pDevice->CreateBuffer(
+				RHI::BufferDesc{
+					RHI::BufferUsage::eStructured,
+					Vertices.data(),
+					static_cast<uint32>(Vertices.size()),
+					Vertices.size() * sizeof(Vertices.at(0)),
+					static_cast<uint32>(sizeof(Vertices.at(0))),
+					true
+				});
 
-		// TEST
-		//std::vector<MeshletDesc> Meshlets;
-		//std::vector<uint8> PrimitiveIndices;
-		//std::vector<uint32> VertexIndices;
-
-		//void Create(class RHI::D3D12Device * pDevice);
+			IndexBuffer = pDevice->CreateBuffer(
+				RHI::BufferDesc{
+					RHI::BufferUsage::eIndex,
+					Indices.data(),
+					static_cast<uint32>(Indices.size()),
+					Indices.size() * sizeof(Indices.at(0)),
+					static_cast<uint32>(sizeof(Indices.at(0)))
+				});
+		}
 	};
 	
 	struct Node
 	{
 		Node* Parent = nullptr;
 		std::vector<Node*> Children;
-		std::string Name;
+
+		Mesh* Mesh = nullptr;
+
+		std::string Name = "";
 	
 		XMMATRIX Matrix		 = XMMatrixIdentity();
 		XMFLOAT3 Translation = XMFLOAT3(0.0f, 0.0f, 0.0f);

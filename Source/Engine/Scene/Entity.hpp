@@ -1,9 +1,5 @@
 #pragma once
 
-/*
-
-*/
-
 //#include <EnTT/entt.hpp>
 #include "World.hpp"
 
@@ -15,8 +11,7 @@ namespace lde
 	{
 	public:
 		Entity() = default;
-		Entity(World* pWorld)
-			: m_World(pWorld)
+		Entity(World* pWorld) : m_World(pWorld)
 		{
 			m_ID = pWorld->CreateEntity();
 		}
@@ -45,7 +40,7 @@ namespace lde
 	
 		bool IsAlive()
 		{
-			return (m_World != nullptr);
+			return m_World != nullptr;
 		}
 	
 		template<typename T>

@@ -1,7 +1,9 @@
 #include "RHI/D3D12/D3D12RHI.hpp"
 #include "TextureManager.hpp"
+#pragma warning(push, 0)
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
+#pragma warning(pop)
 #include <Utility/FileSystem.hpp>
 #include <Core/Logger.hpp>
 #include <Core/String.hpp>
@@ -13,12 +15,12 @@ namespace lde
 	TextureManager::TextureManager()
 	{
 		m_Instance = this;
-		LOG_INFO("TextureManager initialized.");
+		LOG_DEBUG("TextureManager initialized.");
 	}
 
 	TextureManager::~TextureManager()
 	{
-		LOG_INFO("TextureManager released.");
+		LOG_DEBUG("TextureManager released.");
 	}
 
 	TextureManager& TextureManager::GetInstance()
@@ -82,26 +84,24 @@ namespace lde
 
 	void TextureManager::Create2D(RHI::D3D12RHI* pGfx, std::string_view Filepath, RHI::D3D12Texture* pTarget, bool bMipMaps)
 	{
-		//auto path = String::ToWide(Filepath);
-	
-		int32 width, height, channels;
+		int32 width, height, channels = 3;
 		void* pixels = stbi_load(Filepath.data(), &width, &height, &channels, STBI_rgb_alpha);
 		if (!pixels)
 		{
 			::MessageBoxA(nullptr, stbi_failure_reason(), "Error", MB_OK);
 			throw std::runtime_error("");
 		}
-		
+
 		D3D12_RESOURCE_DESC desc{};
-		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		desc.Width = static_cast<uint64_t>(width);
-		desc.Height = static_cast<uint32_t>(height);
-		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		desc.DepthOrArraySize = 1;
-		desc.SampleDesc = { 1, 0 };
-		desc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		desc.Flags = (bMipMaps) ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
+		desc.Dimension			= D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		desc.Width				= static_cast<uint64>(width);
+		desc.Height				= static_cast<uint32>(height);
+		desc.Format				= DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.DepthOrArraySize	= 1;
+		desc.SampleDesc			= { 1, 0 };
+		desc.Alignment			= D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+		desc.Layout				= D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		desc.Flags				= (bMipMaps) ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 	
 		const uint16 mipCount = (bMipMaps) ? CountMips(static_cast<uint32_t>(desc.Width), desc.Height) : 1;
 		desc.MipLevels = mipCount;
@@ -116,19 +116,18 @@ namespace lde
 		));
 		
 		D3D12_SUBRESOURCE_DATA subresource{};
-		subresource.pData = pixels;
-		subresource.RowPitch = static_cast<LONG_PTR>(desc.Width * 4u);
-		subresource.SlicePitch = static_cast<LONG_PTR>(subresource.RowPitch * desc.Height);
+		subresource.pData		= pixels;
+		subresource.RowPitch	= static_cast<LONG_PTR>(desc.Width * 4u);
+		subresource.SlicePitch	= static_cast<LONG_PTR>(subresource.RowPitch * desc.Height);
 
-		//const auto uploadBuffer = CD3DX12_RESOURCE_DESC::Buffer(subresource.SlicePitch);
 		D3D12_RESOURCE_DESC uploadBufferDesc{};
-		uploadBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-		uploadBufferDesc.Width = subresource.SlicePitch;
-		uploadBufferDesc.Height = 1;
-		uploadBufferDesc.MipLevels = 1;
-		uploadBufferDesc.DepthOrArraySize = 1;
-		uploadBufferDesc.SampleDesc = { 1, 0 };
-		uploadBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+		uploadBufferDesc.Dimension			= D3D12_RESOURCE_DIMENSION_BUFFER;
+		uploadBufferDesc.Width				= subresource.SlicePitch;
+		uploadBufferDesc.Height				= 1;
+		uploadBufferDesc.MipLevels			= 1;
+		uploadBufferDesc.DepthOrArraySize	= 1;
+		uploadBufferDesc.SampleDesc			= { 1, 0 };
+		uploadBufferDesc.Layout				= D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
 		Ref<ID3D12Resource> uploadResource;
 		RHI::DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
@@ -164,7 +163,7 @@ namespace lde
 	void TextureManager::CreateFromHDR(RHI::D3D12RHI* pGfx, std::string_view Filepath, RHI::D3D12Texture* pTarget)
 	{	
 		int32 width, height, channels = 0;
-
+		
 		stbi_ldr_to_hdr_scale(1.0f);
 		stbi_ldr_to_hdr_gamma(2.2f);
 		float* pixels = stbi_loadf(Filepath.data(), &width, &height, &channels, STBI_rgb_alpha);
@@ -175,15 +174,15 @@ namespace lde
 		}
 
 		D3D12_RESOURCE_DESC desc{};
-		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		desc.Width = static_cast<uint64_t>(width);
-		desc.Height = static_cast<uint32_t>(height);
-		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		desc.MipLevels  = 1;
-		desc.DepthOrArraySize = 1;
-		desc.SampleDesc = { 1, 0 };
-		desc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		desc.Dimension			= D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		desc.Width				= static_cast<uint64>(width);
+		desc.Height				= static_cast<uint32>(height);
+		desc.Format				= DXGI_FORMAT_R32G32B32A32_FLOAT;
+		desc.MipLevels			= 1;
+		desc.DepthOrArraySize	= 1;
+		desc.SampleDesc			= { 1, 0 };
+		desc.Alignment			= D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+		desc.Layout				= D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
 		RHI::DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
 			&RHI::D3D12Utility::HeapDefault,
@@ -195,18 +194,18 @@ namespace lde
 		));
 
 		D3D12_SUBRESOURCE_DATA subresource{};
-		subresource.pData = pixels;
-		subresource.RowPitch = static_cast<LONG_PTR>(desc.Width * 16u);
-		subresource.SlicePitch = static_cast<LONG_PTR>(subresource.RowPitch * desc.Height);
+		subresource.pData		= pixels;
+		subresource.RowPitch	= static_cast<LONG_PTR>(desc.Width * 16u);
+		subresource.SlicePitch	= static_cast<LONG_PTR>(subresource.RowPitch * desc.Height);
 
 		D3D12_RESOURCE_DESC uploadBufferDesc{};
-		uploadBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-		uploadBufferDesc.Width = subresource.SlicePitch;
-		uploadBufferDesc.Height = 1;
-		uploadBufferDesc.MipLevels = 1;
-		uploadBufferDesc.DepthOrArraySize = 1;
-		uploadBufferDesc.SampleDesc = { 1, 0 }; 
-		uploadBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+		uploadBufferDesc.Dimension			= D3D12_RESOURCE_DIMENSION_BUFFER;
+		uploadBufferDesc.Width				= subresource.SlicePitch;
+		uploadBufferDesc.Height				= 1;
+		uploadBufferDesc.MipLevels			= 1;
+		uploadBufferDesc.DepthOrArraySize	= 1;
+		uploadBufferDesc.SampleDesc			= { 1, 0 }; 
+		uploadBufferDesc.Layout				= D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
 		Ref<ID3D12Resource> uploadResource;
 		RHI::DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(

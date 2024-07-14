@@ -1,10 +1,10 @@
 #include "Scene/SceneCamera.hpp"
 #include "Skybox.hpp"
-#include <array>
-#include <RHI/D3D12/D3D12RHI.hpp>
 #include <Core/CoreTypes.hpp>
+#include <RHI/D3D12/D3D12RHI.hpp>
 #include <Graphics/TextureManager.hpp>
 #include <Scene/Components/Components.hpp>
+#include <array>
 
 namespace lde
 {
@@ -17,7 +17,7 @@ namespace lde
         delete Texture;
     }
 
-    void Skybox::Create(RHI::RHI* pRHI, World* pWorld, std::string_view Filepath)
+    void Skybox::Create(RHI::RHI* pRHI, World* pWorld, std::string_view)
     {
         m_Device = (RHI::D3D12Device*)pRHI->GetDevice();
 
@@ -49,7 +49,7 @@ namespace lde
 
     }
 
-    void Skybox::Draw(int32 TextureID, SceneCamera* pCamera)
+    void Skybox::Draw(int32 , SceneCamera* pCamera)
     {
         auto* commandList = m_Device->GetGfxCommandList();
         auto* indexBuffer = m_Device->Buffers.at(m_IndexBuffer);
@@ -66,7 +66,7 @@ namespace lde
         transforms.Update();
 
         // Bind constant buffers
-        m_cbPerObject.WVP = XMMatrixTranspose(transforms.WorldMatrix * pCamera->GetViewProjection());
+        m_cbPerObject.WVP   = XMMatrixTranspose(transforms.WorldMatrix * pCamera->GetViewProjection());
         m_cbPerObject.World = XMMatrixTranspose(transforms.WorldMatrix);
         constBuffer->Update(&m_cbPerObject);
         commandList->BindConstantBuffer(0, constBuffer);

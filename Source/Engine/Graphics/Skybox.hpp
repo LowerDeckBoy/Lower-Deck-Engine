@@ -15,6 +15,7 @@ namespace lde
 {
 	class SceneCamera;
 	
+	// TODO: https://github.com/GPUOpen-LibrariesAndSDKs/Cauldron/blob/master/src/DX12/shaders/SkyDome.hlsl
 	class Skybox : public Entity
 	{
 	public:
@@ -32,16 +33,7 @@ namespace lde
 
 		int32& GetTextureIndex() { return m_TextureIndex; }
 		
-		//struct
-		//{
-		//	RHI::D3D12Texture* Equirectangular	= nullptr;
-		//	RHI::D3D12Texture* TextureCube		= nullptr;
-		//	RHI::D3D12Texture* Irradiance		= nullptr;
-		//	RHI::D3D12Texture* Specular			= nullptr;
-		//	RHI::D3D12Texture* BRDFLookUp		= nullptr;
-		//} Textures;
-		
-		// Equirectangular; pre-transform
+		// Equirectangular; pre-transformed
 		RHI::D3D12Texture* Texture = nullptr;
 		// Actual TextureCube resource
 		RHI::D3D12Texture* TextureCube = nullptr;
@@ -52,6 +44,8 @@ namespace lde
 		// BDRF Look-up Texture
 		RHI::D3D12Texture* BRDFTexture = nullptr;
 
+		int32 BRDF_LUT;
+
 	private:
 		RHI::D3D12Device* m_Device = nullptr;
 		
@@ -61,8 +55,6 @@ namespace lde
 		RHI::cbPerObject m_cbPerObject{};
 		
 		int32 m_TextureIndex = -1;
-
-		// PSO here
 
 	};
 } // namespace lde
