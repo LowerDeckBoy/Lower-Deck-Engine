@@ -19,11 +19,17 @@ namespace lde::RHI
 		Release();
 	}
 
+	void D3D12SwapChain::Present(bool EnableVSync)
+	{
+		DX_CALL(m_SwapChain->Present(EnableVSync ? 1 : 0, EnableVSync ? 0 : DXGI_PRESENT_ALLOW_TEARING));
+		FRAME_INDEX = m_SwapChain->GetCurrentBackBufferIndex();
+	}
+
 	void D3D12SwapChain::OnResize(uint32 Width, uint32 Height)
 	{
 		ReleaseBackbuffers();
 
-		DX_CALL(m_SwapChain->ResizeBuffers(FRAME_COUNT, Width, Height, m_Format, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING));
+		DX_CALL(m_SwapChain->ResizeBuffers(FRAME_COUNT, Width, Height, m_Format, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING));
 
 		FRAME_INDEX = 0;
 
@@ -54,7 +60,6 @@ namespace lde::RHI
 
 		m_SwapChain = static_cast<IDXGISwapChain4*>(swapChain);
 		SAFE_DELETE(swapChain);
-
 		CreateBackbuffers();
 		FRAME_INDEX = m_SwapChain->GetCurrentBackBufferIndex();
 
@@ -62,6 +67,7 @@ namespace lde::RHI
 
 	void D3D12SwapChain::Release()
 	{
+		//m_SwapChain->SetFullscreenState(FALSE, nullptr);
 		ReleaseBackbuffers();
 		SAFE_RELEASE(m_SwapChain);
 	}
