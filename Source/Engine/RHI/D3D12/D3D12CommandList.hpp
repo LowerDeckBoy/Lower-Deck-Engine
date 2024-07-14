@@ -70,8 +70,9 @@ namespace lde::RHI
 		void DrawIndexed(uint32 IndexCount, uint32 BaseIndex, uint32 BaseVertex) override;
 		void DrawIndexedInstanced(uint32 Instances, uint32 IndexCount, uint32 BaseIndex, uint32 BaseVertex) override;
 		void Draw(uint32 VertexCount) override;
-		void DrawIndirect(uint32 IndexCount, uint32 VertexCount);
+		void DrawIndirect();
 
+		void DispatchRays(const D3D12_DISPATCH_RAYS_DESC& Desc);
 		void DispatchMesh(uint32 DispatchX, uint32 DispatchY, uint32 DispatchZ);
 
 		void BindVertexBuffer(Buffer* pBuffer) override final;
@@ -123,6 +124,8 @@ namespace lde::RHI
 		void AddDispatchRays();
 
 		void AddDrawArgument(uint32 IndexCount, uint32 IndexStart, uint32 VertexStart);
+
+		void Release();
 
 	private:
 		Ref<ID3D12CommandSignature> m_CommandSignature;

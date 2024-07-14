@@ -106,6 +106,11 @@ namespace lde::RHI
 		//m_GraphicsCommandList->ExecuteIndirect()
 	}
 
+	void D3D12CommandList::DispatchRays(const D3D12_DISPATCH_RAYS_DESC& Desc)
+	{
+		m_GraphicsCommandList->DispatchRays(&Desc);
+	}
+
 	void D3D12CommandList::DispatchMesh(uint32 DispatchX, uint32 DispatchY, uint32 DispatchZ)
 	{
 		m_GraphicsCommandList->DispatchMesh(DispatchX, DispatchY, DispatchZ);
@@ -206,11 +211,11 @@ namespace lde::RHI
 	HRESULT D3D12CommandSignature::Create(D3D12Device* pDevice, D3D12RootSignature* pRootSignature)
 	{
 		D3D12_COMMAND_SIGNATURE_DESC desc{};
-		desc.NodeMask = DEVICE_NODE;
-		desc.NumArgumentDescs = static_cast<uint32>(m_Arguments.size());
-		desc.pArgumentDescs = m_Arguments.data();
-		desc.ByteStride = m_Stride;
-
+		desc.NodeMask			= DEVICE_NODE;
+		desc.NumArgumentDescs	= static_cast<uint32>(m_Arguments.size());
+		desc.pArgumentDescs		= m_Arguments.data();
+		desc.ByteStride			= m_Stride;
+		
 		return pDevice->GetDevice()->CreateCommandSignature(&desc, pRootSignature->Get(), IID_PPV_ARGS(&m_CommandSignature));
 	}
 	
@@ -218,9 +223,9 @@ namespace lde::RHI
 	{
 		D3D12_INDIRECT_ARGUMENT_DESC argument{};
 		argument.Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
-		argument.Constant.RootParameterIndex = RootIndex;
-		argument.Constant.Num32BitValuesToSet = Count;
-		argument.Constant.DestOffsetIn32BitValues = Offset;
+		argument.Constant.RootParameterIndex		= RootIndex;
+		argument.Constant.Num32BitValuesToSet		= Count;
+		argument.Constant.DestOffsetIn32BitValues	= Offset;
 
 		m_Stride += Count * sizeof(uint32);
 
@@ -333,6 +338,11 @@ namespace lde::RHI
 		m_DrawArgs.IndexCountPerInstance	= IndexCount;
 		m_DrawArgs.StartIndexLocation		= IndexStart;
 		m_DrawArgs.BaseVertexLocation		= VertexStart;
+	}
+
+	void D3D12CommandSignature::Release()
+	{
+		SAFE_RELEASE(m_CommandSignature);
 	}
 	/**/
 } // namespace lde::RHI
