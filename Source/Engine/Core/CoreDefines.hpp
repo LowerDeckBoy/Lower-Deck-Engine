@@ -22,4 +22,6 @@ namespace lde
 	constexpr const char* BACKEND = "Vulkan";
 #endif
 
+#define RAYTRACING 1
+
 }

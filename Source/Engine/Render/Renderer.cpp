@@ -40,8 +40,8 @@ namespace lde
 		//SceneImage.Initialize(m_Gfx, DXGI_FORMAT_R8G8B8A8_UNORM, "Scene final image");
 		SceneImage.Initialize(m_Gfx, DXGI_FORMAT_R32G32B32A32_FLOAT, "Scene final image");
 
-		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/newport_loft.hdr");
-		m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/environment.hdr");
+		m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/newport_loft.hdr");
+		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/environment.hdr");
 		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/kloofendal_48d_partly_cloudy_puresky_2k.hdr");
 		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/san_giuseppe_bridge_4k.hdr");
 		//m_IBL = std::make_unique<ImageBasedLighting>(m_Gfx, m_Skybox.get(), "Assets/Textures/animestyled_hdr.hdr");
@@ -92,7 +92,9 @@ namespace lde
 		
 		m_Gfx->TransitResource(SceneImage.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
 
-		//RaytracingCtx->DispatchRaytrace();
+	#if RAYTRACING
+		RaytracingCtx->DispatchRaytrace();
+	#endif
 
 		//m_Gfx->SetViewport();
 		m_Gfx->SetMainRenderTarget();
@@ -124,8 +126,9 @@ namespace lde
 
 		m_Skybox->Create(m_Gfx, m_ActiveScene->World(), "Assets/Textures/newport_loft.hdr");
 
-		// TEST
-		//RaytracingCtx = new RHI::D3D12Raytracing(m_Gfx->Device.get(), m_ActiveScene->GetCamera(), m_Skybox.get());
+	#if RAYTRACING
+		RaytracingCtx = new RHI::D3D12Raytracing(m_Gfx->Device.get(), m_ActiveScene->GetCamera(), m_Skybox.get());
+	#endif
 	}
 
 	void Renderer::OnResize(uint32 Width, uint32 Height)
@@ -141,7 +144,9 @@ namespace lde
 
 	void Renderer::Release()
 	{
-		//delete RaytracingCtx;
+	#if RAYTRACING
+		delete RaytracingCtx;
+	#endif
 
 		delete m_SkyPass;
 		delete m_LightPass;
