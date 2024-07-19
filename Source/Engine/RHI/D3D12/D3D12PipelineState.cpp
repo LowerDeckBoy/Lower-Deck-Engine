@@ -232,18 +232,36 @@ namespace lde::RHI
 	}
 	
 	// Mesh
-	HRESULT D3D12MeshPipelineBuilder::Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature)
+	HRESULT D3D12MeshPipelineBuilder::Build(D3D12Device* pDevice, D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature)
 	{
-		MeshPSO pipeline{};
+		
+		if (m_AmplificationShader)
+		{
+			PSODesc.AS = m_AmplificationShader->Bytecode();
+		}
+		if (m_MeshShader)
+		{
+			PSODesc.MS = m_MeshShader->Bytecode();
+		}
+		if (m_PixelShader)
+		{
+			PSODesc.PS = m_PixelShader->Bytecode();
+		}
 
-		pipeline.NodeMask = DEVICE_NODE;
+		PSODesc.NodeMask = DEVICE_NODE;
+
+		PSODesc.RasterizerState = m_RasterizerDesc;
+		PSODesc.DepthStencilState = m_DepthDesc;
+		PSODesc.DSVFormat = m_DepthFormat;
+
+		PSODesc.NumRenderTargets = 1;
+		PSODesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 		D3D12_PIPELINE_STATE_STREAM_DESC streamDesc{};
-		streamDesc.pPipelineStateSubobjectStream = &pipeline;
-		streamDesc.SizeInBytes = sizeof(pipeline);
+		streamDesc.pPipelineStateSubobjectStream = &PSODesc;
+		streamDesc.SizeInBytes = sizeof(PSODesc);
 
-		return HRESULT();
-		//return m_Device->GetDevice()->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&OutPipeline.PipelineState));
+		return pDevice->GetDevice()->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&OutPipeline.PipelineState));
 	}
 
 

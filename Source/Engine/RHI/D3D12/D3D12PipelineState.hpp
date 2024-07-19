@@ -74,13 +74,6 @@ namespace lde::RHI
 		// Number of Render Targets is determine by size of vector.
 		std::vector<DXGI_FORMAT> m_RenderTargetFormats;
 
-		Shader* m_AmplificationShader	= nullptr;
-		Shader* m_MeshShader			= nullptr;
-
-		/*
-			Note: if Mesh shaders are available, other shaders cannot be used!
-		*/
-
 		Shader* m_VertexShader		= nullptr;
 		Shader* m_PixelShader		= nullptr;
 		Shader* m_GeometryShader	= nullptr;
@@ -123,7 +116,28 @@ namespace lde::RHI
 	{
 	public:
 
-		HRESULT Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature);
+		HRESULT Build(D3D12Device* pDevice, D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature);
+
+		void SetAS(std::string_view Filepath, std::wstring EntryPoint = L"ASMain");
+		void SetMS(std::string_view Filepath, std::wstring EntryPoint = L"MSMain");
+		void SetPS(std::string_view Filepath, std::wstring EntryPoint = L"PSMain");
+		
+		MeshPSO PSODesc{};
+
+	private:
+		Shader* m_AmplificationShader = nullptr;
+		Shader* m_MeshShader = nullptr;
+		Shader* m_PixelShader = nullptr;
+
+		D3D12_RASTERIZER_DESC m_RasterizerDesc{};
+		D3D12_CULL_MODE m_CullMode = D3D12_CULL_MODE_BACK;
+		D3D12_FILL_MODE m_FillMode = D3D12_FILL_MODE_SOLID;
+
+		D3D12_DEPTH_STENCIL_DESC m_DepthDesc{};
+		DXGI_FORMAT m_DepthFormat = DXGI_FORMAT_D32_FLOAT;
+
+		D3D12_BLEND_DESC m_BlendDesc{};
+
 
 	};
 
