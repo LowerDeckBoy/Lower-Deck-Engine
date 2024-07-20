@@ -1,8 +1,8 @@
+
 #include "D3D12PipelineState.hpp"
 #include "D3D12Device.hpp"
 #include "D3D12RootSignature.hpp"
 #include "D3D12Utility.hpp"
-#include <AgilitySDK/d3dx12/d3dx12_pipeline_state_stream.h>
 
 namespace lde::RHI
 {
@@ -235,33 +235,63 @@ namespace lde::RHI
 	HRESULT D3D12MeshPipelineBuilder::Build(D3D12Device* pDevice, D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature)
 	{
 		
-		if (m_AmplificationShader)
-		{
-			PSODesc.AS = m_AmplificationShader->Bytecode();
-		}
+		//if (m_AmplificationShader)
+		//{
+		//	Desc.AS = m_AmplificationShader->Bytecode();
+		//}
 		if (m_MeshShader)
 		{
-			PSODesc.MS = m_MeshShader->Bytecode();
+			Desc.MS = m_MeshShader->Bytecode();
 		}
 		if (m_PixelShader)
 		{
-			PSODesc.PS = m_PixelShader->Bytecode();
+			Desc.PS = m_PixelShader->Bytecode();
 		}
+		//Desc.AS = nullptr;
+		// Those are mendatory
+		//assert(m_MeshShader);
+		//assert(m_PixelShader);
 
-		PSODesc.NodeMask = DEVICE_NODE;
+		Desc.pRootSignature = pRootSignature->Get();
 
-		PSODesc.RasterizerState = m_RasterizerDesc;
-		PSODesc.DepthStencilState = m_DepthDesc;
-		PSODesc.DSVFormat = m_DepthFormat;
+		Desc.NodeMask = DEVICE_NODE;
+		Desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
-		PSODesc.NumRenderTargets = 1;
-		PSODesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		Desc.RasterizerState = m_RasterizerDesc;
+		Desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+		Desc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+		Desc.DepthStencilState = m_DepthDesc;
+		Desc.DSVFormat = m_DepthFormat;
 
+		Desc.NumRenderTargets = 1;
+		Desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+		Desc.SampleMask = UINT_MAX;
+		Desc.SampleDesc = { 1, 0 };
+		
+		//D3D12_PIPELINE_STATE_STREAM_DESC meshStream(&PSODesc);
+		auto psoStream = CD3DX12_PIPELINE_MESH_STATE_STREAM(Desc);
+		
 		D3D12_PIPELINE_STATE_STREAM_DESC streamDesc{};
-		streamDesc.pPipelineStateSubobjectStream = &PSODesc;
-		streamDesc.SizeInBytes = sizeof(PSODesc);
+		streamDesc.pPipelineStateSubobjectStream = &psoStream;
+		streamDesc.SizeInBytes = sizeof(psoStream);
 
 		return pDevice->GetDevice()->CreatePipelineState(&streamDesc, IID_PPV_ARGS(&OutPipeline.PipelineState));
+	}
+
+	void D3D12MeshPipelineBuilder::SetAS(std::string_view Filepath, std::wstring EntryPoint)
+	{
+		m_AmplificationShader = new Shader(ShaderCompiler::GetInstance().Compile(Filepath, RHI::ShaderStage::eAmplification, EntryPoint));
+	}
+
+	void D3D12MeshPipelineBuilder::SetMS(std::string_view Filepath, std::wstring EntryPoint)
+	{
+		m_MeshShader = new Shader(ShaderCompiler::GetInstance().Compile(Filepath, RHI::ShaderStage::eMesh, EntryPoint));
+	}
+
+	void D3D12MeshPipelineBuilder::SetPS(std::string_view Filepath, std::wstring EntryPoint)
+	{
+		m_PixelShader = new Shader(ShaderCompiler::GetInstance().Compile(Filepath, RHI::ShaderStage::ePixel, EntryPoint));
 	}
 
 

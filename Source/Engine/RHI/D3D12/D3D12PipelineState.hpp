@@ -10,7 +10,7 @@
 #include <RHI/Types.hpp>
 #include <span>
 #include <vector>
-
+#include <AgilitySDK/d3dx12/d3dx12_pipeline_state_stream.h>
 
 namespace lde::RHI
 {
@@ -92,7 +92,7 @@ namespace lde::RHI
 	
 	};
 
-	typedef struct
+	struct MeshPSO
 	{
 		ID3D12RootSignature*			pRootSignature;
 		D3D12_SHADER_BYTECODE			AS;
@@ -110,7 +110,7 @@ namespace lde::RHI
 		UINT							NodeMask;
 		D3D12_CACHED_PIPELINE_STATE		CachedPSO;
 		D3D12_PIPELINE_STATE_FLAGS		Flags;
-	} MeshPSO;
+	};
 
 	class D3D12MeshPipelineBuilder
 	{
@@ -122,7 +122,7 @@ namespace lde::RHI
 		void SetMS(std::string_view Filepath, std::wstring EntryPoint = L"MSMain");
 		void SetPS(std::string_view Filepath, std::wstring EntryPoint = L"PSMain");
 		
-		MeshPSO PSODesc{};
+		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC Desc{};
 
 	private:
 		Shader* m_AmplificationShader = nullptr;
