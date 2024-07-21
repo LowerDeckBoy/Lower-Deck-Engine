@@ -27,10 +27,30 @@ namespace lde
 
 		std::string Filepath;
 
+
+#if MESH_SHADING
+		std::vector<DirectX::Meshlet>	Meshlets;
+		std::vector<uint32>				UniqueIndices;
+		std::vector<uint8>				UniqueVertexIB;
+		std::vector<MeshletTriangle>	Triangles;
+
+		BufferHandle MeshletBuffer;
+		BufferHandle UniqueVertexIBBuffer;
+		BufferHandle TrianglesBuffer;
+
+		//void Meshletize();
+
+#endif
+
+
+
 	private:
 		std::unique_ptr<Mesh> m_Mesh;
 
 		std::vector<Material> m_Materials;
+
+
+	
 
 	};
 } // namespace lde
