@@ -103,6 +103,7 @@ namespace lde::RHI
 		uint32 offset = GetIndex(Descriptor);
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu = (D3D12_CPU_DESCRIPTOR_HANDLE)(CpuStartHandle().ptr + (offset * m_DescriptorSize));
 		Descriptor.SetCpuHandle(cpu);
+
 		if (Type == HeapType::eSRV)
 		{
 			D3D12_GPU_DESCRIPTOR_HANDLE gpu = (D3D12_GPU_DESCRIPTOR_HANDLE)(GpuStartHandle().ptr + (offset * m_DescriptorSize));
@@ -127,7 +128,12 @@ namespace lde::RHI
 
 	uint32 D3D12DescriptorHeap::GetIndex(D3D12Descriptor& Descriptor) const
 	{
-		return static_cast<uint32>((Descriptor.GetCpuHandle().ptr - m_Heap->GetCPUDescriptorHandleForHeapStart().ptr) / m_DescriptorSize);
+		return static_cast<uint32>((Descriptor.GetCpuHandle().ptr - CpuStartHandle().ptr) / m_DescriptorSize);
+	}
+
+	uint32 D3D12DescriptorHeap::GetIndexFromOffset(D3D12Descriptor& Descriptor, uint32 Offset) const
+	{
+		return static_cast<uint32>((Descriptor.GetCpuHandle().ptr + (usize)(Offset * m_DescriptorSize) - CpuStartHandle().ptr) / m_DescriptorSize);
 	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorHeap::CpuStartHandle() const
@@ -146,7 +152,7 @@ namespace lde::RHI
 
 		m_AvailableCpuPtr = static_cast<uint64>(m_Heap->GetCPUDescriptorHandleForHeapStart().ptr) + m_DescriptorSize;
 
-		//if (Type == HeapType::eShaderVisible)
-		//	m_AvailableGpuPtr = static_cast<uint64>(m_Heap->GetGPUDescriptorHandleForHeapStart().ptr) + m_DescriptorSize;
+		if (Type == HeapType::eSRV)
+			m_AvailableGpuPtr = static_cast<uint64>(m_Heap->GetGPUDescriptorHandleForHeapStart().ptr) + m_DescriptorSize;
 	}
 }

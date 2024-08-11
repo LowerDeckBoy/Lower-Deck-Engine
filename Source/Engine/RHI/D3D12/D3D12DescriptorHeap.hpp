@@ -21,8 +21,6 @@ namespace lde::RHI
 		D3D12DescriptorHeap(D3D12Device* pDevice, HeapType eType, uint32 MaxCapacity, std::string_view DebugName = "");
 		~D3D12DescriptorHeap();
 
-		//void Allocate(D3D12Descriptor& OutDescriptor, HeapType eType);
-
 		D3D12Descriptor Allocate(uint32 Count = 1);
 
 		void Allocate(D3D12Descriptor& Descriptor, uint32 Count = 1);
@@ -37,11 +35,7 @@ namespace lde::RHI
 
 		uint32 GetIndex(D3D12Descriptor& Descriptor) const;
 
-		inline uint32 GetIndexFromOffset(D3D12Descriptor& Descriptor, uint32 Offset)
-		{
-			return static_cast<uint32>(
-				(Descriptor.GetCpuHandle().ptr + (usize)(Offset * m_DescriptorSize) - m_Heap->GetCPUDescriptorHandleForHeapStart().ptr) / m_DescriptorSize);
-		}
+		uint32 GetIndexFromOffset(D3D12Descriptor& Descriptor, uint32 Offset) const;
 
 		D3D12_CPU_DESCRIPTOR_HANDLE CpuStartHandle() const;
 
