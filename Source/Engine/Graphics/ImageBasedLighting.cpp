@@ -271,7 +271,7 @@ namespace lde
 
 	void ImageBasedLighting::CreateDiffuseTexture(Skybox* pSkybox)
 	{
-		const uint32 cubeResolution = 64; // 256
+		const uint32 cubeResolution = 128; // 256
 
 		pSkybox->DiffuseTexture = new RHI::D3D12Texture();
 
