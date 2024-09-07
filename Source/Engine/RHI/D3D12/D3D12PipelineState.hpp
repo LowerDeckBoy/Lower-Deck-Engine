@@ -33,8 +33,8 @@ namespace lde::RHI
 		D3D12RootSignature* RootSignature = nullptr;
 		PipelineType Type{};
 
-		Shader VertexShader;
-		Shader PixelShader;
+		Shader* VertexShader;
+		Shader* PixelShader;
 		Shader DomainShader;
 		Shader HullShader;
 		Shader GeometryShader;
@@ -43,6 +43,7 @@ namespace lde::RHI
 	// Graphics Pipeline State builder class.
 	class D3D12PipelineStateBuilder
 	{
+		
 	public:
 		D3D12PipelineStateBuilder(D3D12Device* pDevice);
 		~D3D12PipelineStateBuilder();
@@ -51,11 +52,7 @@ namespace lde::RHI
 
 		void SetVS(std::string_view Filepath, std::wstring EntryPoint = L"main");
 		void SetPS(std::string_view Filepath, std::wstring EntryPoint = L"main");
-		void SetGS(std::string_view Filepath, std::wstring EntryPoint = L"main");
-		void SetHS(std::string_view Filepath, std::wstring EntryPoint = L"main");
-		void SetTS(std::string_view Filepath, std::wstring EntryPoint = L"main");
-		void SetDS(std::string_view Filepath, std::wstring EntryPoint = L"main");
-	
+
 		void SetCullMode(CullMode eMode);
 	
 		void SetWireframe(bool bEnable);
@@ -73,14 +70,16 @@ namespace lde::RHI
 	
 		// Number of Render Targets is determine by size of vector.
 		std::vector<DXGI_FORMAT> m_RenderTargetFormats;
-
-		Shader* m_VertexShader		= nullptr;
-		Shader* m_PixelShader		= nullptr;
-		Shader* m_GeometryShader	= nullptr;
-		Shader* m_HullShader		= nullptr;
-		Shader* m_TessellationShader= nullptr;
-		Shader* m_DomainShader		= nullptr;
 		
+
+		struct ShaderInfo
+		{
+			std::string_view Filepath;
+			std::wstring EntryPoint;
+		};
+		ShaderInfo m_VS{};
+		ShaderInfo m_PS{};
+
 		D3D12_RASTERIZER_DESC m_RasterizerDesc{};
 		D3D12_CULL_MODE m_CullMode = D3D12_CULL_MODE_BACK;
 		D3D12_FILL_MODE m_FillMode = D3D12_FILL_MODE_SOLID;

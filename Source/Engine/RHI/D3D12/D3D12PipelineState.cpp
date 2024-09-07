@@ -20,7 +20,6 @@ namespace lde::RHI
 	
 	D3D12PipelineStateBuilder::~D3D12PipelineStateBuilder()
 	{
-		Reset();
 	}
 
 	HRESULT D3D12PipelineStateBuilder::Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature)
@@ -42,33 +41,21 @@ namespace lde::RHI
 
 		desc.SampleMask = UINT_MAX;
 
-		// Set Shaders
-		if (m_VertexShader)
+		auto& shaderCompiler = ShaderCompiler::GetInstance();
+
+		// Compile and set Shaders
+		if (!m_VS.Filepath.empty())
 		{
-			desc.VS = m_VertexShader->Bytecode();
+			OutPipeline.VertexShader = new Shader(shaderCompiler.Compile(m_VS.Filepath, ShaderStage::eVertex, m_VS.EntryPoint));
+			desc.VS = OutPipeline.VertexShader->Bytecode();
 		}
-		if (m_PixelShader)
+		if (!m_PS.Filepath.empty())
 		{
-			desc.PS = m_PixelShader->Bytecode();
-		}
-		if (m_GeometryShader)
-		{
-			desc.GS = m_GeometryShader->Bytecode();
-		}
-		if (m_HullShader)
-		{
-			desc.HS = m_HullShader->Bytecode();
-		}
-		if (m_TessellationShader)
-		{
-			//desc.S = m_HullShader->Bytecode();
-		}
-		if (m_DomainShader)
-		{
-			desc.DS = m_DomainShader->Bytecode();
+			OutPipeline.PixelShader = new Shader(shaderCompiler.Compile(m_PS.Filepath, ShaderStage::ePixel, m_PS.EntryPoint));
+			desc.PS = OutPipeline.PixelShader->Bytecode();
 		}
 
-		desc.PrimitiveTopologyType = (m_HullShader) ? D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH : D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		desc.SampleDesc = { 1, 0 };
 
 		// Render Targets
@@ -96,46 +83,16 @@ namespace lde::RHI
 	
 	void D3D12PipelineStateBuilder::SetVS(std::string_view Filepath, std::wstring EntryPoint)
 	{
-		auto& shaderCompiler = ShaderCompiler::GetInstance();
-		if (m_VertexShader) m_VertexShader = nullptr;
-		m_VertexShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eVertex, EntryPoint));
+		m_VS.Filepath	= Filepath;
+		m_VS.EntryPoint	= EntryPoint;
 	}
 	
 	void D3D12PipelineStateBuilder::SetPS(std::string_view Filepath, std::wstring EntryPoint)
 	{
-		auto& shaderCompiler = ShaderCompiler::GetInstance();
-		if (m_PixelShader) m_PixelShader = nullptr;
-		m_PixelShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::ePixel, EntryPoint));
+		m_PS.Filepath = Filepath;
+		m_PS.EntryPoint = EntryPoint;
 	}
 
-	void D3D12PipelineStateBuilder::SetGS(std::string_view Filepath, std::wstring EntryPoint)
-	{
-		auto& shaderCompiler = ShaderCompiler::GetInstance();
-		if (m_GeometryShader) m_GeometryShader = nullptr;
-		m_GeometryShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eGeometry, EntryPoint));
-	}
-
-	void D3D12PipelineStateBuilder::SetHS(std::string_view Filepath, std::wstring EntryPoint)
-	{
-		auto& shaderCompiler = ShaderCompiler::GetInstance();
-		if (m_HullShader) m_HullShader = nullptr;
-		m_HullShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eHull, EntryPoint));
-	}
-
-	void D3D12PipelineStateBuilder::SetTS(std::string_view Filepath, std::wstring EntryPoint)
-	{
-		auto& shaderCompiler = ShaderCompiler::GetInstance();
-		if (m_TessellationShader) m_TessellationShader = nullptr;
-		m_TessellationShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eTessellation, EntryPoint));
-	}
-
-	void D3D12PipelineStateBuilder::SetDS(std::string_view Filepath, std::wstring EntryPoint)
-	{
-		auto& shaderCompiler = ShaderCompiler::GetInstance();
-		if (m_DomainShader) m_DomainShader = nullptr;
-		m_DomainShader = new Shader(shaderCompiler.Compile(Filepath, ShaderStage::eDomain, EntryPoint));
-	}
-	
 	void D3D12PipelineStateBuilder::SetCullMode(CullMode eMode)
 	{
 		switch (eMode)
@@ -176,8 +133,8 @@ namespace lde::RHI
 	
 	void D3D12PipelineStateBuilder::Reset()
 	{
-		m_VertexShader = nullptr;
-		m_PixelShader  = nullptr;
+		m_VS = {};
+		m_PS = {};
 	
 		m_RenderTargetFormats.clear();
 		m_RenderTargetFormats.shrink_to_fit();
@@ -192,12 +149,10 @@ namespace lde::RHI
 		m_DepthDesc.DepthEnable						= TRUE;
 		m_DepthDesc.DepthWriteMask					= D3D12_DEPTH_WRITE_MASK_ALL;
 		m_DepthDesc.DepthFunc						= D3D12_COMPARISON_FUNC_LESS_EQUAL;
-		//m_DepthDesc.DepthFunc						= D3D12_COMPARISON_FUNC_LESS;
 		m_DepthDesc.StencilEnable					= FALSE;
 		m_DepthDesc.StencilReadMask					= D3D12_DEFAULT_STENCIL_READ_MASK;
 		m_DepthDesc.StencilWriteMask				= D3D12_DEFAULT_STENCIL_WRITE_MASK;
-		const D3D12_DEPTH_STENCILOP_DESC defaultStencilOp =
-		{ D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS };
+		const D3D12_DEPTH_STENCILOP_DESC defaultStencilOp = { D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS };
 		m_DepthDesc.FrontFace = defaultStencilOp;
 		m_DepthDesc.BackFace = defaultStencilOp;
 
