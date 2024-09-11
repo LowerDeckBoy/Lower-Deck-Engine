@@ -22,17 +22,17 @@ namespace lde
 		return window->WindowProc(hWnd, msg, wParam, lParam);
 	}
 
-	Window::Window(HINSTANCE hInstance, WindowParameters StartUpParams)
+	Window::Window(WindowParameters StartUpParameters)
 	{
-		//s_hInstance = hInstance;
 		s_hInstance = ::GetModuleHandleA(0);
 
 		window = this;
 
-		m_Parameters = StartUpParams;
-		Width = StartUpParams.Width;
-		Height = StartUpParams.Height;
-		m_Title.append(std::format(" - {} {}", BACKEND, ENGINE_VERSION));
+		m_Parameters	= StartUpParameters;
+		Width			= StartUpParameters.Width;
+		Height			= StartUpParameters.Height;
+
+		m_Title.append(std::format(" {}", ENGINE_VERSION));
 
 	}
 
@@ -43,14 +43,20 @@ namespace lde
 
 	void Window::Create()
 	{
+
+		if (!SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))
+		{
+			::MessageBoxA(nullptr, "Failed to set SetProcessDpiAwarenessContext!", "Warning", MB_OK);
+		}
+
 		::WNDCLASSEX wcex{};
-		wcex.cbSize = sizeof(::WNDCLASSEX);
-		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.hInstance = s_hInstance;
-		wcex.lpszClassName = m_WindowClass;
-		wcex.lpfnWndProc = MsgProc;
+		wcex.cbSize			= sizeof(::WNDCLASSEX);
+		wcex.style			= CS_OWNDC;
+		wcex.hInstance		= s_hInstance;
+		wcex.lpszClassName	= m_WindowClass;
+		wcex.lpfnWndProc	= MsgProc;
 		// Blends to dark mode
-		wcex.hbrBackground = ::CreateSolidBrush(RGB(32, 32, 32));
+		wcex.hbrBackground	= ::CreateSolidBrush(RGB(32, 32, 32));
 
 		if (!::RegisterClassEx(&wcex))
 		{
@@ -60,20 +66,11 @@ namespace lde
 
 		m_WindowRect = { 0, 0, static_cast<LONG>(Width), static_cast<LONG>(Height) };
 		::AdjustWindowRect(&m_WindowRect, WS_OVERLAPPEDWINDOW, false);
-		//WS_EX_NOREDIRECTIONBITMAP
+		
 		const int width = static_cast<int>(m_WindowRect.right - m_WindowRect.left);
 		const int height = static_cast<int>(m_WindowRect.bottom - m_WindowRect.top);
 
-		/*
-		s_hWnd = ::CreateWindow(
-			m_WindowClass, String::ToWide(m_Title).c_str(), 
-			WS_OVERLAPPEDWINDOW,
-			0, 0, width, height, 
-			nullptr, nullptr, 
-			s_hInstance, this);
-		*/
-
-		s_hWnd = ::CreateWindowExW(WS_EX_NOREDIRECTIONBITMAP,
+		s_hWnd = ::CreateWindowExW(WS_EX_OVERLAPPEDWINDOW | WS_EX_NOREDIRECTIONBITMAP,
 			m_WindowClass, String::ToWide(m_Title).c_str(), 
 			WS_OVERLAPPEDWINDOW,
 			0, 0, width, height, 
@@ -84,7 +81,7 @@ namespace lde
 		const int xPos = (::GetSystemMetrics(SM_CXSCREEN) - m_WindowRect.right) / 2;
 		const int yPos = (::GetSystemMetrics(SM_CYSCREEN) - m_WindowRect.bottom) / 2;
 
-		::SetWindowPos(s_hWnd, 0, xPos, yPos, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_FRAMECHANGED);
+		::SetWindowPos(s_hWnd, 0, xPos, yPos, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 
 		BOOL bDarkMode = TRUE;
 		::DwmSetWindowAttribute(s_hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &bDarkMode, sizeof(bDarkMode));
@@ -98,8 +95,15 @@ namespace lde
 	{
 		::UnregisterClass(m_WindowClass, s_hInstance);
 
-		if (s_hWnd)		 s_hWnd = nullptr;
-		if (s_hInstance) s_hInstance = nullptr;
+		if (s_hWnd)		 
+		{
+			s_hWnd = nullptr;
+		}
+
+		if (s_hInstance)
+		{
+			s_hInstance = nullptr;
+		}
 	}
 
 	void Window::OnShow()
@@ -113,13 +117,17 @@ namespace lde
 	void Window::OnCursorShow()
 	{
 		while (::ShowCursor(true) < 0)
+		{
 			bCursorVisible = true;
+		}
 	}
 
 	void Window::OnCursorHide()
 	{
 		while (::ShowCursor(false) >= 0)
+		{
 			bCursorVisible = false;
+		}
 	}
 
 }

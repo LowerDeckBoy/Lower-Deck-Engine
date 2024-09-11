@@ -16,7 +16,7 @@ namespace lde
 	class Window
 	{
 	public:
-		Window(HINSTANCE hInstance, WindowParameters StartUp);
+		Window(WindowParameters StartUpParameters);
 		virtual ~Window();
 
 		void Create();
