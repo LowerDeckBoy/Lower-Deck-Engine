@@ -1,6 +1,5 @@
 #pragma once
 
-// TEMPORAL
 #if defined (_WIN64) || (_WINDOWS)
 	#ifndef WIN32_LEAN_AND_MEAN
 	#define WIN32_LEAN_AND_MEAN
@@ -10,13 +9,17 @@
 #endif
 #include "Timer.hpp"
 
-namespace lde
-{
 #if defined (_WIN64) || (_WINDOWS)
 	#define PLATFORM_WIN64 1
 #else
 	#define PLATFORM_WIN64 0
 #endif
 
+#if WINVER < _WIN32_WINNT_WIN10	
+	#error "Windows version below 10 is not supported!"
+#endif
+
+namespace lde
+{
 
 } // namespace lde
