@@ -30,7 +30,7 @@ namespace lde::editor
 	class Editor
 	{
 	public:
-		Editor(RHI::D3D12RHI* pGfx, Renderer* pRenderer, Timer* pTimer);
+		Editor(D3D12RHI* pGfx, Renderer* pRenderer, Timer* pTimer);
 		~Editor();
 	
 		/// @brief Called before Renderer BeginFrame()
@@ -49,7 +49,7 @@ namespace lde::editor
 		void DrawLogs();
 	
 	private:
-		void Initialize(RHI::D3D12RHI* pGfx, Timer* pTimer);
+		void Initialize(D3D12RHI* pGfx, Timer* pTimer);
 		void Release();
 	
 		void DrawNode(Entity& Entity);
@@ -62,7 +62,7 @@ namespace lde::editor
 		void ClearLogs();
 
 	private:
-		RHI::D3D12RHI*	m_Gfx	= nullptr;
+		D3D12RHI*	m_Gfx	= nullptr;
 		Timer*			m_Timer	= nullptr;
 		Renderer*		m_Renderer = nullptr;
 		Scene*			m_ActiveScene = nullptr;
@@ -77,7 +77,7 @@ namespace lde::editor
 	
 		static bool bSceneOnly;
 
-		std::unique_ptr<RHI::D3D12DescriptorHeap> m_EditorHeap;
+		std::unique_ptr<D3D12DescriptorHeap> m_EditorHeap;
 
 	};
 

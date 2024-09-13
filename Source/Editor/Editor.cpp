@@ -24,7 +24,7 @@ namespace lde::editor
 	constexpr auto EDITOR_FONT		= "Assets/Fonts/CascadiaCode-SemiBold.ttf";
 	constexpr auto ICONS_FONT		= "Assets/Fonts/fa-solid-900.ttf";
 
-	Editor::Editor(RHI::D3D12RHI* pGfx, Renderer* pRenderer, Timer* pTimer)
+	Editor::Editor(D3D12RHI* pGfx, Renderer* pRenderer, Timer* pTimer)
 		: m_Gfx(pGfx), m_Renderer(pRenderer), m_Timer(pTimer)
 	{
 		Initialize(pGfx, pTimer);
@@ -35,7 +35,7 @@ namespace lde::editor
 		Release();
 	}
 
-	void Editor::Initialize(RHI::D3D12RHI* pGfx, Timer* pTimer)
+	void Editor::Initialize(D3D12RHI* pGfx, Timer* pTimer)
 	{
 		m_Gfx = pGfx;
 		m_Timer = pTimer;
@@ -55,7 +55,7 @@ namespace lde::editor
 		IO.ConfigFlags	|= ImGuiConfigFlags_DockingEnable;
 		IO.ConfigFlags	|= ImGuiConfigFlags_ViewportsEnable;
 		
-		//m_EditorHeap = std::make_unique<RHI::D3D12DescriptorHeap>(m_Gfx->Device.get(), RHI::HeapType::eSRV, 32768, "Editor SRV Heap");
+		//m_EditorHeap = std::make_unique<D3D12DescriptorHeap>(m_Gfx->Device.get(), HeapType::eSRV, 32768, "Editor SRV Heap");
 
 		ImGui_ImplWin32_Init(lde::Window::GetHWnd());
 		ImGui_ImplDX12_Init(m_Gfx->Device->GetDevice(),
@@ -338,7 +338,7 @@ namespace lde::editor
 			// Render Outputs; GBuffer etc
 			if (ImGui::BeginMenu(ICON_FA_IMAGES" Render Target"))
 			{
-				if (ImGui::MenuItem("Shaded"))
+				if (ImGui::MenuItem("Shaded", nullptr, true))
 				{
 					m_Renderer->SelectedRenderTarget = RenderOutput::eShaded;
 				}
@@ -369,10 +369,6 @@ namespace lde::editor
 				else if (ImGui::MenuItem("World Position"))
 				{
 					m_Renderer->SelectedRenderTarget = RenderOutput::eWorldPosition;
-				}
-				else if (ImGui::MenuItem("Skybox"))
-				{
-					m_Renderer->SelectedRenderTarget = RenderOutput::eSkybox;
 				}
 				else if (ImGui::MenuItem("Raytracing"))
 				{
