@@ -13,7 +13,7 @@
 #include <RHI/RHICommon.hpp>
 #include <wrl/client.h>
 
-namespace lde::RHI
+namespace lde
 {
 	class D3D12Device;
 	class D3D12Queue;
@@ -61,4 +61,4 @@ namespace lde::RHI
 
 		D3D12Device* m_Device = nullptr; /* Parent Device */
 	};
-}
+} // namespace lde

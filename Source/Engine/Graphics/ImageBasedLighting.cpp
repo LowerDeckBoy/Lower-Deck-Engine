@@ -23,7 +23,7 @@ namespace lde
 		eSampling = 2
 	};
 
-	ImageBasedLighting::ImageBasedLighting(RHI::D3D12RHI* pRHI, Skybox* pSkybox, std::string_view Filepath)
+	ImageBasedLighting::ImageBasedLighting(D3D12RHI* pRHI, Skybox* pSkybox, std::string_view Filepath)
 		: m_Gfx(pRHI)
 	{
 		CreateComputeStates();
@@ -56,21 +56,21 @@ namespace lde
 	{
 		// Common Root Signature
 		{
-			m_Pipelines.ComputeRS = new RHI::D3D12RootSignature();
+			m_Pipelines.ComputeRS = new D3D12RootSignature();
 			m_Pipelines.ComputeRS->AddConstants(1, BindingSlot::eSRV, 0);
 			m_Pipelines.ComputeRS->AddConstants(1, BindingSlot::eUAV, 0);
 			m_Pipelines.ComputeRS->AddConstants(1, BindingSlot::eSampling, 0);
 			m_Pipelines.ComputeRS->AddStaticSampler(0, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
-			RHI::DX_CALL(m_Pipelines.ComputeRS->Build(m_Gfx->Device.get(), RHI::PipelineType::eCompute));
+			DX_CALL(m_Pipelines.ComputeRS->Build(m_Gfx->Device.get(), PipelineType::eCompute));
 		}
 		
 		// Shaders
 		{
 			auto& shaderManager = ShaderCompiler::GetInstance();
-			m_Shaders.Equirect2CubeCS = new Shader(shaderManager.Compile("Shaders/Sky/EquirectangularToCube.hlsl", RHI::ShaderStage::eCompute, L"CSmain"));
-			m_Shaders.DiffuseIrradianceCS = new Shader(shaderManager.Compile("Shaders/Sky/IrradianceCS.hlsl", RHI::ShaderStage::eCompute, L"CSmain"));
-			m_Shaders.SpecularCS = new Shader(shaderManager.Compile("Shaders/Sky/SpecularCS.hlsl", RHI::ShaderStage::eCompute, L"CSmain"));
-			m_Shaders.BRDFLookUpCS	= new Shader(shaderManager.Compile("Shaders/Sky/SpecularBRDF.hlsl", RHI::ShaderStage::eCompute, L"CSmain"));
+			m_Shaders.Equirect2CubeCS = new Shader(shaderManager.Compile("Shaders/Sky/EquirectangularToCube.hlsl", ShaderStage::eCompute, L"CSmain"));
+			m_Shaders.DiffuseIrradianceCS = new Shader(shaderManager.Compile("Shaders/Sky/IrradianceCS.hlsl", ShaderStage::eCompute, L"CSmain"));
+			m_Shaders.SpecularCS = new Shader(shaderManager.Compile("Shaders/Sky/SpecularCS.hlsl", ShaderStage::eCompute, L"CSmain"));
+			m_Shaders.BRDFLookUpCS	= new Shader(shaderManager.Compile("Shaders/Sky/SpecularBRDF.hlsl", ShaderStage::eCompute, L"CSmain"));
 		}
 		
 		// Equirectangular to Cube
@@ -78,7 +78,7 @@ namespace lde
 			D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
 			psoDesc.pRootSignature = m_Pipelines.ComputeRS->Get();
 			psoDesc.CS = m_Shaders.Equirect2CubeCS->Bytecode(); 
-			RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_Pipelines.ComputePSO)));
+			DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_Pipelines.ComputePSO)));
 		}
 		
 		// Diffuse irradiance
@@ -86,7 +86,7 @@ namespace lde
 			D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
 			psoDesc.pRootSignature = m_Pipelines.ComputeRS->Get();
 			psoDesc.CS = m_Shaders.DiffuseIrradianceCS->Bytecode();
-			RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_Pipelines.DiffusePSO)));
+			DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_Pipelines.DiffusePSO)));
 		}
 
 		// Specular
@@ -94,7 +94,7 @@ namespace lde
 			D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
 			psoDesc.pRootSignature = m_Pipelines.ComputeRS->Get();
 			psoDesc.CS = m_Shaders.SpecularCS->Bytecode();
-			RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_Pipelines.SpecularPSO)));
+			DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_Pipelines.SpecularPSO)));
 		}
 
 		// BRDF LUT
@@ -102,7 +102,7 @@ namespace lde
 		//	D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
 		//	psoDesc.pRootSignature = m_Pipelines.ComputeRS->Get();
 		//	psoDesc.CS = m_Shaders.BRDFLookUpCS->Bytecode();
-		//	RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_Pipelines.BRDFLookUpPSO)));
+		//	DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_Pipelines.BRDFLookUpPSO)));
 		//}
 
 	}
@@ -125,9 +125,9 @@ namespace lde
 		desc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
 		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
-		pSkybox->Texture = new RHI::D3D12Texture();
-		RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
-			&RHI::D3D12Utility::HeapDefault,
+		pSkybox->Texture = new D3D12Texture();
+		DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
+			&D3D12Utility::HeapDefault,
 			D3D12_HEAP_FLAG_NONE,
 			&desc,
 			D3D12_RESOURCE_STATE_COPY_DEST,
@@ -143,8 +143,8 @@ namespace lde
 		const auto uploadBuffer = CD3DX12_RESOURCE_DESC::Buffer(subresource.SlicePitch);
 
 		Ref<ID3D12Resource> uploadResource;
-		RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
-			&RHI::D3D12Utility::HeapUpload,
+		DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
+			&D3D12Utility::HeapUpload,
 			D3D12_HEAP_FLAG_NONE,
 			&uploadBuffer,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
@@ -156,7 +156,7 @@ namespace lde
 		m_Gfx->UploadResource(pSkybox->Texture->Texture, uploadResource, subresource);
 		m_Gfx->TransitResource(pSkybox->Texture->Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
+		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, true);
 
 		m_Gfx->Device->CreateSRV(pSkybox->Texture->Texture.Get(), pSkybox->Texture->SRV, 1, 1);
 
@@ -170,7 +170,7 @@ namespace lde
 		// UAV to transform into TextureCube
 		Ref<ID3D12Resource> tempCube;
 		// UAV type
-		RHI::D3D12Descriptor cubeDescriptor;
+		D3D12Descriptor cubeDescriptor;
 
 		// Determine resolution of output TextureCube based on input equirectangular map
 		uint32 cubeResolution = 1024;
@@ -197,8 +197,8 @@ namespace lde
 		uavDesc.MipLevels	= 6;
 		uavDesc.DepthOrArraySize = 6;
 		uavDesc.SampleDesc	= { 1, 0 };
-		RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
-			&RHI::D3D12Utility::HeapDefault,
+		DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
+			&D3D12Utility::HeapDefault,
 			D3D12_HEAP_FLAG_NONE,
 			&uavDesc,
 			D3D12_RESOURCE_STATE_COMMON,
@@ -209,7 +209,7 @@ namespace lde
 		m_Gfx->Device->CreateUAV(tempCube.Get(), cubeDescriptor, 0, 36);
 		m_Gfx->TransitResource(tempCube, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		
-		auto dispatch([&](RHI::D3D12CommandList* pCmdList) {
+		auto dispatch([&](D3D12CommandList* pCmdList) {
 			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
 			pCmdList->Get()->SetComputeRootSignature(m_Pipelines.ComputeRS->Get());
 			pCmdList->Get()->SetPipelineState(m_Pipelines.ComputePSO.Get());
@@ -220,10 +220,10 @@ namespace lde
 		dispatch(m_Gfx->Device->GetGfxCommandList());
 		//dispatch(m_Gfx->Device->GetComputeCommandList());
 
-		//m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eCompute, true);
-		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
+		//m_Gfx->Device->ExecuteCommandList(CommandType::eCompute, true);
+		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, true);
 
-		pSkybox->TextureCube = new RHI::D3D12Texture();
+		pSkybox->TextureCube = new D3D12Texture();
 
 		D3D12_RESOURCE_DESC textureCubeDesc{};
 		textureCubeDesc.Format		= DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -235,8 +235,8 @@ namespace lde
 		textureCubeDesc.Layout		= D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		textureCubeDesc.SampleDesc	= { 1, 0 };
 		textureCubeDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-		RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
-			&RHI::D3D12Utility::HeapDefault, D3D12_HEAP_FLAG_NONE,
+		DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
+			&D3D12Utility::HeapDefault, D3D12_HEAP_FLAG_NONE,
 			&textureCubeDesc, D3D12_RESOURCE_STATE_COMMON,
 			nullptr, IID_PPV_ARGS(&pSkybox->TextureCube->Texture)));
 		pSkybox->TextureCube->Texture->SetName(L"Skybox TextureCube");
@@ -257,8 +257,8 @@ namespace lde
 		pSkybox->TextureCube->Width		= static_cast<uint32>(textureCubeDesc.Width);
 		pSkybox->TextureCube->Height	= textureCubeDesc.Height;
 		pSkybox->TextureCube->MipLevels = textureCubeDesc.MipLevels;
-		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
-		//m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eCompute, true);
+		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, true);
+		//m_Gfx->Device->ExecuteCommandList(CommandType::eCompute, true);
 		
 		m_Gfx->TransitResource(pSkybox->TextureCube->Texture, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
@@ -273,7 +273,7 @@ namespace lde
 	{
 		const uint32 cubeResolution = 128; // 256
 
-		pSkybox->DiffuseTexture = new RHI::D3D12Texture();
+		pSkybox->DiffuseTexture = new D3D12Texture();
 
 		const auto format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		//const auto format = DXGI_FORMAT_R11G11B10_FLOAT;
@@ -288,19 +288,19 @@ namespace lde
 		desc.SampleDesc = { 1, 0 };
 		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
-		RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
-			&RHI::D3D12Utility::HeapDefault, 
+		DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
+			&D3D12Utility::HeapDefault, 
 			D3D12_HEAP_FLAG_NONE, 
 			&desc, 
 			D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
 			nullptr, 
 			IID_PPV_ARGS(&pSkybox->DiffuseTexture->Texture)));
 		pSkybox->DiffuseTexture->Texture->SetName(L"[Image Based Lighting] Diffuse Irradiance Texture");
-		m_Gfx->Device->Allocate(RHI::HeapType::eSRV, pSkybox->DiffuseTexture->SRV, 1);
+		m_Gfx->Device->Allocate(HeapType::eSRV, pSkybox->DiffuseTexture->SRV, 1);
 		
 		m_Gfx->Device->CreateUAV(pSkybox->DiffuseTexture->Texture.Get(), pSkybox->DiffuseTexture->UAV, 0, 1);
 		
-		const auto dispatch = [&](RHI::D3D12CommandList* pCmdList) {
+		const auto dispatch = [&](D3D12CommandList* pCmdList) {
 			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
 			pCmdList->Get()->SetComputeRootSignature(m_Pipelines.ComputeRS->Get());
 			pCmdList->Get()->SetPipelineState(m_Pipelines.DiffusePSO.Get());
@@ -310,7 +310,7 @@ namespace lde
 			};
 		dispatch(m_Gfx->Device->GetGfxCommandList());
 
-		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
+		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, true);
 		
 		m_Gfx->Device->CreateSRV(pSkybox->DiffuseTexture->Texture.Get(), pSkybox->DiffuseTexture->SRV, 1, 1);
 
@@ -321,7 +321,7 @@ namespace lde
 		const uint32 cubeResolution = pSkybox->TextureCube->Width;
 		const uint32 mipLevels = 6;
 
-		pSkybox->SpecularTexture = new RHI::D3D12Texture();
+		pSkybox->SpecularTexture = new D3D12Texture();
 
 		const auto format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
@@ -334,8 +334,8 @@ namespace lde
 		desc.DepthOrArraySize = 6;
 		desc.SampleDesc = { 1, 0 };
 		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-		RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
-			&RHI::D3D12Utility::HeapDefault,
+		DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
+			&D3D12Utility::HeapDefault,
 			D3D12_HEAP_FLAG_NONE,
 			&desc,
 			D3D12_RESOURCE_STATE_COPY_DEST,
@@ -356,12 +356,12 @@ namespace lde
 			auto dst = CD3DX12_TEXTURE_COPY_LOCATION{ pSkybox->SpecularTexture->Texture.Get(), subresourceIndex };
 			m_Gfx->Device->GetGfxCommandList()->Get()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 		}
-		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
+		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, true);
 		
 		m_Gfx->TransitResource(pSkybox->TextureCube->Texture, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		m_Gfx->TransitResource(pSkybox->SpecularTexture->Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
-		const auto dispatch = [&](RHI::D3D12CommandList* pCmdList) {
+		const auto dispatch = [&](D3D12CommandList* pCmdList) {
 			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
 			pCmdList->Get()->SetComputeRootSignature(m_Pipelines.ComputeRS->Get());
 			pCmdList->Get()->SetPipelineState(m_Pipelines.SpecularPSO.Get());
@@ -391,14 +391,14 @@ namespace lde
 			};
 		dispatch(m_Gfx->Device->GetGfxCommandList());
 
-		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
+		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, true);
 		m_Gfx->Device->CreateSRV(pSkybox->SpecularTexture->Texture.Get(), pSkybox->SpecularTexture->SRV, 6, 1);
 
 	}
 
 	void ImageBasedLighting::CreateBRDFTexture(Skybox* pSkybox)
 	{
-		pSkybox->BRDFTexture = new RHI::D3D12Texture();
+		pSkybox->BRDFTexture = new D3D12Texture();
 
 		pSkybox->BRDF_LUT = TextureManager::GetInstance().Create(m_Gfx, "Assets/Textures/brdf_lut.png", false);
 		//pSkybox->BRDF_LUT = TextureManager::GetInstance().Create(m_Gfx, "Assets/Textures/dfg.png", false);
@@ -417,8 +417,8 @@ namespace lde
 		desc.MipLevels = 1;
 		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 		desc.SampleDesc = { 1, 0 };
-		RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
-			&RHI::D3D12Utility::HeapDefault,
+		DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
+			&D3D12Utility::HeapDefault,
 			D3D12_HEAP_FLAG_NONE,
 			&desc,
 			D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
@@ -429,7 +429,7 @@ namespace lde
 
 		m_Gfx->Device->CreateUAV(pSkybox->BRDFTexture->Texture.Get(), pSkybox->BRDFTexture->UAV, 0, 1);
 
-		const auto dispatch = [&](RHI::D3D12CommandList* pCmdList){
+		const auto dispatch = [&](D3D12CommandList* pCmdList){
 			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
 			pCmdList->Get()->SetComputeRootSignature(m_Pipelines.ComputeRS->Get());
 			pCmdList->Get()->SetPipelineState(m_Pipelines.BRDFLookUpPSO.Get());
@@ -439,7 +439,7 @@ namespace lde
 		dispatch(m_Gfx->Device->GetGfxCommandList());
 
 		m_Gfx->TransitResource(pSkybox->BRDFTexture->Texture, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
+		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, true);
 		m_Gfx->Device->CreateSRV(pSkybox->BRDFTexture->Texture.Get(), pSkybox->BRDFTexture->SRV, 1, 1);
 		*/
 	}

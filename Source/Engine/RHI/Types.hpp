@@ -8,7 +8,7 @@
 #include <Core/CoreTypes.hpp>
 #include <Core/String.hpp>
 
-namespace lde::RHI
+namespace lde
 {
 	constexpr auto GPU_VENDOR_NVIDIA = 0x10DE;
 	constexpr auto GPU_VENDOR_AMD	 = 0x1002;
@@ -98,6 +98,6 @@ namespace lde::RHI
 		ePixelShaderResource,
 	};
 
-	std::wstring ShaderEnumToType(ShaderStage eStage);
+	extern std::wstring ShaderEnumToType(ShaderStage eStage);
 
-}
+} // namespace lde

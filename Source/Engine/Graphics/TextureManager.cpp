@@ -34,7 +34,7 @@ namespace lde
 		return *m_Instance;
 	}
 
-	void TextureManager::Initialize(RHI::D3D12RHI* pGfx)
+	void TextureManager::Initialize(D3D12RHI* pGfx)
 	{
 		m_Gfx = pGfx;
 		InitializeMipGenerator();
@@ -45,7 +45,7 @@ namespace lde
 		
 	}
 
-	int32 TextureManager::Create(RHI::D3D12RHI* pGfx, std::string_view Filepath, bool bGenerateMipMaps)
+	int32 TextureManager::Create(D3D12RHI* pGfx, std::string_view Filepath, bool bGenerateMipMaps)
 	{
 		if (Filepath.empty())
 		{	
@@ -53,7 +53,7 @@ namespace lde
 			return -1;
 		}
 	
-		RHI::D3D12Texture* newTexture = new RHI::D3D12Texture();
+		D3D12Texture* newTexture = new D3D12Texture();
 		
 		const auto extension = Files::ImageExtToEnum(Filepath);
 	
@@ -82,7 +82,7 @@ namespace lde
 		return static_cast<uint32>(newTexture->SRV.Index());
 	}
 
-	void TextureManager::Create2D(RHI::D3D12RHI* pGfx, std::string_view Filepath, RHI::D3D12Texture* pTarget, bool bMipMaps)
+	void TextureManager::Create2D(D3D12RHI* pGfx, std::string_view Filepath, D3D12Texture* pTarget, bool bMipMaps)
 	{
 		int32 width, height, channels = 3;
 		void* pixels = stbi_load(Filepath.data(), &width, &height, &channels, STBI_rgb_alpha);
@@ -106,8 +106,8 @@ namespace lde
 		const uint16 mipCount = (bMipMaps) ? CountMips(static_cast<uint32_t>(desc.Width), desc.Height) : 1;
 		desc.MipLevels = mipCount;
 	
-		RHI::DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
-			&RHI::D3D12Utility::HeapDefault,
+		DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
+			&D3D12Utility::HeapDefault,
 			D3D12_HEAP_FLAG_NONE,
 			&desc,
 			D3D12_RESOURCE_STATE_COPY_DEST,
@@ -130,8 +130,8 @@ namespace lde
 		uploadBufferDesc.Layout				= D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
 		Ref<ID3D12Resource> uploadResource;
-		RHI::DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
-			&RHI::D3D12Utility::HeapUpload,
+		DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
+			&D3D12Utility::HeapUpload,
 			D3D12_HEAP_FLAG_NONE,
 			&uploadBufferDesc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
@@ -147,7 +147,7 @@ namespace lde
 		pTarget->Width		= static_cast<uint32>(desc.Width);
 		pTarget->Height		= desc.Height;
 	
-		pGfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
+		pGfx->Device->ExecuteCommandList(CommandType::eGraphics, true);
 
 		pGfx->Device->CreateSRV(pTarget->Texture.Get(), pTarget->SRV, mipCount, 1);
 
@@ -160,7 +160,7 @@ namespace lde
 		}
 	}
 
-	void TextureManager::CreateFromHDR(RHI::D3D12RHI* pGfx, std::string_view Filepath, RHI::D3D12Texture* pTarget)
+	void TextureManager::CreateFromHDR(D3D12RHI* pGfx, std::string_view Filepath, D3D12Texture* pTarget)
 	{	
 		int32 width, height, channels = 0;
 		
@@ -184,8 +184,8 @@ namespace lde
 		desc.Alignment			= D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
 		desc.Layout				= D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
-		RHI::DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
-			&RHI::D3D12Utility::HeapDefault,
+		DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
+			&D3D12Utility::HeapDefault,
 			D3D12_HEAP_FLAG_NONE,
 			&desc,
 			D3D12_RESOURCE_STATE_COPY_DEST,
@@ -208,8 +208,8 @@ namespace lde
 		uploadBufferDesc.Layout				= D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
 		Ref<ID3D12Resource> uploadResource;
-		RHI::DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
-			&RHI::D3D12Utility::HeapUpload,
+		DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
+			&D3D12Utility::HeapUpload,
 			D3D12_HEAP_FLAG_NONE,
 			&uploadBufferDesc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
@@ -221,7 +221,7 @@ namespace lde
 		pGfx->UploadResource(pTarget->Texture, uploadResource, subresource);
 		pGfx->TransitResource(pTarget->Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-		pGfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
+		pGfx->Device->ExecuteCommandList(CommandType::eGraphics, true);
 
 		pGfx->Device->CreateSRV(pTarget->Texture.Get(), pTarget->SRV, 1, 1);
 
@@ -249,9 +249,9 @@ namespace lde
 		{
 			m_RootSignature.AddConstants(8, 0);
 			m_RootSignature.AddStaticSampler(0, 0, D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_COMPARISON_FUNC_NEVER);
-			m_RootSignature.Build(m_Gfx->Device.get(), RHI::PipelineType::eCompute, "MipMap2D Root Signature");
+			m_RootSignature.Build(m_Gfx->Device.get(), PipelineType::eCompute, "MipMap2D Root Signature");
 
-			m_ComputeShader = ShaderCompiler::GetInstance().Compile("Shaders/Compute/MipMap2D.hlsl", RHI::ShaderStage::eCompute, L"CSmain");
+			m_ComputeShader = ShaderCompiler::GetInstance().Compile("Shaders/Compute/MipMap2D.hlsl", ShaderStage::eCompute, L"CSmain");
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
 			psoDesc.pRootSignature = m_RootSignature.Get();
@@ -259,8 +259,8 @@ namespace lde
 			psoDesc.NodeMask = 0;
 			psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-			RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_ComputePipeline.PipelineState)));
-			m_ComputePipeline.Type = RHI::PipelineType::eCompute;
+			DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_ComputePipeline.PipelineState)));
+			m_ComputePipeline.Type = PipelineType::eCompute;
 			m_ComputePipeline.PipelineState->SetName(L"MipMap2D Compute Pipeline State");
 		}
 		
@@ -268,9 +268,9 @@ namespace lde
 		{
 			m_RootSignature3D.AddConstants(8, 0);
 			m_RootSignature3D.AddStaticSampler(0, 0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
-			m_RootSignature3D.Build(m_Gfx->Device.get(), RHI::PipelineType::eCompute, "MipMap3D Root Signature");
+			m_RootSignature3D.Build(m_Gfx->Device.get(), PipelineType::eCompute, "MipMap3D Root Signature");
 
-			m_ComputeShader3D = ShaderCompiler::GetInstance().Compile("Shaders/Compute/MipMap3D.hlsl", RHI::ShaderStage::eCompute, L"CSmain");
+			m_ComputeShader3D = ShaderCompiler::GetInstance().Compile("Shaders/Compute/MipMap3D.hlsl", ShaderStage::eCompute, L"CSmain");
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
 			psoDesc.pRootSignature = m_RootSignature3D.Get();
@@ -278,14 +278,14 @@ namespace lde
 			psoDesc.NodeMask = 0;
 			psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-			RHI::DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_ComputePipeline3D.PipelineState)));
-			m_ComputePipeline3D.Type = RHI::PipelineType::eCompute;
+			DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_ComputePipeline3D.PipelineState)));
+			m_ComputePipeline3D.Type = PipelineType::eCompute;
 			m_ComputePipeline3D.PipelineState->SetName(L"MipMap3D Compute Pipeline State");
 		}
 
 	}
 
-	void TextureManager::Generate2D(RHI::D3D12Texture* pTexture)
+	void TextureManager::Generate2D(D3D12Texture* pTexture)
 	{
 		if (!pTexture->Texture.Get())
 			return;
@@ -316,14 +316,14 @@ namespace lde
 			DirectX::XMFLOAT2 TexelSize;
 		} mipGenCB{};
 
-		((RHI::D3D12Device*)m_Gfx->GetDevice())->Allocate(RHI::HeapType::eSRV, pTexture->UAV, pTexture->MipLevels);
+		((D3D12Device*)m_Gfx->GetDevice())->Allocate(HeapType::eSRV, pTexture->UAV, pTexture->MipLevels);
 
 		m_Gfx->SetPipeline(&m_ComputePipeline);
 		m_Gfx->SetRootSignature(&m_RootSignature);
 
 		mipGenCB.IsSRGB = srcResourceDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB ? 1 : 0;
 		
-		auto heap = ((RHI::D3D12Device*)m_Gfx->GetDevice())->GetSRVHeap();
+		auto heap = ((D3D12Device*)m_Gfx->GetDevice())->GetSRVHeap();
 		for (uint32 srcMip = 0; srcMip < (uint32)(pTexture->MipLevels - 1); ++srcMip)
 		{
 			uint64 srcWidth = srcResourceDesc.Width >> srcMip;
@@ -384,13 +384,13 @@ namespace lde
 			m_Gfx->Device->GetGfxCommandList()->Get()->ResourceBarrier(1, &uavBarrier);
 		}
 
-		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
+		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, true);
 		// Reset UAV; they are not necessary after mip creation for now
 		pTexture->UAV = {};
 		
 	}
 		
-	void TextureManager::Generate3D(RHI::D3D12Texture* pTexture)
+	void TextureManager::Generate3D(D3D12Texture* pTexture)
 	{
 		if (!pTexture->Texture.Get())
 		{
@@ -410,8 +410,8 @@ namespace lde
 		// Ensure that the Heap is set before mipmapping
 		m_Gfx->Device->GetGfxCommandList()->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
 		
-		RHI::D3D12Descriptor srvResourceDesc;
-		m_Gfx->Device->Allocate(RHI::HeapType::eSRV, srvResourceDesc, 1);
+		D3D12Descriptor srvResourceDesc;
+		m_Gfx->Device->Allocate(HeapType::eSRV, srvResourceDesc, 1);
 
 		struct
 		{
@@ -452,7 +452,7 @@ namespace lde
 
 				m_Gfx->Device->GetDevice()->CreateShaderResourceView(uavResource, &srvDesc, srvResourceDesc.GetCpuHandle());
 
-				m_Gfx->Device->Allocate(RHI::HeapType::eSRV, pTexture->UAV, srcDesc.MipLevels); //  * 6
+				m_Gfx->Device->Allocate(HeapType::eSRV, pTexture->UAV, srcDesc.MipLevels); //  * 6
 
 				for (uint32_t mip = 0; mip < pTexture->MipLevels; ++mip)
 				{
@@ -487,7 +487,7 @@ namespace lde
 			}
 
 			// Execute after every ArraySlice step
-			m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, true);
+			m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, true);
 		}
 	}
 

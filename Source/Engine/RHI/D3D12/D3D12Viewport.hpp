@@ -3,7 +3,7 @@
 #include <AgilitySDK/d3d12.h>
 #include "Core/CoreTypes.hpp"
 
-namespace lde::RHI
+namespace lde
 {
 	class D3D12Viewport
 	{
@@ -55,4 +55,4 @@ namespace lde::RHI
 		D3D12_RECT		m_Scissor{};
 
 	};
-}
+} // namespace lde

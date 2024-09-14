@@ -17,9 +17,9 @@ namespace lde
         delete Texture;
     }
 
-    void Skybox::Create(RHI::RHI* pRHI, World* pWorld, std::string_view)
+    void Skybox::Create(RHI* pRHI, World* pWorld, std::string_view)
     {
-        m_Device = (RHI::D3D12Device*)pRHI->GetDevice();
+        m_Device = (D3D12Device*)pRHI->GetDevice();
 
         Entity::Create(pWorld);
         AddComponent<TransformComponent>();
@@ -36,8 +36,8 @@ namespace lde
 
 
         m_IndexBuffer = pRHI->GetDevice()->CreateBuffer(
-            RHI::BufferDesc{
-                .eType = RHI::BufferUsage::eIndex,
+            BufferDesc{
+                .eType = BufferUsage::eIndex,
                 .pData = indices.data(),
                 .Count = static_cast<uint32>(indices.size()),
                 .Size = indices.size() * sizeof(indices.at(0)),

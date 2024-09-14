@@ -8,13 +8,9 @@
 
 namespace lde
 {
-	class Shader;
-}
-
-namespace lde::RHI
-{
 	class D3D12Device;
-	
+	class Shader;
+
 	class D3D12RootSignature
 	{
 	public:
@@ -60,6 +56,9 @@ namespace lde::RHI
 		// Note: if building this way - don't set neither Paramters nor StaticSamplers
 		void Build(D3D12Device* pDevice, PipelineType eType, Shader* pShader, std::string DebugName = "");
 
+		//HRESULT BuildFromShader(D3D12Device* pDevice, D3D12Shader* pShader, PipelineType eType);
+
+
 		void Release();
 	
 		PipelineType Type{};
@@ -77,4 +76,4 @@ namespace lde::RHI
 
 		bool bIsLocal = false;
 	};
-} // namespace lde::RHI
+} // namespace lde

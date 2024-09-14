@@ -36,10 +36,10 @@ namespace lde
 
 	void ShaderCompiler::Initialize()
 	{
-		RHI::DX_CALL(DxcCreateInstance(CLSID_DxcCompiler,	IID_PPV_ARGS(&m_DxcCompiler)));
-		RHI::DX_CALL(DxcCreateInstance(CLSID_DxcUtils,		IID_PPV_ARGS(&m_DxcUtils)));
-		RHI::DX_CALL(DxcCreateInstance(CLSID_DxcLibrary,	IID_PPV_ARGS(&m_DxcLibrary)));
-		RHI::DX_CALL(m_DxcUtils->CreateDefaultIncludeHandler(&m_DxcIncludeHandler));
+		DX_CALL(DxcCreateInstance(CLSID_DxcCompiler,	IID_PPV_ARGS(&m_DxcCompiler)));
+		DX_CALL(DxcCreateInstance(CLSID_DxcUtils,		IID_PPV_ARGS(&m_DxcUtils)));
+		DX_CALL(DxcCreateInstance(CLSID_DxcLibrary,		IID_PPV_ARGS(&m_DxcLibrary)));
+		DX_CALL(m_DxcUtils->CreateDefaultIncludeHandler(&m_DxcIncludeHandler));
 		m_Instance = this;
 	}
 
@@ -51,13 +51,13 @@ namespace lde
 		SAFE_RELEASE(m_DxcCompiler);
 	}
 
-	Shader ShaderCompiler::Compile(const std::string_view& Filepath, RHI::ShaderStage eType, std::wstring EntryPoint)
+	Shader ShaderCompiler::Compile(const std::string_view& Filepath, ShaderStage eType, std::wstring EntryPoint)
 	{
 		uint32_t codePage = DXC_CP_ACP;
 		IDxcBlobEncoding* sourceBlob{};
-		RHI::DX_CALL(m_DxcUtils->LoadFile(String::ToWide(Filepath).c_str(), &codePage, &sourceBlob));
+		DX_CALL(m_DxcUtils->LoadFile(String::ToWide(Filepath).c_str(), &codePage, &sourceBlob));
 	
-		auto shaderType = RHI::ShaderEnumToType(eType);
+		auto shaderType = ShaderEnumToType(eType);
 		std::wstring parentPath = String::ToWide(Files::GetParentPath(Filepath));
 
 		std::vector<LPCWSTR> arguments = {
@@ -82,7 +82,7 @@ namespace lde
 	
 		DxcBuffer buffer{ sourceBlob->GetBufferPointer(), sourceBlob->GetBufferSize(), DXC_CP_ACP };
 		IDxcResult* result = nullptr;
-		RHI::DX_CALL(m_DxcCompiler.Get()->Compile(&buffer, arguments.data(), static_cast<uint32>(arguments.size()),m_DxcIncludeHandler.Get(), IID_PPV_ARGS(&result)));
+		DX_CALL(m_DxcCompiler.Get()->Compile(&buffer, arguments.data(), static_cast<uint32>(arguments.size()),m_DxcIncludeHandler.Get(), IID_PPV_ARGS(&result)));
 	
 		IDxcBlobUtf8* errors = nullptr;
 		IDxcBlobUtf16* outputName = nullptr;
@@ -95,7 +95,7 @@ namespace lde
 		}
 	
 		IDxcBlob* blob = nullptr;
-		RHI::DX_CALL(result->GetResult(&blob));
+		DX_CALL(result->GetResult(&blob));
 	
 		return Shader(blob, eType);
 	}

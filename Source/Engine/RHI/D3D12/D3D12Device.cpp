@@ -3,7 +3,7 @@
 #include "D3D12RootSignature.hpp"
 #include "D3D12Utility.hpp"
 
-namespace lde::RHI
+namespace lde
 {
 	D3D12Device::D3D12Device()
 	{
@@ -129,7 +129,7 @@ namespace lde::RHI
 		//ComputeQueue = new D3D12Queue(this, CommandType::eCompute);
 
 		// Open first command list to allow pre-loading of assets - models and skybox + ibl.
-		m_FrameResources[0].GraphicsCommandList->Reset();
+		m_FrameResources[0].GraphicsCommandList->Open();
 		//m_FrameResources[0].ComputeCommandList->Reset();
 	}
 
@@ -137,13 +137,13 @@ namespace lde::RHI
 	{
 		switch (eType)
 		{
-		case lde::RHI::HeapType::eSRV: 
+		case lde::HeapType::eSRV: 
 			m_SRVHeap->Allocate(Descriptor, Count);
 			break;
-		case lde::RHI::HeapType::eRTV:
+		case lde::HeapType::eRTV:
 			m_RTVHeap->Allocate(Descriptor, Count);
 			break;
-		case lde::RHI::HeapType::eDSV:
+		case lde::HeapType::eDSV:
 			m_DSVHeap->Allocate(Descriptor, Count);
 			break;
 		}
@@ -314,4 +314,4 @@ namespace lde::RHI
 		m_Device->CreateDepthStencilView(pResource, &dsvDesc, Descriptor.GetCpuHandle());
 	}
 
-} // namespace lde::RHI
+} // namespace lde

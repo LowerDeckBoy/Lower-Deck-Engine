@@ -1,15 +1,15 @@
 #include "../Components/Components.hpp"
 #include "Graphics/AssetManager.hpp"
-#include "Model.hpp"
 #include "RHI/D3D12/D3D12RHI.hpp"
+#include "Model.hpp"
 
 namespace lde
 {
-	Model::Model(RHI::RHI* pRHI, std::string_view Filepath, World* pWorld)
+	Model::Model(RHI* pRHI, std::string_view Filepath, World* pWorld)
 	{
 		m_Mesh = std::make_unique<Mesh>();
 	
-		auto pGfx = (RHI::D3D12RHI*)pRHI;
+		auto pGfx = (D3D12RHI*)pRHI;
 		// TODO: Test loading times.
 		AssetManager::GetInstance().Import(pGfx, Filepath, *m_Mesh.get());
 		//AssetManager::GetInstance().ImportGLTF(pGfx, Filepath, *m_Mesh.get());
@@ -34,18 +34,18 @@ namespace lde
 		::OutputDebugStringA(msg);
 
 		MeshletBuffer = pGfx->Device->CreateBuffer(
-			RHI::BufferDesc{
-				RHI::BufferUsage::eStructured,
+			BufferDesc{
+				BufferUsage::eStructured,
 				Meshlets.data(),
 				static_cast<uint32>(Meshlets.size()),
 				Meshlets.size() * sizeof(Meshlets.at(0)),
 				static_cast<uint32>(sizeof(Meshlets.at(0))),
 				true
 			});
-
+		
 		UniqueVertexIBBuffer = pGfx->Device->CreateBuffer(
-			RHI::BufferDesc{
-				RHI::BufferUsage::eStructured,
+			BufferDesc{
+				BufferUsage::eStructured,
 				UniqueVertexIB.data(),
 				static_cast<uint32>(UniqueVertexIB.size()),
 				UniqueVertexIB.size() * sizeof(UniqueVertexIB.at(0)),
@@ -54,8 +54,8 @@ namespace lde
 			});
 
 		TrianglesBuffer = pGfx->Device->CreateBuffer(
-			RHI::BufferDesc{
-				RHI::BufferUsage::eStructured,
+			BufferDesc{
+				BufferUsage::eStructured,
 				Triangles.data(),
 				static_cast<uint32>(Triangles.size()),
 				Triangles.size() * sizeof(Triangles.at(0)),
@@ -71,17 +71,16 @@ namespace lde
 
 	}
 
-	void Model::Create(RHI::D3D12RHI* pGfx, World* pWorld)
+	void Model::Create(D3D12RHI* pGfx, World* pWorld)
 	{
 		m_Mesh->Create(pGfx->Device.get());
-
 
 		// Default components
 		Entity::Create(pWorld);
 		AddComponent<TagComponent>(m_Mesh->Name);
 		AddComponent<TransformComponent>();
 		
-		m_Mesh->IndexView = RHI::GetIndexView(pGfx->Device->Buffers.at(m_Mesh->IndexBuffer));
+		m_Mesh->IndexView = GetIndexView(pGfx->Device->Buffers.at(m_Mesh->IndexBuffer));
 
 		m_Mesh->ConstBuffer = pGfx->GetDevice()->CreateConstantBuffer(&m_Mesh->cbData, sizeof(m_Mesh->cbData));
 	}

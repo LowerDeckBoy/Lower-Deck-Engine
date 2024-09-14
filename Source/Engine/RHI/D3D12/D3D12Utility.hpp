@@ -7,15 +7,15 @@
 #include <Core/RefPtr.hpp>
 #include <Core/String.hpp>
 
-namespace lde::RHI
+namespace lde
 {
 
 #define LDE_ASSERT(Condition) assert(Condition)
 
 // Releasing either ComPtr or (custom) Ref pointer.
-#define SAFE_RELEASE(_Ref) { if (_Ref.Get()) { _Ref.Reset(); _Ref = nullptr; } }
+#define SAFE_RELEASE(RefPtr) { if (RefPtr.Get()) { RefPtr.Reset(); RefPtr = nullptr; } }
 
-#define SAFE_DELETE(_Ptr) { if (_Ptr) { _Ptr->Release(); _Ptr = nullptr; } }
+#define SAFE_DELETE(RawPtr) { if (RawPtr) { RawPtr->Release(); RawPtr = nullptr; } }
 
 #define DX_CALL(hResult, ...) VerifyResult(hResult, __FILE__, __LINE__, __VA_ARGS__)
 
@@ -35,4 +35,4 @@ namespace lde::RHI
 		inline static D3D12_HEAP_PROPERTIES HeapUpload	= D3D12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 
 	};
-} // namespace lde::RHI
+} // namespace lde

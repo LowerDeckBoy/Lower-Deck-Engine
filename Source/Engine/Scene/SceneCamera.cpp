@@ -119,13 +119,13 @@ namespace lde
 
 	void SceneCamera::InitializeInputs()
 	{
-		RHI::DX_CALL(DirectInput8Create(Window::GetHInstance(), DIRECTINPUT_VERSION, IID_IDirectInput8, reinterpret_cast<void**>(&DxInput), NULL));
-		RHI::DX_CALL(DxInput->CreateDevice(GUID_SysKeyboard, &DxKeyboard, NULL));
-		RHI::DX_CALL(DxKeyboard->SetDataFormat(&c_dfDIKeyboard));
-		RHI::DX_CALL(DxKeyboard->SetCooperativeLevel(Window::GetHWnd(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE));
-		RHI::DX_CALL(DxInput->CreateDevice(GUID_SysMouse, &DxMouse, NULL));
-		RHI::DX_CALL(DxMouse->SetDataFormat(&c_dfDIMouse));
-		RHI::DX_CALL(DxMouse->SetCooperativeLevel(Window::GetHWnd(), DISCL_NONEXCLUSIVE | DISCL_NOWINKEY | DISCL_FOREGROUND));
+		DX_CALL(DirectInput8Create(Window::GetHInstance(), DIRECTINPUT_VERSION, IID_IDirectInput8, reinterpret_cast<void**>(&DxInput), NULL));
+		DX_CALL(DxInput->CreateDevice(GUID_SysKeyboard, &DxKeyboard, NULL));
+		DX_CALL(DxKeyboard->SetDataFormat(&c_dfDIKeyboard));
+		DX_CALL(DxKeyboard->SetCooperativeLevel(Window::GetHWnd(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE));
+		DX_CALL(DxInput->CreateDevice(GUID_SysMouse, &DxMouse, NULL));
+		DX_CALL(DxMouse->SetDataFormat(&c_dfDIMouse));
+		DX_CALL(DxMouse->SetCooperativeLevel(Window::GetHWnd(), DISCL_NONEXCLUSIVE | DISCL_NOWINKEY | DISCL_FOREGROUND));
 	}
 
 	void SceneCamera::ProcessInputs(float DeltaTime)

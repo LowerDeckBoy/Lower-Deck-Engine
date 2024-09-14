@@ -8,7 +8,7 @@
 
 namespace lde
 {
-	GBufferPass::GBufferPass(RHI::D3D12RHI* pGfx)
+	GBufferPass::GBufferPass(D3D12RHI* pGfx)
 	{
 		m_Gfx = pGfx;
 
@@ -26,18 +26,18 @@ namespace lde
 			m_RootSignature.AddConstants(2, 1);  // Vertex vertices and offset
 			m_RootSignature.AddConstants(16, 2); // Texture indices and properties
 			m_RootSignature.AddStaticSampler(0, 0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_COMPARISON_FUNC_LESS_EQUAL);
-			m_RootSignature.Build(m_Gfx->Device.get(), RHI::PipelineType::eGraphics, "GBuffer Root Signature");
+			m_RootSignature.Build(m_Gfx->Device.get(), PipelineType::eGraphics, "GBuffer Root Signature");
 		}
 
 		// Pipeline State
-		RHI::D3D12PipelineStateBuilder psoBuilder(m_Gfx->Device.get());
+		D3D12PipelineStateBuilder psoBuilder(m_Gfx->Device.get());
 
 		// Base Pipeline
 		{
 			psoBuilder.SetVS("Shaders/Deferred/GBuffer.hlsl", L"VSmain");
 			psoBuilder.SetPS( "Shaders/Deferred/GBuffer.hlsl", L"PSmain");
 			psoBuilder.EnableDepth(true);
-			psoBuilder.SetCullMode(RHI::CullMode::eBack);
+			psoBuilder.SetCullMode(CullMode::eBack);
 			std::array<DXGI_FORMAT, (usize)GBuffers::COUNT> formats =
 			{
 				m_RenderTargets.at(GBuffers::eDepth).GetFormat(),
@@ -50,16 +50,16 @@ namespace lde
 			};
 			psoBuilder.SetRenderTargetFormats(formats);
 
-			RHI::DX_CALL(psoBuilder.Build(m_PipelineState, &m_RootSignature));
+			DX_CALL(psoBuilder.Build(m_PipelineState, &m_RootSignature));
 			psoBuilder.Reset();
 		}
 
-		m_CommandSignature = new RHI::D3D12CommandSignature();
+		m_CommandSignature = new D3D12CommandSignature();
 		m_CommandSignature->AddCBV(0);			// 8 bytes
 		m_CommandSignature->AddConstant(1, 2);	// 8 bytes
 		m_CommandSignature->AddConstant(2, 16);	// 64 bytes
 		m_CommandSignature->AddDrawIndexed();	// 20 bytes
-		//RHI::DX_CALL(m_CommandSignature->Create(m_Gfx->Device.get(), &m_RootSignature));
+		//DX_CALL(m_CommandSignature->Create(m_Gfx->Device.get(), &m_RootSignature));
 
 	}
 

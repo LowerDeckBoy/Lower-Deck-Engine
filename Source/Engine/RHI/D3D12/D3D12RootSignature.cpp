@@ -3,7 +3,7 @@
 #include "D3D12Device.hpp"
 #include "D3D12Utility.hpp"
 
-namespace lde::RHI
+namespace lde
 {
 	D3D12RootSignature::~D3D12RootSignature()
 	{
@@ -85,7 +85,7 @@ namespace lde::RHI
 		sampler.MaxAnisotropy	= D3D12_MAX_MAXANISOTROPY;
 		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 		sampler.Flags			= D3D12_SAMPLER_FLAG_NONE;
-
+		
 		m_StaticSamplers.emplace_back(sampler);
 	}
 
@@ -134,4 +134,4 @@ namespace lde::RHI
 		SAFE_RELEASE(m_RootSignature);
 	}
 	
-} // namespace lde::RHI
+} // namespace lde

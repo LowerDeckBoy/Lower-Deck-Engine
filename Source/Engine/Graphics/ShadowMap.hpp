@@ -13,15 +13,15 @@ namespace lde
 	class ShadowMap
 	{
 	public:
-		ShadowMap(RHI::D3D12Device* pDevice);
+		ShadowMap(D3D12Device* pDevice);
 		~ShadowMap();
 
 		void Render(DirectX::XMFLOAT3 Position);
 		void Resize(uint32 Width, uint32 Height);
 		
 	private:
-		RHI::D3D12RenderTexture m_RenderTexture;
-		//RHI::D3D12Viewport		m_Viewport;
+		D3D12RenderTexture m_RenderTexture;
+		//D3D12Viewport		m_Viewport;
 		//Ref<ID3D12Resource>		m_Resource;
 
 		DirectX::XMVECTOR m_Target		= DirectX::XMVECTOR();

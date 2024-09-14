@@ -6,22 +6,19 @@
 
 namespace lde
 {
-	namespace RHI
-	{
-		class D3D12RHI;
-		class RHI;
-		class Buffer;
-	}
+	class D3D12RHI;
+	class RHI;
+	class Buffer;
 	
 	class Model : public Entity
 	{
 	public:
 		Model() {}
-		//Model(RHI::D3D12RHI* pGfx, std::string_view Filepath, World* pWorld);
-		Model(RHI::RHI* pRHI, std::string_view Filepath, World* pWorld);
+		//Model(D3D12RHI* pGfx, std::string_view Filepath, World* pWorld);
+		Model(RHI* pRHI, std::string_view Filepath, World* pWorld);
 		~Model();
 	
-		void Create(RHI::D3D12RHI* pGfx, World* pWorld);
+		void Create(D3D12RHI* pGfx, World* pWorld);
 	
 		Mesh* GetMesh();
 
@@ -42,15 +39,10 @@ namespace lde
 
 #endif
 
-
-
 	private:
 		std::unique_ptr<Mesh> m_Mesh;
 
 		std::vector<Material> m_Materials;
-
-
-	
 
 	};
 } // namespace lde

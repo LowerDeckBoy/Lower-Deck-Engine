@@ -5,7 +5,7 @@
 #include "D3D12Utility.hpp"
 #include "Core/Logger.hpp"
 
-namespace lde::RHI
+namespace lde
 {
 	Ref<D3D12MA::Allocator> D3D12Memory::Allocator = {};
 
@@ -30,19 +30,19 @@ namespace lde::RHI
 
 		switch (eType)
 		{
-		case lde::RHI::AllocType::eDefault:
+		case lde::AllocType::eDefault:
 			heapType = D3D12_HEAP_TYPE_UPLOAD;
 			state = D3D12_RESOURCE_STATE_GENERIC_READ;
 			break;
-		case lde::RHI::AllocType::eUpload:
+		case lde::AllocType::eUpload:
 			heapType = D3D12_HEAP_TYPE_UPLOAD;
 			state = D3D12_RESOURCE_STATE_GENERIC_READ;
 			break;
-		case lde::RHI::AllocType::eCopyDst:
+		case lde::AllocType::eCopyDst:
 			heapType = D3D12_HEAP_TYPE_DEFAULT;
 			state = D3D12_RESOURCE_STATE_COPY_DEST;
 			break;
-		case lde::RHI::AllocType::eGeneric:
+		case lde::AllocType::eGeneric:
 			heapType = D3D12_HEAP_TYPE_DEFAULT;
 			state = D3D12_RESOURCE_STATE_GENERIC_READ;
 			break;
@@ -62,15 +62,15 @@ namespace lde::RHI
 		
 		switch (eType)
 		{
-		case lde::RHI::AllocType::eDefault:
+		case lde::AllocType::eDefault:
 			heapType = D3D12_HEAP_TYPE_UPLOAD;
 			state = D3D12_RESOURCE_STATE_COMMON;
 			break;
-		case lde::RHI::AllocType::eUpload:
+		case lde::AllocType::eUpload:
 			heapType = D3D12_HEAP_TYPE_UPLOAD;
 			state = D3D12_RESOURCE_STATE_GENERIC_READ;
 			break;
-		case lde::RHI::AllocType::eCopyDst:
+		case lde::AllocType::eCopyDst:
 			heapType = D3D12_HEAP_TYPE_DEFAULT;
 			state = D3D12_RESOURCE_STATE_COPY_DEST;
 			break;
@@ -301,4 +301,4 @@ namespace lde::RHI
 	}
 	*/
 
-} // namespace lde::RHI
+} // namespace lde

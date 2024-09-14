@@ -8,7 +8,7 @@
 #include <AgilitySDK/d3d12.h>
 #include <Core/CoreTypes.hpp>
 
-namespace lde::RHI
+namespace lde
 {
 	class D3D12Descriptor
 	{
@@ -31,7 +31,7 @@ namespace lde::RHI
 			return m_CpuHandle;
 		}
 
-		inline D3D12_GPU_DESCRIPTOR_HANDLE GetGpuHandle() const
+		inline D3D12_GPU_DESCRIPTOR_HANDLE& GetGpuHandle() 
 		{
 			return m_GpuHandle;
 		}
@@ -59,4 +59,4 @@ namespace lde::RHI
 
 
 	};
-} // namespace lde::RHI
+} // namespace lde

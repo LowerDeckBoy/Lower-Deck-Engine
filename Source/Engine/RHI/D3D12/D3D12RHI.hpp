@@ -24,7 +24,7 @@
 #include "D3D12Utility.hpp"
 
 
-namespace lde::RHI
+namespace lde
 {
 	class D3D12Buffer;
 	class D3D12IndexBuffer;
@@ -112,4 +112,4 @@ namespace lde::RHI
 	private:
 		
 	};
-}
+} // namespace lde

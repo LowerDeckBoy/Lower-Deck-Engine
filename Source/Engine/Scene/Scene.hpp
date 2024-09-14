@@ -7,28 +7,29 @@
 
 namespace lde
 {
-
 	class D3D12RHI;
 
-	struct SceneData
-	{
-		XMFLOAT4 CameraPosition;
-		XMMATRIX CameraView;
-		XMMATRIX CameraProjection;
-
-		uint32 Width;
-		uint32 Height;
-		int32 DirLightsCount;
-		int32 PointLightsCount;
-	};
+	//struct SceneData
+	//{
+	//	XMFLOAT4 CameraPosition;
+	//	XMMATRIX View;
+	//	XMMATRIX Projection;
+	//	XMMATRIX InveserdView;
+	//	XMMATRIX InveserdProjection;
+	//
+	//	uint32 Width;
+	//	uint32 Height;
+	//	int32 DirLightsCount;
+	//	int32 PointLightsCount;
+	//};
 
 	class Scene
 	{
 	public:
-		Scene(uint32 Width, uint32 Height, RHI::D3D12RHI* pContext);
+		Scene(uint32 Width, uint32 Height, D3D12RHI* pContext);
 		~Scene();
 	
-		void Initialize(uint32 Width, uint32 Height, RHI::D3D12RHI* pContext);
+		void Initialize(uint32 Width, uint32 Height, D3D12RHI* pContext);
 	
 		void OnResize(float AspectRatio);
 	
@@ -77,7 +78,7 @@ namespace lde
 	
 		std::vector<std::unique_ptr<Model>> m_Models;
 	
-		RHI::D3D12RHI* m_Gfx = nullptr;
+		D3D12RHI* m_Gfx = nullptr;
 
 	};
 

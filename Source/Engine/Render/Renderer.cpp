@@ -5,13 +5,13 @@ namespace lde
 {
 	bool Renderer::bVSync = true;
 
-	Renderer::Renderer(RHI::D3D12RHI* pGfx)
+	Renderer::Renderer(D3D12RHI* pGfx)
 		: m_Gfx(pGfx)
 	{
 		Initialize();
 	}
 
-	Renderer::Renderer(RHI::D3D12RHI* pGfx, Scene* pScene)
+	Renderer::Renderer(D3D12RHI* pGfx, Scene* pScene)
 		: m_Gfx(pGfx)
 	{
 		m_ShaderCompiler = std::make_unique<ShaderCompiler>();
@@ -76,6 +76,11 @@ namespace lde
 		m_Gfx->SetRenderTarget(SceneImage.GetRTV().GetCpuHandle(), &m_Gfx->SceneDepth->DSV().GetCpuHandle());
 		m_Gfx->ClearRenderTarget(SceneImage.GetRTV().GetCpuHandle());
 
+	#if MESH_SHADING
+		m_Gfx->SetRootSignature(&m_MeshletRS);
+		m_Gfx->SetPipeline(&m_MeshletPSO);
+		m_ActiveScene->DrawScene();
+	#endif
 		// Light Pass
 		{
 			m_Gfx->SetRootSignature(&m_LightRS);
@@ -127,7 +132,7 @@ namespace lde
 		m_Skybox->Create(m_Gfx, m_ActiveScene->World(), "Assets/Textures/newport_loft.hdr");
 
 	#if RAYTRACING
-		RaytracingCtx = new RHI::D3D12Raytracing(m_Gfx->Device.get(), m_ActiveScene->GetCamera(), m_Skybox.get());
+		RaytracingCtx = new D3D12Raytracing(m_Gfx->Device.get(), m_ActiveScene->GetCamera());
 	#endif
 	}
 
@@ -138,7 +143,7 @@ namespace lde
 		m_GBufferPass->Resize(Width, Height);
 		m_LightPass->Resize(Width, Height);
 		m_SkyPass->Resize(Width, Height);
-
+		SceneImage.OnResize(Width, Height);
 		//m_Gfx->Device->IdleGPU();
 	}
 
@@ -167,7 +172,7 @@ namespace lde
 		//	m_GBufferRS.AddConstants(2, 1); // Vertex Buffer; Index + Offset
 		//	m_GBufferRS.AddConstants(16, 2); // Texture indices
 		//	m_GBufferRS.AddStaticSampler(0, 0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
-		//	RHI::DX_CALL(m_GBufferRS.Build(m_Gfx->Device.get(), RHI::PipelineType::eGraphics), "G-Buffer Root Signature");
+		//	DX_CALL(m_GBufferRS.Build(m_Gfx->Device.get(), PipelineType::eGraphics), "G-Buffer Root Signature");
 		//	
 		//}
 
@@ -186,7 +191,7 @@ namespace lde
 			// Specular BRDF sampling
 			m_LightRS.AddStaticSampler(1, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 
-			RHI::DX_CALL(m_LightRS.Build(m_Gfx->Device.get(), RHI::PipelineType::eGraphics, "LightPass Root Signature"));
+			DX_CALL(m_LightRS.Build(m_Gfx->Device.get(), PipelineType::eGraphics, "LightPass Root Signature"));
 			
 		}
 
@@ -197,25 +202,27 @@ namespace lde
 			// Skybox texture to draw
 			m_SkyboxRS.AddConstants(1, 1);
 			m_SkyboxRS.AddStaticSampler(0, 0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_COMPARISON_FUNC_LESS_EQUAL);
-			RHI::DX_CALL(m_SkyboxRS.Build(m_Gfx->Device.get(), RHI::PipelineType::eGraphics, "Skybox Root Signature"));
+			DX_CALL(m_SkyboxRS.Build(m_Gfx->Device.get(), PipelineType::eGraphics, "Skybox Root Signature"));
 		}
 
 		// Meshlets
 		// TODO:
+	#if MESH_SHADING
 		{
-			//m_MeshletRS.AddCBV(0);
-			//m_MeshletRS.AddCBV(1);
-			//m_MeshletRS.AddSRV(0);
-			//m_MeshletRS.AddSRV(1);
-			//m_MeshletRS.AddSRV(2);
-			//RHI::DX_CALL(m_MeshletRS.Build(m_Gfx->Device.get(), RHI::PipelineType::eGraphics, "Mesh Shading Root Signature"));
+			m_MeshletRS.AddCBV(0);
+			m_MeshletRS.AddCBV(1);
+			m_MeshletRS.AddSRV(0);
+			m_MeshletRS.AddSRV(1);
+			m_MeshletRS.AddSRV(2);
+			m_MeshletRS.AddSRV(3);
+			DX_CALL(m_MeshletRS.Build(m_Gfx->Device.get(), PipelineType::eGraphics, "Mesh Shading Root Signature"));
 		}
-
+	#endif
 	}
 
 	void Renderer::BuildPipelines()
 	{
-		RHI::D3D12PipelineStateBuilder psoBuilder(m_Gfx->Device.get());
+		D3D12PipelineStateBuilder psoBuilder(m_Gfx->Device.get());
 
 		// G-Buffer Pass
 		{
@@ -235,7 +242,7 @@ namespace lde
 			//};
 			//psoBuilder->SetRenderTargetFormats(formats);
 			//
-			//RHI::DX_CALL(psoBuilder->Build(m_PipelineState, &m_RootSignature, "GBuffer PSO"));
+			//DX_CALL(psoBuilder->Build(m_PipelineState, &m_RootSignature, "GBuffer PSO"));
 			//psoBuilder->Reset();
 		}
 
@@ -247,7 +254,7 @@ namespace lde
 			std::array<DXGI_FORMAT, 1> formats{ DXGI_FORMAT_R32G32B32A32_FLOAT };
 			psoBuilder.SetRenderTargetFormats(formats);
 
-			RHI::DX_CALL(psoBuilder.Build(m_LightPSO, &m_LightRS));
+			DX_CALL(psoBuilder.Build(m_LightPSO, &m_LightRS));
 			psoBuilder.Reset();
 		}
 
@@ -259,10 +266,25 @@ namespace lde
 			std::vector<DXGI_FORMAT> formats{ DXGI_FORMAT_R32G32B32A32_FLOAT };
 			psoBuilder.SetRenderTargetFormats(formats);
 
-			RHI::DX_CALL(psoBuilder.Build(m_SkyboxPSO, &m_SkyboxRS));
+			DX_CALL(psoBuilder.Build(m_SkyboxPSO, &m_SkyboxRS));
 			psoBuilder.Reset();
 		}
 
+		// TEST
+		// Mesh shading
+	#if MESH_SHADING
+		{
+			D3D12MeshPipelineBuilder msBuilder{};
+			//msBuilder.SetAS("Shaders/Mesh/Amplification.hlsl");
+			msBuilder.SetMS("Shaders/Mesh/Mesh.hlsl");
+			msBuilder.SetPS("Shaders/Mesh/Mesh.hlsl");
+
+			std::vector<DXGI_FORMAT> formats{ DXGI_FORMAT_R32G32B32A32_FLOAT };
+			//msBuilder.SetRenderTargetFormats(formats);
+
+			DX_CALL(msBuilder.Build(m_Gfx->Device.get(), m_MeshletPSO, &m_MeshletRS));
+		}
+	#endif
 	}
 
 	uint64 Renderer::GetRenderTarget()

@@ -70,7 +70,7 @@ namespace lde
 		const int width = static_cast<int>(m_WindowRect.right - m_WindowRect.left);
 		const int height = static_cast<int>(m_WindowRect.bottom - m_WindowRect.top);
 
-		s_hWnd = ::CreateWindowExW(WS_EX_OVERLAPPEDWINDOW | WS_EX_NOREDIRECTIONBITMAP,
+		s_hWnd = ::CreateWindowExW(WS_EX_OVERLAPPEDWINDOW,
 			m_WindowClass, String::ToWide(m_Title).c_str(), 
 			WS_OVERLAPPEDWINDOW,
 			0, 0, width, height, 
@@ -78,10 +78,11 @@ namespace lde
 			s_hInstance, this);
 
 		// Centering window position upon first appearing
-		const int xPos = (::GetSystemMetrics(SM_CXSCREEN) - m_WindowRect.right) / 2;
+		const int xPos = (::GetSystemMetrics(SM_CXSCREEN) - m_WindowRect.right)  / 2;
 		const int yPos = (::GetSystemMetrics(SM_CYSCREEN) - m_WindowRect.bottom) / 2;
 
-		::SetWindowPos(s_hWnd, 0, xPos, yPos, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+		// | SWP_SHOWWINDOW -> setting this will cause Editor layer to not be scaled properly without later window resizing.
+		::SetWindowPos(s_hWnd, 0, xPos, yPos, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
 
 		BOOL bDarkMode = TRUE;
 		::DwmSetWindowAttribute(s_hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &bDarkMode, sizeof(bDarkMode));

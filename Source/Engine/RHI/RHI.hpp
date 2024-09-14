@@ -8,7 +8,7 @@
 #include <RHI/PipelineState.hpp>
 #include <RHI/Texture.hpp>
 
-namespace lde::RHI
+namespace lde
 {
 	class RHI
 	{
@@ -31,4 +31,4 @@ namespace lde::RHI
 		//virtual CommandList* GetGfxCommandList() = 0;
 
 	};
-} // namespace lde::RHI
+} // namespace lde

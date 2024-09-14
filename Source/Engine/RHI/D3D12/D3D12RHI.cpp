@@ -5,7 +5,7 @@
 #include <Core/Logger.hpp>
 #include <Platform/Window.hpp>
 
-namespace lde::RHI
+namespace lde
 {
 	D3D12RHI::D3D12RHI()
 	{
@@ -131,7 +131,7 @@ namespace lde::RHI
 
 	void D3D12RHI::OpenList(D3D12CommandList* pCommandList)
 	{
-		pCommandList->Reset();
+		pCommandList->Open();
 	}
 	
 	void D3D12RHI::OnResize(uint32 Width, uint32 Height)
@@ -140,7 +140,7 @@ namespace lde::RHI
 
 		for (usize frame = 0; frame < FRAME_COUNT; ++frame)
 		{
-			Device->m_FrameResources[frame].GraphicsCommandList->Reset();
+			Device->m_FrameResources[frame].GraphicsCommandList->Open();
 		}
 
 		Device->GetFence()->OnResize();

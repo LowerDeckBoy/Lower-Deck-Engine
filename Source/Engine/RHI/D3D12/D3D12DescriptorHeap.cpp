@@ -2,7 +2,7 @@
 #include "D3D12Device.hpp"
 #include "D3D12Utility.hpp"
 
-namespace lde::RHI
+namespace lde
 {
 	D3D12DescriptorHeap::D3D12DescriptorHeap(D3D12Device* pDevice, HeapType eType, uint32 MaxCapacity, std::string_view DebugName)
 	{

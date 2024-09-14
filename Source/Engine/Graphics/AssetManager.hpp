@@ -14,7 +14,8 @@ struct cgltf_mesh;
 namespace lde
 {
 	using namespace DirectX;
-	namespace RHI { class D3D12RHI; }
+
+	class D3D12RHI;
 
 	struct Vertex;
 	struct Mesh;
@@ -33,13 +34,13 @@ namespace lde
 	
 		static AssetManager& GetInstance();
 	
-		void Initialize(RHI::D3D12RHI* pGfx)
+		void Initialize(D3D12RHI* pGfx)
 		{
 			m_Gfx = pGfx;
 		}
-		void Import(RHI::D3D12RHI* pGfx, std::string_view Filepath, Mesh& pInMesh);
+		void Import(D3D12RHI* pGfx, std::string_view Filepath, Mesh& pInMesh);
 
-		void ImportGLTF(RHI::D3D12RHI* pGfx, std::string_view Filepath, Mesh& pInMesh);
+		void ImportGLTF(D3D12RHI* pGfx, std::string_view Filepath, Mesh& pInMesh);
 
 		void OptimizeMesh(std::vector<Vertex>& Vertices, std::vector<uint32>& Indices);
 
@@ -54,7 +55,7 @@ namespace lde
 		void ProcessGeometry(const cgltf_mesh* pMesh, std::vector<Submesh>& Submeshes, std::vector<Vertex>& OutVertices, std::vector<uint32>& OutIndices);
 
 		// For access to Device and CommandList
-		RHI::D3D12RHI* m_Gfx = nullptr;
+		D3D12RHI* m_Gfx = nullptr;
 	
 		std::string m_Filepath;
 	

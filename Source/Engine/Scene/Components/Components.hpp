@@ -16,17 +16,17 @@ namespace lde
 	
 	struct TranslationComponent
 	{
-		XMFLOAT3 Translation;
+		XMFLOAT3 Translation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	};
 	
 	struct RotationComponent
 	{
-		XMFLOAT4 Rotation;
+		XMFLOAT4 Rotation = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 	};
 	
 	struct ScaleComponent
 	{
-		XMFLOAT3 Scale;
+		XMFLOAT3 Scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	};
 
 	struct TransformComponent
@@ -59,31 +59,6 @@ namespace lde
 			Scale		= XMFLOAT3(1.0f, 1.0f, 1.0f);
 			Update();
 		}
-	
-		XMFLOAT3& GetTranslation()
-		{
-			return Translation;
-		}
 	};
-
-	//struct DirectLightComponent
-	//{
-	//	XMFLOAT3 Direction;
-	//	XMFLOAT4 Ambient;
-	//	XMFLOAT4 Diffuse;
-	//};
-	//
-	//struct PointLightComponent
-	//{
-	//	XMFLOAT3 Position;
-	//	XMFLOAT4 Ambient;
-	//	XMFLOAT4 Diffuse;
-	//	float Radius;
-	//};
-	
-	//struct SpotLightComponent
-	//{
-	//
-	//};
 
 } // namespace lde

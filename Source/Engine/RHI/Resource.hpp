@@ -2,7 +2,7 @@
 
 // TODO:
 
-namespace lde::RHI
+namespace lde
 {
 	class Device;
 
@@ -16,4 +16,4 @@ namespace lde::RHI
 		Device* m_Device = nullptr;
 
 	};
-} // namespace lde::RHI
+} // namespace lde

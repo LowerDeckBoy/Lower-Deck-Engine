@@ -1,6 +1,6 @@
 #pragma once
 
-namespace lde::RHI
+namespace lde
 {
 	class Shader
 	{
@@ -9,4 +9,4 @@ namespace lde::RHI
 	protected:
 
 	};
-} // namespace lde::RHI
+} // namespace lde

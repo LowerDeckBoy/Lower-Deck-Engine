@@ -1,6 +1,6 @@
 #pragma once
 
-namespace lde::RHI
+namespace lde
 {
 	enum class ResourceType
 	{
@@ -18,7 +18,7 @@ namespace lde::RHI
 	public:
 		D3D12Resource(D3D12Device* pDevice)
 
-		ID3D12Resource* Get()
+		ID3D12Resource* GetHandleRaw()
 		{
 			return m_Resource.Get();
 		}
@@ -26,4 +26,4 @@ namespace lde::RHI
 	private:
 		Ref<ID3D12Resource> m_Resource;
 	};
-} // namespace lde::RHI
+} // namespace lde

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace lde::RHI
+namespace lde
 {
 	class D3D12Device;
 	class D3D12Descriptor;
@@ -34,4 +34,4 @@ namespace lde::RHI
 		D3D12Descriptor m_SRV;
 
 	};
-} // namespace lde::RHI
+} // namespace lde

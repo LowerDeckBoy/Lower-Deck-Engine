@@ -6,23 +6,23 @@
 #include "RHI/Types.hpp"
 #include <AgilitySDK/d3dx12/d3dx12_resource_helpers.h>
 
-namespace lde::RHI
+namespace lde
 {
 	static constexpr D3D12_COMMAND_LIST_TYPE GetCommandType(CommandType eType)
 	{
 		switch (eType)
 		{
-		case lde::RHI::CommandType::eGraphics:
+		case lde::CommandType::eGraphics:
 			return D3D12_COMMAND_LIST_TYPE_DIRECT;
-		case lde::RHI::CommandType::eCompute:
+		case lde::CommandType::eCompute:
 			return D3D12_COMMAND_LIST_TYPE_COMPUTE;
-		case lde::RHI::CommandType::eUpload:
+		case lde::CommandType::eUpload:
 			return D3D12_COMMAND_LIST_TYPE_COPY;
-		case lde::RHI::CommandType::eBundle:
+		case lde::CommandType::eBundle:
 			return D3D12_COMMAND_LIST_TYPE_BUNDLE;
+		default:
+			return D3D12_COMMAND_LIST_TYPE_NONE;
 		}
-
-		return D3D12_COMMAND_LIST_TYPE_NONE;
 	}
 
 	/* =============================== Command Allocator =============================== */
@@ -42,18 +42,18 @@ namespace lde::RHI
 	{
 		DX_CALL(m_Allocator->Reset());
 	}
-
+	
 	/* =============================== Command List =============================== */
 
 	D3D12CommandList::D3D12CommandList(D3D12Device* pDevice, CommandType eType, std::string DebugName)
 	{
 		D3D12_COMMAND_LIST_TYPE type = GetCommandType(eType);
 
-		DX_CALL(pDevice->GetDevice()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_Allocator)));
+		m_Allocator = new D3D12CommandAllocator(pDevice, eType);
 		DX_CALL(pDevice->GetDevice()->CreateCommandList1(DEVICE_NODE, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&m_GraphicsCommandList)));
 
 		SET_D3D12_NAME(m_GraphicsCommandList, DebugName);
-		SET_D3D12_NAME(m_Allocator, (DebugName + ": Allocator"));
+		//SET_D3D12_NAME(*m_Allocator, (DebugName + ": Allocator"));
 
 		m_Type = eType;
 	}
@@ -61,17 +61,31 @@ namespace lde::RHI
 	D3D12CommandList::~D3D12CommandList()
 	{
 		SAFE_RELEASE(m_GraphicsCommandList);
-		SAFE_RELEASE(m_Allocator);
+		delete m_Allocator;
 	}
 
-	void D3D12CommandList::ResetAllocator()
-	{
-		DX_CALL(m_Allocator->Reset());
-	}
+	//void D3D12CommandList::ResetAllocator()
+	//{
+	//	m_Allocator->Reset();
+	//}
 
 	void D3D12CommandList::ResetList()
 	{
-		DX_CALL(m_GraphicsCommandList->Reset(m_Allocator.Get(), nullptr));
+		DX_CALL(m_GraphicsCommandList->Reset(m_Allocator->Get(), nullptr));
+	}
+
+	HRESULT D3D12CommandList::Open()
+	{
+		HRESULT hResult = m_Allocator->Get()->Reset();
+
+		if (FAILED(hResult))
+		{
+			// log
+		}
+
+		hResult = m_GraphicsCommandList->Reset(m_Allocator->Get(), nullptr);
+
+		return hResult;
 	}
 
 	HRESULT D3D12CommandList::Close()
@@ -79,13 +93,6 @@ namespace lde::RHI
 		return m_GraphicsCommandList->Close();
 	}
 
-	void D3D12CommandList::Reset()
-	{
-		DX_CALL(m_Allocator->Reset());
-		DX_CALL(m_GraphicsCommandList->Reset(m_Allocator.Get(), nullptr));
-
-	}
-	 
 	void D3D12CommandList::DrawIndexed(uint32 IndexCount, uint32 BaseIndex, uint32 BaseVertex)
 	{
 		m_GraphicsCommandList->DrawIndexedInstanced(IndexCount, 1, BaseIndex, BaseVertex, 0);
@@ -178,27 +185,27 @@ namespace lde::RHI
 	{
 		switch (eState)
 		{
-		case lde::RHI::ResourceState::eGeneralUsage:
+		case lde::ResourceState::eGeneralUsage:
 			return D3D12_RESOURCE_STATE_GENERIC_READ;
-		case lde::RHI::ResourceState::eRenderTarget:
+		case lde::ResourceState::eRenderTarget:
 			return D3D12_RESOURCE_STATE_RENDER_TARGET;
-		case lde::RHI::ResourceState::ePresent:
+		case lde::ResourceState::ePresent:
 			return D3D12_RESOURCE_STATE_PRESENT;
-		case lde::RHI::ResourceState::eCopySrc:
+		case lde::ResourceState::eCopySrc:
 			return D3D12_RESOURCE_STATE_COPY_SOURCE;
-		case lde::RHI::ResourceState::eCopyDst:
+		case lde::ResourceState::eCopyDst:
 			return D3D12_RESOURCE_STATE_COPY_DEST;
-		case lde::RHI::ResourceState::eVertexOrConstantBuffer:
+		case lde::ResourceState::eVertexOrConstantBuffer:
 			return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-		case lde::RHI::ResourceState::eIndexBuffer:
+		case lde::ResourceState::eIndexBuffer:
 			return D3D12_RESOURCE_STATE_INDEX_BUFFER;
-		case lde::RHI::ResourceState::eAllShaderResource:
+		case lde::ResourceState::eAllShaderResource:
 			return D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
-		case lde::RHI::ResourceState::ePixelShaderResource:
+		case lde::ResourceState::ePixelShaderResource:
 			return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		default:
+			return D3D12_RESOURCE_STATE_GENERIC_READ;
 		}
-
-		return D3D12_RESOURCE_STATE_GENERIC_READ;
 	}
 	
 	/* =============================== Command Signature =============================== */
@@ -345,4 +352,4 @@ namespace lde::RHI
 		SAFE_RELEASE(m_CommandSignature);
 	}
 	/**/
-} // namespace lde::RHI
+} // namespace lde

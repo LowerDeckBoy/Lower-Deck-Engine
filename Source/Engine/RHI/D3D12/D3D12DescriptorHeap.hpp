@@ -3,7 +3,7 @@
 #include <Core/CoreMinimal.hpp>
 #include "D3D12Descriptor.hpp"
 
-namespace lde::RHI
+namespace lde
 {
 	enum class HeapType
 	{
@@ -57,4 +57,4 @@ namespace lde::RHI
 		inline bool CanAllocate() const { return (m_AllocationsLeft > 0); }
 
 	};
-}
+} // namespace lde

@@ -10,7 +10,7 @@
 #include <RHI/CommandList.hpp>
 #include <RHI/RHICommon.hpp>
 
-namespace lde::RHI
+namespace lde
 {
 	enum class CommandType;
 	class D3D12Device;
@@ -30,6 +30,11 @@ namespace lde::RHI
 		ID3D12CommandAllocator* Get()
 		{
 			return m_Allocator.Get();
+		}
+
+		ID3D12CommandAllocator** GetAddressOf()
+		{
+			return m_Allocator.GetAddressOf();
 		}
 
 		operator ID3D12CommandAllocator*() { return m_Allocator.Get(); }
@@ -53,17 +58,16 @@ namespace lde::RHI
 
 		ID3D12GraphicsCommandList8*			Get() const		{ return m_GraphicsCommandList.Get();			}
 		ID3D12GraphicsCommandList8* const*	GetAddressOf()	{ return m_GraphicsCommandList.GetAddressOf();	}
-		ID3D12CommandAllocator*				GetAllocator()	{ return m_Allocator.Get();						}
+		ID3D12CommandAllocator*				GetAllocator()	{ return m_Allocator->Get();						}
 
+		HRESULT Open();
 		HRESULT Close();
 
-		void Reset(D3D12CommandAllocator* pAllocator);
+		//void Reset(D3D12CommandAllocator* pAllocator);
 
-		// TODO: rename these methods
-		// Reset both List and Allocator
-		void Reset() override final;
+		//void Reset() override final {}
 		// Reset Allocator only
-		void ResetAllocator();
+		//void ResetAllocator();
 		// Reset list only
 		void ResetList();
 
@@ -88,7 +92,7 @@ namespace lde::RHI
 
 	private:
 		Ref<ID3D12GraphicsCommandList8> m_GraphicsCommandList;
-		Ref<ID3D12CommandAllocator>		m_Allocator;
+		D3D12CommandAllocator*			m_Allocator;
 		
 	};
 	
@@ -136,4 +140,4 @@ namespace lde::RHI
 		uint32 m_Stride = 0;
 	};
 	
-} // namespace lde::RHI
+} // namespace lde

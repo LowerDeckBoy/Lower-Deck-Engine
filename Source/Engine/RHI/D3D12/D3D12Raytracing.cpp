@@ -14,7 +14,7 @@
 #include "Scene/Components/Components.hpp"
 #include "Scene/Scene.hpp"
 
-namespace lde::RHI
+namespace lde
 {
 	enum GlobalRootSignature
 	{
@@ -23,8 +23,8 @@ namespace lde::RHI
 		Camera
 	};
 
-	D3D12Raytracing::D3D12Raytracing(D3D12Device* pDevice, SceneCamera* pCamera, Skybox* pSkybox)
-		: m_Device(pDevice), m_Camera(pCamera), m_Skybox(pSkybox)
+	D3D12Raytracing::D3D12Raytracing(D3D12Device* pDevice, SceneCamera* pCamera)
+		: m_Device(pDevice), m_Camera(pCamera)
 	{
 		BuildShaders();
 		CreateRootSignature();		
@@ -71,16 +71,12 @@ namespace lde::RHI
 			// Camera
 			// 64 bytes for ViewProjection, 16 bytes for Position
 			RootSignatures.Global->AddConstants(20, 1, 0);
+			// Textures
+			// baseColor
+			// normal
+			RootSignatures.Global->AddConstants(2, 0, 1);
 			//RootSignatures.Global->AddCBV(1);
-
-			D3D12_DESCRIPTOR_RANGE1 range[1]{};
-			range[0].BaseShaderRegister = 5;
-			range[0].RegisterSpace = 0;
-			range[0].NumDescriptors = UINT32_MAX;
-			range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-			range[0].Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE;
-
-			RootSignatures.Global->AddDescriptorTable(range);
+			
 			RootSignatures.Global->AddStaticSampler(0, 0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 			DX_CALL(RootSignatures.Global->Build(m_Device, PipelineType::eCompute, "Raytracing Global Root Signature"));
 		}
@@ -280,7 +276,8 @@ namespace lde::RHI
 		struct cam{ XMMATRIX ViewProjection; XMVECTOR Position; } camera{ m_Camera->GetViewProjection(), m_Camera->GetPosition() };
 		commandList->SetComputeRoot32BitConstants(1, 20, &camera, 0);
 
-		commandList->SetComputeRootDescriptorTable(2, m_Device->GetSRVHeap()->GpuStartHandle());
+		
+		//commandList->SetComputeRootDescriptorTable(2, m_Device->GetSRVHeap()->GpuStartHandle());
 
 		D3D12_DISPATCH_RAYS_DESC dispatchDesc{};
 		// RayGen
@@ -621,4 +618,4 @@ namespace lde::RHI
 		Subobjects.push_back(subobject);
 	}
 
-} // namespace lde::RHI
+} // namespace lde

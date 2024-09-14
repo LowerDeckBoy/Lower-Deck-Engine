@@ -6,7 +6,7 @@
 #include <deque>
 #include <functional>
 
-namespace lde::RHI
+namespace lde
 {
 	enum class BackendAPI
 	{
@@ -54,4 +54,4 @@ namespace lde::RHI
 		DeviceType		m_GpuType = DeviceType::eUnspecifed;
 
 	};
-} // namespace lde::RHI
+} // namespace lde

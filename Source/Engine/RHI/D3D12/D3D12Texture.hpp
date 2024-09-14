@@ -8,7 +8,7 @@
 #include "D3D12Descriptor.hpp"
 #include <Core/CoreMinimal.hpp>
 
-namespace lde::RHI
+namespace lde
 {
 	class D3D12RHI;
 
@@ -18,9 +18,9 @@ namespace lde::RHI
 		uint64	Width	= 0;
 		uint32	Height	= 0;
 		// if Mips are higher than 1, sets texture to UAV
-		uint16	Mips		= 1; 
+		uint16	Mips	= 1; 
 		uint16	Depth	= 1;
-		bool	bMSAA		= false;
+		bool	bMSAA	= false;
 	};
 	
 	class D3D12Texture
@@ -33,7 +33,7 @@ namespace lde::RHI
 		void Release();
 
 		D3D12Descriptor SRV;
-		D3D12Descriptor UAV; /* For mipmapping */
+		D3D12Descriptor UAV; // For mipmapping
 
 		DXGI_FORMAT m_Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
@@ -86,4 +86,4 @@ namespace lde::RHI
 
 	};
 
-} // namespace lde::RHI
+} // namespace lde

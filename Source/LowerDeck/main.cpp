@@ -2,9 +2,9 @@
 #include "Application.hpp"
 
 _Use_decl_annotations_
-int WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
+int WinMain(HINSTANCE /* hInstance */, HINSTANCE, LPSTR, int)
 {
-	auto* app = new lde::App(hInstance, { 1600, 900, false });
+	auto* app = new lde::App({ 1920, 1080, false });
 
 	try
 	{

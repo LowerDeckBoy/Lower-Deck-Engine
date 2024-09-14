@@ -3,7 +3,7 @@
 #include "D3D12Utility.hpp"
 #include "RHI/Types.hpp"
 
-namespace lde::RHI
+namespace lde
 {
 	D3D12Queue::D3D12Queue(D3D12Device* pDevice, CommandType eType, std::string_view DebugName)
 	{

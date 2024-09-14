@@ -3,7 +3,7 @@
 #include "D3D12Utility.hpp"
 #include "RHI/RHICommon.hpp"
 
-namespace lde::RHI
+namespace lde
 {
 	void D3D12Texture::Release()
 	{
@@ -145,4 +145,4 @@ namespace lde::RHI
 		m_Gfx->Device->CreateSRV(Texture.Get(), GetSRV(), 1, 1);
 
 	}
-} // namespace lde::RHI
+} // namespace lde

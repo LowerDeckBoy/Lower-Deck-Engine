@@ -17,7 +17,7 @@ namespace lde
 	{
 	public:
 		Shader() {}
-		Shader(IDxcBlob* pSource, RHI::ShaderStage eStage) : BinaryData(pSource), Stage(eStage) { }
+		Shader(IDxcBlob* pSource, ShaderStage eStage) : BinaryData(pSource), Stage(eStage) { }
 		~Shader()
 		{
 			if (BinaryData != nullptr)
@@ -32,7 +32,7 @@ namespace lde
 		inline D3D12_SHADER_BYTECODE Bytecode() { return D3D12_SHADER_BYTECODE{ BinaryData->GetBufferPointer(), BinaryData->GetBufferSize() }; }
 
 		IDxcBlob* BinaryData = nullptr;
-		RHI::ShaderStage Stage{};
+		ShaderStage Stage{};
 	private:
 		std::string m_Filepath;
 		
@@ -51,7 +51,7 @@ namespace lde
 		void Initialize();
 		void Release();
 	
-		Shader Compile(const std::string_view& Filepath, RHI::ShaderStage eType, std::wstring EntryPoint = L"main");
+		Shader Compile(const std::string_view& Filepath, ShaderStage eType, std::wstring EntryPoint = L"main");
 	
 		static ShaderCompiler& GetInstance();
 

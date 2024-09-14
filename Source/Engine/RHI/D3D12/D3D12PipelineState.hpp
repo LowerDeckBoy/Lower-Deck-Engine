@@ -12,7 +12,7 @@
 #include <vector>
 #include <AgilitySDK/d3dx12/d3dx12_pipeline_state_stream.h>
 
-namespace lde::RHI
+namespace lde
 {
 	class D3D12Device;
 	class D3D12RootSignature;
@@ -140,4 +140,4 @@ namespace lde::RHI
 
 	};
 
-} // namespace lde::RHI
+} // namespace lde

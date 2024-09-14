@@ -48,8 +48,8 @@ namespace lde
 	class Renderer
 	{
 	public:
-		Renderer(RHI::D3D12RHI* pGfx);
-		Renderer(RHI::D3D12RHI* pGfx, Scene* pScene);
+		Renderer(D3D12RHI* pGfx);
+		Renderer(D3D12RHI* pGfx, Scene* pScene);
 		~Renderer();
 
 		void Initialize();
@@ -70,34 +70,34 @@ namespace lde
 		static bool bVSync;
 
 	private:
-		RHI::D3D12RHI* m_Gfx = nullptr;
+		D3D12RHI* m_Gfx = nullptr;
 		
 		Scene* m_ActiveScene = nullptr;
 
-		RHI::D3D12RenderTexture SceneImage;
+		D3D12RenderTexture SceneImage;
 
 		std::unique_ptr<ShaderCompiler>	m_ShaderCompiler;
 		std::unique_ptr<TextureManager> m_TextureManager;
 		std::unique_ptr<AssetManager>	m_AssetManager;
 		
 		// PSOs
-		RHI::D3D12RootSignature m_GBufferRS;
-		RHI::D3D12PipelineState m_GBufferPSO;
+		D3D12RootSignature m_GBufferRS;
+		D3D12PipelineState m_GBufferPSO;
 
-		RHI::D3D12RootSignature m_LightRS;
-		RHI::D3D12PipelineState m_LightPSO;
+		D3D12RootSignature m_LightRS;
+		D3D12PipelineState m_LightPSO;
 
-		RHI::D3D12RootSignature m_SkyboxRS;
-		RHI::D3D12PipelineState m_SkyboxPSO;
+		D3D12RootSignature m_SkyboxRS;
+		D3D12PipelineState m_SkyboxPSO;
 
-		RHI::D3D12RootSignature m_MeshletRS;
-		RHI::D3D12PipelineState m_MeshletPSO;
+		D3D12RootSignature m_MeshletRS;
+		D3D12PipelineState m_MeshletPSO;
 
 		void BuildRootSignatures();
 		void BuildPipelines();
 
 		BufferHandle   m_SceneConstBuffer = 0;
-		RHI::SceneData m_SceneData{};
+		SceneData m_SceneData{};
 
 	public:
 		std::unique_ptr<Skybox> m_Skybox;
@@ -114,6 +114,6 @@ namespace lde
 		RenderOutput SelectedRenderTarget = RenderOutput::eShaded;
 
 		// TEST
-		RHI::D3D12Raytracing* RaytracingCtx = nullptr;
+		D3D12Raytracing* RaytracingCtx = nullptr;
 	};
 } // namespace lde

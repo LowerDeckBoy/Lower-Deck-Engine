@@ -11,7 +11,7 @@
 #include <Core/CoreMinimal.hpp>
 #include <DirectXMath.h>
 
-namespace lde::RHI
+namespace lde
 {
 	class D3D12Device;
 	class D3D12RHI;
@@ -105,4 +105,4 @@ namespace lde::RHI
 		usize m_Size = 0;
 
 	};
-}
+} // namespace lde

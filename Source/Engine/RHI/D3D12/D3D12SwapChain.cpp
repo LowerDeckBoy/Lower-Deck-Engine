@@ -5,7 +5,7 @@
 #include "D3D12Utility.hpp"
 #include <Platform/Window.hpp>
 
-namespace lde::RHI
+namespace lde
 {
 	D3D12SwapChain::D3D12SwapChain(D3D12Device* pDevice, D3D12Queue* pQueue, uint32 Width, uint32 Height)
 	{

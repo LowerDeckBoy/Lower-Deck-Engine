@@ -7,7 +7,7 @@
 
 namespace lde
 {
-	LightPass::LightPass(RHI::D3D12RHI* pGfx)
+	LightPass::LightPass(D3D12RHI* pGfx)
 	{	
 		m_Gfx = pGfx;
 		Create(pGfx);
@@ -92,14 +92,14 @@ namespace lde
 		m_Texture->OnResize(Width, Height);
 	}
 
-	void LightPass::Create(RHI::D3D12RHI* pGfx)
+	void LightPass::Create(D3D12RHI* pGfx)
 	{
-		m_Texture = std::make_unique<RHI::D3D12RenderTexture>();
+		m_Texture = std::make_unique<D3D12RenderTexture>();
 		m_Texture->Initialize(pGfx, DXGI_FORMAT_R32G32B32A32_FLOAT, "Light Pass Render Texture");
 
 		// Getting indices inside of a shader.
 		//std::array<uint32, 6> indices = { 0, 1, 2, 2, 3, 0 };
-		//m_IndexBuffer = pGfx->GetDevice()->CreateBuffer(RHI::BufferDesc(RHI::BufferUsage::eIndex, indices.data(), 6, 24, 4, false));
+		//m_IndexBuffer = pGfx->GetDevice()->CreateBuffer(BufferDesc(BufferUsage::eIndex, indices.data(), 6, 24, 4, false));
 
 		m_SceneConstBuffer = pGfx->GetDevice()->CreateConstantBuffer(&m_SceneData, sizeof(m_SceneData));
 

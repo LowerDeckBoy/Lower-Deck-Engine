@@ -12,7 +12,7 @@
 namespace lde
 {
 	/// @brief Triple buffering
-	constexpr uint32 FRAME_COUNT = 3;
+	constexpr uint32 FRAME_COUNT = 2;
 
 	extern uint32 FRAME_INDEX;
 

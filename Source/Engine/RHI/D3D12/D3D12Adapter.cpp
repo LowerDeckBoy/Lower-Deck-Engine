@@ -11,7 +11,7 @@
 extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = 611;			}
 extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\";	}
 
-namespace lde::RHI
+namespace lde
 {
 	constexpr auto MINIMUM_FEATURE_LEVEL = D3D_FEATURE_LEVEL_12_0;
 	constexpr auto DESIRED_FEATURE_LEVEL = D3D_FEATURE_LEVEL_12_2;
@@ -33,7 +33,7 @@ namespace lde::RHI
 		DX_CALL(D3D12GetDebugInterface(IID_PPV_ARGS(&m_DebugDevices.D3DDebug)));
 		m_DebugDevices.D3DDebug->EnableDebugLayer();
 		// Investiage: resizing window while GPU validation is on causes increases in memory usage.
-		m_DebugDevices.D3DDebug->SetEnableGPUBasedValidation(FALSE);
+		//m_DebugDevices.D3DDebug->SetEnableGPUBasedValidation(FALSE);
 #endif
 
 		DX_CALL(CreateDXGIFactory2(factoryFlags, IID_PPV_ARGS(&m_Factory)));
@@ -165,4 +165,4 @@ namespace lde::RHI
 		m_RTVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eRTV, 64,    "RTV Descriptor Heap");
 	}
 	
-} // namespace lde::RHI
+} // namespace lde

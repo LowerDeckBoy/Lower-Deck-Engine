@@ -1,11 +1,11 @@
 #include "Application.hpp"
 #include <ImGui/imgui_impl_win32.h>
-#include <windowsx.h>
+//#include <windowsx.h>
 
 namespace lde
 {
-	App::App(HINSTANCE hInstance, WindowParameters StartUp)
-		: Window(hInstance, StartUp)
+	App::App(WindowParameters StartUp)
+		: Window(StartUp)
 	{
 		m_AppTimer = std::make_unique<Timer>();
 	}
@@ -18,7 +18,7 @@ namespace lde
 	{
 		Window::Create();
 		
-		m_Gfx = std::make_unique<RHI::D3D12RHI>();
+		m_Gfx = std::make_unique<D3D12RHI>();
 
 		m_ActiveScene = std::make_unique<Scene>(Window::Width, Window::Height, m_Gfx.get());
 		m_Renderer = std::make_unique<Renderer>(m_Gfx.get(), m_ActiveScene.get());
@@ -29,11 +29,13 @@ namespace lde
 #endif
 		
 		//m_ActiveScene->AddModel("Assets/Models/sponza/Sponza.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/aerith/scene.gltf");
 		m_ActiveScene->AddModel("Assets/Models/DamagedHelmet/DamagedHelmet.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/Bistro-gltf/BistroExterior.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/Bistro_Exterior/Bistro.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/SciFiHelmet/SciFiHelmet.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/sgd162_idle_walk_run_cycle/scene.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/Bistro/Bistro.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/SciFiHelmet/SciFiHelmet.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/MetalRoughSpheres/MetalRoughSpheres.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/cube/Cube.gltf");
 
@@ -48,16 +50,16 @@ namespace lde
 		m_Renderer->RaytracingCtx->BuildShaderTable(m_ActiveScene.get());
 	#endif
 
-		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, false);
+		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, false);
 	}
-
+	
 	void App::Run()
 	{
 		Window::OnShow();
 		
 		::MSG msg{};
 		m_AppTimer->Reset();
-		
+
 		while (!bShouldQuit)
 		{
 			if (msg.message == WM_QUIT)
@@ -70,7 +72,7 @@ namespace lde
 			}
 
 			m_AppTimer->Tick();
-			
+
 			// Render
 			if (!bAppPaused)
 			{

@@ -4,12 +4,12 @@
 #include "D3D12Queue.hpp"
 #include "D3D12Utility.hpp"
 
-namespace lde::RHI
+namespace lde
 {
 	D3D12Fence::D3D12Fence(D3D12Device* pDevice, D3D12_FENCE_FLAGS Flags)
 	{
 		DX_CALL(pDevice->GetDevice()->CreateFence(0, Flags, IID_PPV_ARGS(&m_Fence)));
-		m_FenceValues.at(0)++;
+		++m_FenceValues.at(0);
 		m_FenceEvent = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
 	}
 

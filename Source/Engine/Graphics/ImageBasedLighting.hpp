@@ -8,14 +8,10 @@
 #include <Core/CoreMinimal.hpp>
 #include <RHI/D3D12/D3D12RHI.hpp>
 
-namespace lde::RHI
+namespace lde
 {
 	class D3D12Device;
 	class D3D12RootSignature;
-}
-
-namespace lde
-{	
 	class Skybox;
 	
 	/**
@@ -26,12 +22,12 @@ namespace lde
 	class ImageBasedLighting
 	{
 	public:
-		ImageBasedLighting(RHI::D3D12RHI* pRHI, Skybox* pSkybox, std::string_view Filepath);
+		ImageBasedLighting(D3D12RHI* pRHI, Skybox* pSkybox, std::string_view Filepath);
 		~ImageBasedLighting();
 		
 	private:
 		// Parent
-		RHI::D3D12RHI* m_Gfx = nullptr;
+		D3D12RHI* m_Gfx = nullptr;
 
 		// Create RootSignature and PSO for executing compute shaders
 		void CreateComputeStates();
@@ -47,7 +43,7 @@ namespace lde
 		struct
 		{
 			//Ref<ID3D12RootSignature> ComputeRS;
-			RHI::D3D12RootSignature* ComputeRS;
+			D3D12RootSignature* ComputeRS;
 			Ref<ID3D12PipelineState> ComputePSO;
 
 			Ref<ID3D12PipelineState> DiffusePSO;
@@ -63,8 +59,5 @@ namespace lde
 			Shader* BRDFLookUpCS = nullptr;
 		} m_Shaders;
 		
-
-		
-
 	};
 } // namespace lde

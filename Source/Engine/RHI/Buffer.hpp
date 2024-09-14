@@ -8,7 +8,7 @@ using TextureHandle = uint32;
 
 constexpr int32 INVALID_HANDLE = -1;
 
-namespace lde::RHI
+namespace lde
 {
 	enum class BufferUsage
 	{
@@ -65,5 +65,4 @@ namespace lde::RHI
 		virtual void Release() = 0;
 
 	};
-
-} // namespace lde::RHI
+} // namespace lde

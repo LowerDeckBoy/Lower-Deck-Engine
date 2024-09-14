@@ -6,7 +6,7 @@
 
 namespace lde
 {
-	Scene::Scene(uint32 Width, uint32 Height, RHI::D3D12RHI* pGfx)
+	Scene::Scene(uint32 Width, uint32 Height, D3D12RHI* pGfx)
 	{
 		Initialize(Width, Height, pGfx);
 	}
@@ -19,7 +19,7 @@ namespace lde
 		}
 	}
 	
-	void Scene::Initialize(uint32 Width, uint32 Height, RHI::D3D12RHI* pGfx)
+	void Scene::Initialize(uint32 Width, uint32 Height, D3D12RHI* pGfx)
 	{
 		m_World = new lde::World();
 		m_Camera = std::make_unique<SceneCamera>(m_World, static_cast<float>((float)Width / (float)Height));
@@ -75,11 +75,24 @@ namespace lde
 
 	#if MESH_SHADING
 
-		commandList->Get()->SetComputeRootShaderResourceView(2, vertexBuffer->GetGpuAddress());
+		//commandList->Get()->SetGraphicsRootShaderResourceView(2, vertexBuffer->GetGpuAddress());
 		//commandList->Get()->SetGraphicsRootShaderResourceView(3, mesh.MeshletResource->GetGPUVirtualAddress());
 		//commandList->Get()->SetGraphicsRootShaderResourceView(4, mesh.UniqueVertexIndexResource->GetGPUVirtualAddress());
 		//auto trianglesBuffer = m_Gfx->Device->Buffers().at(pModel.TrianglesBuffer);
 		//commandList->Get()->SetGraphicsRootShaderResourceView(5, pModel.TrianglesBuffer->GetGPUVirtualAddress());
+
+
+		//commandList->Get()->SetComputeRoot32BitConstant(1, mesh.IndexCount, 0);
+		commandList->Get()->SetGraphicsRootShaderResourceView(2, vertexBuffer->GetGpuAddress());
+		auto* meshletBuffer = m_Gfx->Device->Buffers.at(pModel.MeshletBuffer);
+		commandList->Get()->SetGraphicsRootShaderResourceView(3, meshletBuffer->GetGpuAddress());
+		auto* vertsBuffer = m_Gfx->Device->Buffers.at(pModel.UniqueVertexIBBuffer);
+		commandList->Get()->SetGraphicsRootShaderResourceView(4, vertsBuffer->GetGpuAddress());
+		//auto* trianglesBuffer = m_Gfx->Device->Buffers().at(pModel.TrianglesBuffer);
+		commandList->Get()->SetGraphicsRootShaderResourceView(5, indexBuffer->GetGpuAddress());
+		//pModel.Triangles.
+		commandList->DispatchMesh(pModel.Meshlets.size(), 1, 1);
+
 
 		for (uint32 i = 0; i < pModel.GetMesh()->Submeshes.size(); i++)
 		{
@@ -93,13 +106,7 @@ namespace lde
 				uint32 prims;
 			};
 			
-			//commandList->Get()->SetComputeRoot32BitConstant(1, mesh.IndexCount, 0);
-			commandList->Get()->SetComputeRootShaderResourceView(2, vertexBuffer->GetGpuAddress());
-			auto* meshletBuffer = m_Gfx->Device->Buffers.at(pModel.MeshletBuffer);
-			commandList->Get()->SetComputeRootShaderResourceView(3, meshletBuffer->GetGpuAddress());
-			//commandList->Get()->SetGraphicsRootShaderResourceView(4, mesh.UniqueVertexIndexResource->GetGPUVirtualAddress());
-			//auto* trianglesBuffer = m_Gfx->Device->Buffers().at(pModel.TrianglesBuffer);
-			//commandList->Get()->SetGraphicsRootShaderResourceView(5, pModel.TrianglesBuffer->GetGPUVirtualAddress());
+			
 
 			/*
 			commandList->Get()->SetGraphicsRootShaderResourceView(2, mesh.VertexResources[0]->GetGPUVirtualAddress());
@@ -118,7 +125,7 @@ namespace lde
 			//const auto WVP = mesh.Matrix * transform.WorldMatrix * m_Camera->GetViewProjection();
 			const auto WVP = transform.WorldMatrix * m_Camera->GetViewProjection();
 
-			RHI::cbPerObject update = { XMMatrixTranspose(WVP), DirectX::XMMatrixTranspose(transform.WorldMatrix) };
+			cbPerObject update = { XMMatrixTranspose(WVP), DirectX::XMMatrixTranspose(transform.WorldMatrix) };
 			constBuffer->Update(&update);
 			m_Gfx->BindConstantBuffer(constBuffer, 0);
 

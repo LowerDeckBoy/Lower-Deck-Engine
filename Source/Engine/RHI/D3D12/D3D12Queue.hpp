@@ -8,20 +8,14 @@
 #include <AgilitySDK/d3d12.h>
 #include <Core/CoreMinimal.hpp>
 
-namespace lde::RHI
+namespace lde
 {
 	enum class CommandType;
 	
 	class D3D12Device;
 	class D3D12Fence;
 	class D3D12CommandList;
-
-	//struct D3D12Fence
-	//{
-	//	Ref<ID3D12Fence> Fence;
-	//	uint64 LastSignaledValue = 0;
-	//};
-
+	
 	class D3D12Queue
 	{
 	public:
@@ -53,4 +47,4 @@ namespace lde::RHI
 		//D3D12Fence m_Fence;
 
 	};
-} // namespace lde::RHI
+} // namespace lde

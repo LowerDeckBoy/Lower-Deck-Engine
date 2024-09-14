@@ -3,7 +3,7 @@
 #include <RHI/Types.hpp>
 #include <span>
 
-namespace lde::RHI
+namespace lde
 {
 	class Buffer;
 	class ConstantBuffer;
@@ -13,7 +13,7 @@ namespace lde::RHI
 	{
 	public:
 
-		virtual void Reset() = 0;
+		//virtual void Reset() = 0;
 
 		// Draw single instance
 		virtual void DrawIndexed(uint32 IndexCount, uint32 BaseIndex, uint32 BaseVertex) = 0;
@@ -45,4 +45,4 @@ namespace lde::RHI
 		CommandType m_Type{};
 
 	};
-} // namespace lde::RHI
+} // namespace lde

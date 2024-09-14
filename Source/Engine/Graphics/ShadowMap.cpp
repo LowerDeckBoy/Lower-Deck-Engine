@@ -6,7 +6,7 @@
 
 namespace lde
 {
-	ShadowMap::ShadowMap(RHI::D3D12Device* pDevice)
+	ShadowMap::ShadowMap(D3D12Device* pDevice)
 	{
 		D3D12_RESOURCE_DESC desc{};
 		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;

@@ -5,10 +5,10 @@
 
 namespace lde
 {
-	SkyPass::SkyPass(RHI::D3D12RHI* pRHI)
+	SkyPass::SkyPass(D3D12RHI* pRHI)
 		: m_Gfx(pRHI)
 	{
-		m_Texture = std::make_unique<RHI::D3D12RenderTexture>();
+		m_Texture = std::make_unique<D3D12RenderTexture>();
 		m_Texture->Initialize(m_Gfx, DXGI_FORMAT_R32G32B32A32_FLOAT, "SkyPass RenderTexture");
 	}
 

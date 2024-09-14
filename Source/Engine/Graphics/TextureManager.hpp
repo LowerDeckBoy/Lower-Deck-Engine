@@ -12,13 +12,10 @@
 
 namespace lde
 {
-	namespace RHI
-	{
-		class D3D12RHI;
-		class D3D12Shader;
-		class D3D12RootSignature;
-		struct D3D12PipelineState;
-	}
+	class D3D12RHI;
+	class D3D12Shader;
+	class D3D12RootSignature;
+	struct D3D12PipelineState;
 	
 	class TextureManager
 	{
@@ -32,7 +29,7 @@ namespace lde
 	
 		static TextureManager& GetInstance();
 
-		void Initialize(RHI::D3D12RHI* pGfx);
+		void Initialize(D3D12RHI* pGfx);
 		void Release();
 		
 		/**
@@ -42,38 +39,38 @@ namespace lde
 		 * @param bGenerateMipMaps Texture object.
 		 * @return Index of the newly create Texture. -1 if not created.
 		 */
-		int32 Create(RHI::D3D12RHI* pGfx, std::string_view Filepath, bool bGenerateMipMaps = true);
+		int32 Create(D3D12RHI* pGfx, std::string_view Filepath, bool bGenerateMipMaps = true);
 
-		//int32 CreateFromDesc(RHI::D3D12RHI* pGfx, std::string_view Filepath, D3D12_RESOURCE_DESC& Desc);
+		//int32 CreateFromDesc(D3D12RHI* pGfx, std::string_view Filepath, D3D12_RESOURCE_DESC& Desc);
 		
 		// Generate mip chain for 2D texture
-		void Generate2D(RHI::D3D12Texture* pTexture);
+		void Generate2D(D3D12Texture* pTexture);
 
 		// Generate mip chain for 3D/TextureCube
-		void Generate3D(RHI::D3D12Texture* pTexture);
+		void Generate3D(D3D12Texture* pTexture);
 
 		// Returns mips in chains until 1x1.
 		uint16 CountMips(uint32 Width, uint32 Height);
 
 	private:
 		/// @brief Loads formats: JPG, JPEG, PNG.
-		void Create2D(RHI::D3D12RHI* pGfx, std::string_view Filepath, RHI::D3D12Texture* pTarget, bool bMipMaps = true);
+		void Create2D(D3D12RHI* pGfx, std::string_view Filepath, D3D12Texture* pTarget, bool bMipMaps = true);
 
-		void CreateFromHDR(RHI::D3D12RHI* pGfx, std::string_view Filepath, RHI::D3D12Texture* pTarget);
+		void CreateFromHDR(D3D12RHI* pGfx, std::string_view Filepath, D3D12Texture* pTarget);
 
 		/// @brief Loads DDS format textures.
-		//void CreateDDS(RHI::D3D12RHI* pGfx, std::string_view Filepath, RHI::D3D12Texture* pTarget, bool bMipMaps = true);
+		//void CreateDDS(D3D12RHI* pGfx, std::string_view Filepath, D3D12Texture* pTarget, bool bMipMaps = true);
 		
 	private:
-		RHI::D3D12RHI* m_Gfx = nullptr;
+		D3D12RHI* m_Gfx = nullptr;
 		
 		void InitializeMipGenerator();
 		
-		RHI::D3D12RootSignature m_RootSignature;
-		RHI::D3D12PipelineState m_ComputePipeline;
+		D3D12RootSignature m_RootSignature;
+		D3D12PipelineState m_ComputePipeline;
 
-		RHI::D3D12RootSignature m_RootSignature3D;
-		RHI::D3D12PipelineState m_ComputePipeline3D;
+		D3D12RootSignature m_RootSignature3D;
+		D3D12PipelineState m_ComputePipeline3D;
 
 		Shader m_ComputeShader;
 		Shader m_ComputeShader3D;

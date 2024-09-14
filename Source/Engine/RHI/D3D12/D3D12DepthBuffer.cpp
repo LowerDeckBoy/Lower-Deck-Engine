@@ -4,7 +4,7 @@
 #include "D3D12Utility.hpp"
 #include "D3D12Viewport.hpp"
 
-namespace lde::RHI
+namespace lde
 {
 	D3D12DepthBuffer::D3D12DepthBuffer(D3D12Device* pDevice, D3D12Viewport* pViewport, DXGI_FORMAT Format)
 	{

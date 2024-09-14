@@ -4,7 +4,7 @@
 #include "D3D12RootSignature.hpp"
 #include "D3D12Utility.hpp"
 
-namespace lde::RHI
+namespace lde
 {
 
 	D3D12PipelineState::~D3D12PipelineState()
@@ -236,18 +236,18 @@ namespace lde::RHI
 
 	void D3D12MeshPipelineBuilder::SetAS(std::string_view Filepath, std::wstring EntryPoint)
 	{
-		m_AmplificationShader = new Shader(ShaderCompiler::GetInstance().Compile(Filepath, RHI::ShaderStage::eAmplification, EntryPoint));
+		m_AmplificationShader = new Shader(ShaderCompiler::GetInstance().Compile(Filepath, ShaderStage::eAmplification, EntryPoint));
 	}
 
 	void D3D12MeshPipelineBuilder::SetMS(std::string_view Filepath, std::wstring EntryPoint)
 	{
-		m_MeshShader = new Shader(ShaderCompiler::GetInstance().Compile(Filepath, RHI::ShaderStage::eMesh, EntryPoint));
+		m_MeshShader = new Shader(ShaderCompiler::GetInstance().Compile(Filepath, ShaderStage::eMesh, EntryPoint));
 	}
 
 	void D3D12MeshPipelineBuilder::SetPS(std::string_view Filepath, std::wstring EntryPoint)
 	{
-		m_PixelShader = new Shader(ShaderCompiler::GetInstance().Compile(Filepath, RHI::ShaderStage::ePixel, EntryPoint));
+		m_PixelShader = new Shader(ShaderCompiler::GetInstance().Compile(Filepath, ShaderStage::ePixel, EntryPoint));
 	}
 
 
-} // namespace lde::RHI
+} // namespace lde

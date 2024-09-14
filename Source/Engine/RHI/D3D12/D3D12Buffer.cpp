@@ -2,10 +2,10 @@
 #include "D3D12RHI.hpp"
 #include <Core/Logger.hpp>
 
-namespace lde::RHI
+namespace lde
 {
 	// Helper function
-	D3D12_SHADER_RESOURCE_VIEW_DESC CreateBufferSRVDesc(BufferDesc Desc)
+	static D3D12_SHADER_RESOURCE_VIEW_DESC CreateBufferSRVDesc(BufferDesc Desc)
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -218,4 +218,4 @@ namespace lde::RHI
 			SAFE_RELEASE(buffer);
 	}
 
-}
+} // namespace lde

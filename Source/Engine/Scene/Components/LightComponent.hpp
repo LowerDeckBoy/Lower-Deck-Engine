@@ -19,7 +19,7 @@ namespace lde
 		XMMATRIX Projection;
 		XMMATRIX InvView;
 		XMMATRIX InvProjection;
-		RHI::D3D12RenderTexture Texture;
+		D3D12RenderTexture Texture;
 		void Render(XMFLOAT3 Position);
 	};
 

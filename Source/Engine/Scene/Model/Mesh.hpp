@@ -27,10 +27,10 @@ namespace lde
 	
 	struct Material
 	{
-		int32 BaseColorIndex		= -1;
-		int32 NormalIndex			= -1;
-		int32 MetalRoughnessIndex	= -1;
-		int32 EmissiveIndex			= -1;
+		uint32 BaseColorIndex		= (uint32)-1;
+		uint32 NormalIndex			= (uint32)-1;
+		uint32 MetalRoughnessIndex	= (uint32)-1;
+		uint32 EmissiveIndex		= (uint32)-1;
 	
 		float MetallicFactor		= 0.04f;
 		float RoughnessFactor		= 0.5f;
@@ -72,14 +72,14 @@ namespace lde
 		BufferHandle VertexBuffer = UINT32_MAX;
 		BufferHandle IndexBuffer  = UINT32_MAX;
 		BufferHandle ConstBuffer  = UINT32_MAX;
-		RHI::cbPerObject cbData{};
+		cbPerObject cbData{};
 		D3D12_INDEX_BUFFER_VIEW IndexView{};
 
-		void Create(class RHI::D3D12Device* pDevice)
+		void Create(class D3D12Device* pDevice)
 		{
 			VertexBuffer = pDevice->CreateBuffer(
-				RHI::BufferDesc{
-					RHI::BufferUsage::eStructured,
+				BufferDesc{
+					BufferUsage::eStructured,
 					Vertices.data(),
 					static_cast<uint32>(Vertices.size()),
 					Vertices.size() * sizeof(Vertices.at(0)),
@@ -88,8 +88,8 @@ namespace lde
 				});
 
 			IndexBuffer = pDevice->CreateBuffer(
-				RHI::BufferDesc{
-					RHI::BufferUsage::eIndex,
+				BufferDesc{
+					BufferUsage::eIndex,
 					Indices.data(),
 					static_cast<uint32>(Indices.size()),
 					Indices.size() * sizeof(Indices.at(0)),

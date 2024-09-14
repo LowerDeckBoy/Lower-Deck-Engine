@@ -20,7 +20,7 @@
 	#include <dxgidebug.h>
 #endif
 
-namespace lde::RHI
+namespace lde
 {
 	// Since running single GPU, node stays as 0.
 	constexpr uint32 DEVICE_NODE = 0;
@@ -189,4 +189,4 @@ namespace lde::RHI
 	private:
 
 	};
-} // namespace lde::RHI
+} // namespace lde

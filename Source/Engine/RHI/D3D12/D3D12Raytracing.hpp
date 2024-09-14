@@ -5,15 +5,11 @@
 
 namespace lde
 {
+	class D3D12Device;
 	class Model;
 	class SceneCamera;
 	class Scene;
 	class Skybox;
-}
-
-namespace lde::RHI
-{
-	class D3D12Device;
 
 	struct GeometryInfo
 	{
@@ -50,7 +46,7 @@ namespace lde::RHI
 
 		void AddInstance(Ref<ID3D12Resource> pBottomLevel, DirectX::XMMATRIX Matrix, uint32 InstanceGroup, uint32 HitGroupID);
 
-		std::vector< Instance> Instances;
+		std::vector<Instance> Instances;
 
 		Ref<ID3D12Resource> ScratchBuffer;
 		Ref<ID3D12Resource> ResultBuffer;
@@ -119,10 +115,24 @@ namespace lde::RHI
 
 	};
 
+	// TODO:
+	class D3D12ShaderTable
+	{
+	public:
+		D3D12ShaderTable(D3D12Device* pDevice);
+		~D3D12ShaderTable();
+
+		void Create();
+
+	private:
+		Ref<ID3D12Resource> m_Storage;
+
+	};
+
 	class D3D12Raytracing
 	{
 	public:
-		D3D12Raytracing(D3D12Device* pDevice, SceneCamera* pCamera, Skybox* pSkybox);
+		D3D12Raytracing(D3D12Device* pDevice, SceneCamera* pCamera);
 		~D3D12Raytracing();
 
 		void Release();
@@ -144,7 +154,6 @@ namespace lde::RHI
 	private:
 		D3D12Device* m_Device = nullptr; // Parent Device
 		SceneCamera* m_Camera = nullptr;
-		Skybox* m_Skybox = nullptr;
 
 		Ref<ID3D12StateObject>				m_StateObject;
 		Ref<ID3D12StateObjectProperties>	m_StateObjectProperties;
@@ -156,7 +165,7 @@ namespace lde::RHI
 			Shader* Miss;
 		} Shaders;
 		
-		// Local Root Signatures are not needed for now.
+		// Local Root Signatures are not needed.
 		struct 
 		{
 			D3D12RootSignature* Global;
@@ -205,4 +214,4 @@ namespace lde::RHI
 
 	};
 
-} // namespace lde::RHI
+} // namespace lde

@@ -1,6 +1,6 @@
 #include "D3D12Utility.hpp"
 
-namespace lde::RHI
+namespace lde
 {
 	void VerifyResult(HRESULT hResult, const char* File, int Line, std::string_view Message)
 	{
@@ -32,4 +32,4 @@ namespace lde::RHI
 		pDxObject->SetName(String::ToWide(Name).c_str());
 	}
 	
-} // namespace lde::RHI
+} // namespace lde

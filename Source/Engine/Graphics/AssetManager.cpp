@@ -40,7 +40,7 @@ namespace lde
 		return *m_Instance;
 	}
 
-	void AssetManager::Import(RHI::D3D12RHI* pGfx, std::string_view Filepath, Mesh& pInMesh)
+	void AssetManager::Import(D3D12RHI* pGfx, std::string_view Filepath, Mesh& pInMesh)
 	{
 		m_Gfx = pGfx;
 		Utility::LoadTimer timer;
@@ -50,11 +50,10 @@ namespace lde
 			aiProcess_Triangulate |
 			aiProcess_ConvertToLeftHanded |
 			aiProcess_JoinIdenticalVertices  | 
+			aiProcess_OptimizeMeshes |
 			aiProcess_PreTransformVertices |
 			aiProcess_GenBoundingBoxes |
 			aiProcess_ImproveCacheLocality;
-			//aiProcess_OptimizeGraph |
-			//aiProcess_OptimizeMeshes |
 	
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(Filepath.data(), (uint32)LoadFlags);
@@ -95,7 +94,7 @@ namespace lde
 
 	}
 
-	void AssetManager::ImportGLTF(RHI::D3D12RHI* /* pGfx */, std::string_view Filepath, Mesh& pInMesh)
+	void AssetManager::ImportGLTF(D3D12RHI* /* pGfx */, std::string_view Filepath, Mesh& pInMesh)
 	{
 		Utility::LoadTimer timer;
 		timer.Start();

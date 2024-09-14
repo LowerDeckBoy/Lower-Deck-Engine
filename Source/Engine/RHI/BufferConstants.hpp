@@ -3,19 +3,19 @@
 #include <Core/CoreTypes.hpp>
 #include <DirectXMath.h>
 
-namespace lde::RHI
+namespace lde
 {
 	struct SceneData
 	{
-		DirectX::XMVECTOR CameraPosition;
-		DirectX::XMMATRIX View;
-		DirectX::XMMATRIX Projection;
-		DirectX::XMMATRIX InversedView;
-		DirectX::XMMATRIX InversedProjection;
-		uint32 Width;
-		uint32 Height;
-		float zNear;
-		float zFar;
+		DirectX::XMVECTOR	CameraPosition;
+		DirectX::XMMATRIX	View;
+		DirectX::XMMATRIX	Projection;
+		DirectX::XMMATRIX	InversedView;
+		DirectX::XMMATRIX	InversedProjection;
+		uint32				Width;
+		uint32				Height;
+		float				zNear;
+		float				zFar;
 	};
 
 	struct PerObject
@@ -30,4 +30,4 @@ namespace lde::RHI
 		DirectX::XMFLOAT4 padding2[7];
 	};
 
-} // namespace lde::RHI
+} // namespace lde

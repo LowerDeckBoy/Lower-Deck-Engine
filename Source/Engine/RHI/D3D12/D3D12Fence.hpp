@@ -4,7 +4,7 @@
 #include <Core/RefPtr.hpp>
 #include <RHI/RHICommon.hpp>
 
-namespace lde::RHI
+namespace lde
 {
 	class D3D12Device;
 	class D3D12Queue;
@@ -52,4 +52,4 @@ namespace lde::RHI
 		::HANDLE m_FenceEvent = nullptr;
 		std::array<uint64, FRAME_COUNT> m_FenceValues{};
 	};
-}
+} // namespace lde

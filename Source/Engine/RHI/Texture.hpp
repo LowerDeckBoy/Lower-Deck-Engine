@@ -1,6 +1,6 @@
 #pragma once
 
-namespace lde::RHI
+namespace lde
 {
 	class Texture
 	{
@@ -10,4 +10,4 @@ namespace lde::RHI
 
 	};
 
-} // namespace lde::RHI
+} // namespace lde

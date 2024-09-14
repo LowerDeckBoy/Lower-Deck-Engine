@@ -24,7 +24,7 @@ namespace lde
 	class App : public Window
 	{
 	public:
-		App(HINSTANCE hInstance, WindowParameters StartUp);
+		App(WindowParameters StartUp);
 		~App();
 
 		void Initialize();
@@ -38,10 +38,10 @@ namespace lde
 	private:
 		std::unique_ptr<Timer> m_AppTimer;
 
-		std::unique_ptr<RHI::D3D12RHI>	m_Gfx;
-		std::unique_ptr<RHI::RHI>		m_RHI;
-		std::unique_ptr<Renderer>		m_Renderer;
-		std::unique_ptr<Scene>			m_ActiveScene;
+		std::unique_ptr<D3D12RHI>	m_Gfx;
+		std::unique_ptr<RHI>		m_RHI;
+		std::unique_ptr<Renderer>	m_Renderer;
+		std::unique_ptr<Scene>		m_ActiveScene;
 
 #if EDITOR_MODE
 		std::unique_ptr<editor::Editor> m_Editor;

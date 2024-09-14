@@ -2,7 +2,7 @@
 
 #include <Core/CoreTypes.hpp>
 
-namespace lde::RHI
+namespace lde
 {
 	class SwapChain
 	{
@@ -15,4 +15,4 @@ namespace lde::RHI
 		//virtual uint32 GetCurrentIndex() = 0;
 
 	};
-} // namespace lde::RHI
+} // namespace lde
