@@ -37,8 +37,10 @@ VertexAttributes GetVertexAttributes(BuiltInTriangleIntersectionAttributes Attri
 		1.f - Attributes.barycentrics.x - Attributes.barycentrics.y,
 		Attributes.barycentrics.x,
 		Attributes.barycentrics.y);
-		
-	Vertex vertex = BarycentricInterpolation(vtx0, vtx1, vtx2, barycentrics);
+	
+	
+	Vertex vertex{};
+	vertex.Position = p0;
 	vertex.Normal = normalize(mul(vertex.Normal, transpose((float3x3) ObjectToWorld3x4())));
 
 	VertexAttributes vertexAttributes;

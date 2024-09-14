@@ -13,9 +13,9 @@ struct ScreenQuadOutput
 	float2 TexCoord : TEXCOORD;
 };
 
-static const float PI = 3.141592f;
-static const float TwoPI = PI * 2.0f;
-static const float Epsilon = 0.00001f;
+static const float PI		= 3.141592f;
+static const float TwoPI	= PI * 2.0f;
+static const float Epsilon	= 0.00001f;
 
 // Constant normal incidence Fresnel factor for all dielectrics.
 static const float3 Fdielectric = 0.04f;
@@ -47,7 +47,7 @@ float GetDistributionGGX(float3 Normal, float3 H, float Roughness)
 
 float GetGeometrySchlickGGX(float NdotV, float Roughness)
 {
-	float r = (Roughness + 1.0f);
+	float r = Roughness + 1.0f;
 	float k = (r * r) / 8.0f;
 
 	float denom = NdotV * (1.0f - k) + k;

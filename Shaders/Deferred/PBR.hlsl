@@ -65,7 +65,8 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 	float4 baseColor	= pow(texBaseColor.Load(int3(position, 0)), 2.2f);
 	float4 normal		= texNormal.Load(int3(position, 0));
 	float metalness		= texMetalRoughness.Load(int3(position, 0)).b;
-	float roughness		= max(0.1f, texMetalRoughness.Load(int3(position, 0)).g);
+	//float roughness		= max(0.1f, texMetalRoughness.Load(int3(position, 0)).g);
+	float roughness		= texMetalRoughness.Load(int3(position, 0)).g;
 	float4 positions	= texWorldPosition.Load(int3(position, 0));
 
 	float3 ambient = float3(0.03f, 0.03f, 0.03f) * baseColor.rgb * float3(1.0f, 1.0f, 1.0f);

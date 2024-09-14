@@ -18,8 +18,8 @@ struct Vertex
 
 struct PerObject
 {
-	float4x4 World;
-	float4x4 WVP;
+	row_major float4x4 World;
+	row_major float4x4 WVP;
 	uint DrawMeshlets;
 };
 
@@ -29,7 +29,6 @@ struct MSInput
 {
 	uint VerticesIndex;
 	uint MeshletsIndex;
-	
 };
 
 struct VertexOutput
@@ -55,7 +54,6 @@ struct MeshInfo
 	uint MeshletOffset;
 };
 
-ConstantBuffer<PerObject> Globals : register(b0);
 ConstantBuffer<MeshInfo> gMeshInfo : register(b1);
 
 StructuredBuffer<Vertex> Vertices : register(t0);
@@ -68,7 +66,7 @@ VertexOutput GetVertexAttributes(uint meshletIndex, uint vertexIndex)
 	Vertex v = Vertices[vertexIndex];
 
 	VertexOutput vout;
-	vout.Position = mul(float4(v.Position, 1), PerObjectData.WVP).xyz;
+	vout.Position = mul(float4(v.Position, 1), PerObjectData.WVP);
 	vout.Normal = mul(float4(v.Normal, 0), PerObjectData.World).xyz;
 	vout.MeshletIndex = meshletIndex;
 
@@ -109,7 +107,7 @@ uint GetVertexIndex(Meshlet m, uint localIndex)
 }
 
 [NumThreads(128, 1, 1)]
-[OutputTopology("triangles")]
+[OutputTopology("triangle")]
 void MSMain(
 	in uint GroupThreadId : SV_GroupIndex,
 	in uint GroupId : SV_GroupID,
@@ -123,7 +121,7 @@ void MSMain(
 
 	if (GroupThreadId < m.PrimCount)
 	{
-		Vertices[GroupThreadId] = GetPrimitive(m, GroupThreadId);
+		Indices[GroupThreadId] = GetPrimitive(m, GroupThreadId);
 	}
 
 	if (GroupThreadId < m.VertCount)
@@ -131,6 +129,11 @@ void MSMain(
 		uint vertexIndex = GetVertexIndex(m, GroupThreadId);
 		Vertices[GroupThreadId] = GetVertexAttributes(GroupThreadId, vertexIndex);
 	}
+}
+
+float4 PSMain() : SV_TARGET
+{
+	return float4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 #endif // MESH_HLSL

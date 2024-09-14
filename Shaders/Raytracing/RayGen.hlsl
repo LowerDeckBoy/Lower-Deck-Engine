@@ -24,16 +24,19 @@ void RayGen()
 	screenPos.y = -screenPos.y;
 	float aspectRatio = dims.x / dims.y;
 	float4x4 viewProj = Camera.ViewProjection;
+	
 	float4 world = mul(float4(screenPos, 0, 1), viewProj);
 	world.xyz /= world.w;
+	
 	float3 origin = Camera.CameraPosition.xyz;
 	float3 direction = normalize(world.xyz - origin);
 	
 	RayDesc ray;
 	ray.Origin = origin;
 	ray.Direction = direction;
-	// TMin -> zNear, TMax -> zFar
+	// TMin -> zNear
 	ray.TMin = 0.0f;
+	// TMax -> zFar
 	ray.TMax = 10000.0f;
 	
 	RWTexture2D<float4> outputTex = ResourceDescriptorHeap[SceneImages.OutputIndex];
