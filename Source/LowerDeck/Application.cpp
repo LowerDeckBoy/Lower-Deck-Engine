@@ -50,7 +50,7 @@ namespace lde
 		m_Renderer->RaytracingCtx->BuildShaderTable(m_ActiveScene.get());
 	#endif
 
-		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, false);
+		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, false);
 	}
 	
 	void App::Run()
