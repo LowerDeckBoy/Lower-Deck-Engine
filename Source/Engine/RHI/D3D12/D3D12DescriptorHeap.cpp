@@ -76,6 +76,12 @@ namespace lde
 
 	void D3D12DescriptorHeap::Allocate(D3D12Descriptor& Descriptor, uint32 Count)
 	{
+		if (!CanAllocate())
+		{
+			// Warning
+			return;
+		}
+
 		if (Descriptor.IsValid())
 		{
 			Override(Descriptor, Count);

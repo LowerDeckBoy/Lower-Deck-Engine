@@ -251,7 +251,7 @@ namespace lde
 			// TODO:
 		}
 
-		Descriptor = m_SRVHeap->Allocate(Count);
+		m_SRVHeap->Allocate(Descriptor, Count);
 		m_Device->CreateShaderResourceView(pResource, &srvDesc, Descriptor.GetCpuHandle());
 	}
 	
@@ -285,9 +285,9 @@ namespace lde
 			// TODO:
 		}
 
-		Descriptor = m_SRVHeap->Allocate(Count);
+		m_SRVHeap->Allocate(Descriptor, Count);
+		//Descriptor = m_SRVHeap->Allocate(Count);
 		m_Device->CreateUnorderedAccessView(pResource, nullptr, &uavDesc, Descriptor.GetCpuHandle());
-
 	}
 
 	void D3D12Device::CreateRTV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, DXGI_FORMAT Format)
@@ -298,7 +298,7 @@ namespace lde
 		rtvDesc.Texture2D.MipSlice		= 0;
 		rtvDesc.Texture2D.PlaneSlice	= 0;
 
-		GetRTVHeap()->Allocate(Descriptor);
+		m_RTVHeap->Allocate(Descriptor);
 		m_Device->CreateRenderTargetView(pResource, &rtvDesc, Descriptor.GetCpuHandle());
 	}
 
@@ -310,7 +310,7 @@ namespace lde
 		dsvDesc.Texture2D.MipSlice	= 0;
 		dsvDesc.Flags				= D3D12_DSV_FLAG_NONE;
 
-		GetDSVHeap()->Allocate(Descriptor);
+		m_DSVHeap->Allocate(Descriptor);
 		m_Device->CreateDepthStencilView(pResource, &dsvDesc, Descriptor.GetCpuHandle());
 	}
 
