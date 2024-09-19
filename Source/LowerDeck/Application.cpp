@@ -28,9 +28,8 @@ namespace lde
 		m_Editor->SetScene(m_ActiveScene.get());
 #endif
 		
-		//m_ActiveScene->AddModel("Assets/Models/sponza/Sponza.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/aerith/scene.gltf");
-		m_ActiveScene->AddModel("Assets/Models/DamagedHelmet/DamagedHelmet.gltf");
+		m_ActiveScene->AddModel("Assets/Models/sponza/Sponza.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/DamagedHelmet/DamagedHelmet.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/Bistro-gltf/BistroExterior.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/Bistro_Exterior/Bistro.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/SciFiHelmet/SciFiHelmet.gltf");
@@ -39,18 +38,7 @@ namespace lde
 		//m_ActiveScene->AddModel("Assets/Models/MetalRoughSpheres/MetalRoughSpheres.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/cube/Cube.gltf");
 
-	#if RAYTRACING
-		for (auto& model : m_ActiveScene->GetModels())
-		{
-			m_Renderer->RaytracingCtx->AddBLAS(model.get());
-		}
-		m_Renderer->RaytracingCtx->CreateTLAS();
-		m_Renderer->RaytracingCtx->CreateSceneUAV();
-		m_Renderer->RaytracingCtx->CreateStateObject();
-		m_Renderer->RaytracingCtx->BuildShaderTable(m_ActiveScene.get());
-	#endif
-
-		m_Gfx->Device->ExecuteCommandList(RHI::CommandType::eGraphics, false);
+		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, false);
 	}
 	
 	void App::Run()

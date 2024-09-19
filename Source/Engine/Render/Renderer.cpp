@@ -29,7 +29,6 @@ namespace lde
 	Renderer::~Renderer()
 	{
 		Release();
-		
 	}
 
 	void Renderer::Initialize()
@@ -97,10 +96,6 @@ namespace lde
 		
 		m_Gfx->TransitResource(SceneImage.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
 
-	#if RAYTRACING
-		RaytracingCtx->DispatchRaytrace();
-	#endif
-
 		//m_Gfx->SetViewport();
 		m_Gfx->SetMainRenderTarget();
 		m_Gfx->ClearMainRenderTarget();
@@ -131,9 +126,6 @@ namespace lde
 
 		m_Skybox->Create(m_Gfx, m_ActiveScene->World(), "Assets/Textures/newport_loft.hdr");
 
-	#if RAYTRACING
-		RaytracingCtx = new D3D12Raytracing(m_Gfx->Device.get(), m_ActiveScene->GetCamera());
-	#endif
 	}
 
 	void Renderer::OnResize(uint32 Width, uint32 Height)
@@ -309,8 +301,6 @@ namespace lde
 			return m_GBufferPass->GetRenderTargets().at(GBuffers::eWorldPosition).GetSRV().GetGpuHandle().ptr;
 		case RenderOutput::eSkybox:
 			return m_SkyPass->GetRenderTexture()->GetSRV().GetGpuHandle().ptr;
-		case RenderOutput::eRaytracing:
-			return RaytracingCtx->m_SceneOutput->SRV.GetGpuHandle().ptr;
 		}
 
 		return SceneImage.GetSRV().GetGpuHandle().ptr;

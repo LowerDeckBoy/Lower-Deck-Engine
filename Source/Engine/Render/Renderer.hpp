@@ -20,8 +20,6 @@
 #include "RenderPass/LightPass.hpp"
 #include "RenderPass/SkyPass.hpp"
 
-// TEST
-#include "RHI/D3D12/D3D12Raytracing.hpp"
 
 namespace lde
 {
@@ -113,7 +111,5 @@ namespace lde
 
 		RenderOutput SelectedRenderTarget = RenderOutput::eShaded;
 
-		// TEST
-		D3D12Raytracing* RaytracingCtx = nullptr;
 	};
 } // namespace lde
