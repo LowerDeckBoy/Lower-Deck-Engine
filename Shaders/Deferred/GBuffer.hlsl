@@ -74,7 +74,7 @@ struct GBufferOutput
 	float4 Emissive			: SV_Target5;
 	float4 WorldPosition	: SV_Target6;
 };
-//[earlydepthstencil()]
+
 GBufferOutput PSmain(VSOutput pin)
 {
 	GBufferOutput output = (GBufferOutput) 0;
@@ -92,9 +92,9 @@ GBufferOutput PSmain(VSOutput pin)
 		output.BaseColor = texture.Sample(texSampler, pin.TexCoord) * material.BaseColorFactor;
 
 		if (output.BaseColor.a < material.AlphaCutoff)
+		{
 			discard;
-			//clip(-1);
-		//clip(output.BaseColor.a - material.AlphaCutoff);
+		}
 	}
 	else
 	{

@@ -149,7 +149,7 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 		uint width, height, mipLevels;
 		texSpecular.GetDimensions(0, width, height, mipLevels);
 		
-		float lod = roughness * mipLevels;
+		const float lod		= roughness * mipLevels;
 		float3 specular		= texSpecular.SampleLevel(texSampler, Lr, lod).rgb;
 		float2 specularBRDF = texSpecularBRDF.Sample(spBRDFSampler, float2(NdotV, roughness)).rg;
 		float3 specularIBL	= specular * (F0 * specularBRDF.x + specularBRDF.y);
