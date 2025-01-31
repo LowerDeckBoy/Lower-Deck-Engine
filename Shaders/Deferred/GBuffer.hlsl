@@ -81,7 +81,8 @@ GBufferOutput PSmain(VSOutput pin)
 
 	output.TexCoords = float4(pin.TexCoord, 0.0f, 1.0f);
 	
-	const float z = pin.Position.z / pin.Position.w;
+	//const float z = pin.Position.z / pin.Position.w;
+	const float z = 1.0f - (pin.Position.z / pin.Position.w);
 	output.Depth = float4(z, z, z, 1.0f);
 		
 	output.WorldPosition = pin.WorldPosition;
@@ -90,7 +91,7 @@ GBufferOutput PSmain(VSOutput pin)
 	{
 		Texture2D<float4> texture = ResourceDescriptorHeap[material.BaseColorIndex];
 		output.BaseColor = texture.Sample(texSampler, pin.TexCoord) * material.BaseColorFactor;
-
+		
 		if (output.BaseColor.a < material.AlphaCutoff)
 		{
 			discard;
@@ -128,7 +129,7 @@ GBufferOutput PSmain(VSOutput pin)
 	}
 	else
 	{
-		output.MetalRoughness = float4(0.0f, material.MetallicFactor, material.MetallicFactor, 1.0f);
+		output.MetalRoughness = float4(0.0f, material.RoughnessFactor, material.MetallicFactor, 1.0f);
 	}
 	
 	// Load Emissive texture.
