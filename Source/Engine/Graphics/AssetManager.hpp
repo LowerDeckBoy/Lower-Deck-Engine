@@ -42,8 +42,6 @@ namespace lde
 
 		void ImportGLTF(D3D12RHI* pGfx, std::string_view Filepath, Mesh& pInMesh);
 
-		void OptimizeMesh(std::vector<Vertex>& Vertices, std::vector<uint32>& Indices);
-
 	private:
 		[[maybe_unused]]
 		void ProcessNode(const aiScene* pScene, Mesh* pInMesh, const aiNode* pNode, Node* ParentNode, DirectX::XMMATRIX ParentMatrix);

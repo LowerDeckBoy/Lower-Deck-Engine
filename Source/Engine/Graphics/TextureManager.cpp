@@ -84,11 +84,14 @@ namespace lde
 
 	void TextureManager::Create2D(D3D12RHI* pGfx, std::string_view Filepath, D3D12Texture* pTarget, bool bMipMaps)
 	{
-		int32 width, height, channels = 3;
+		int32 width = 0;
+		int32 height = 0; 
+		int32 channels = 3;
 		void* pixels = stbi_load(Filepath.data(), &width, &height, &channels, STBI_rgb_alpha);
 		if (!pixels)
 		{
-			::MessageBoxA(nullptr, stbi_failure_reason(), "Error", MB_OK);
+			
+			::MessageBoxA(nullptr, std::format("{0}\nFile: {1}", stbi_failure_reason(), Filepath.data()).c_str(), "Error", MB_OK);
 			throw std::runtime_error("");
 		}
 
@@ -288,14 +291,17 @@ namespace lde
 	void TextureManager::Generate2D(D3D12Texture* pTexture)
 	{
 		if (!pTexture->Texture.Get())
+		{
 			return;
+		}
 
 		auto srcResourceDesc = pTexture->Texture->GetDesc();
 
 		if (pTexture->MipLevels == 1 || pTexture->Width == 1)
+		{
 			return;
+		}
 
-		// check if array == 6
 		if (srcResourceDesc.Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE2D ||
 			srcResourceDesc.DepthOrArraySize != 1 ||
 			srcResourceDesc.SampleDesc.Count > 1)
@@ -326,26 +332,26 @@ namespace lde
 		auto heap = ((D3D12Device*)m_Gfx->GetDevice())->GetSRVHeap();
 		for (uint32 srcMip = 0; srcMip < (uint32)(pTexture->MipLevels - 1); ++srcMip)
 		{
-			uint64 srcWidth = srcResourceDesc.Width >> srcMip;
-			uint32 srcHeight = srcResourceDesc.Height >> srcMip;
-			uint32 destWidth = static_cast<uint32>(srcWidth >> 1);
-			uint32 destHeight = srcHeight >> 1;
+			uint64 srcWidth		= srcResourceDesc.Width >> srcMip;
+			uint32 srcHeight	= srcResourceDesc.Height >> srcMip;
+			uint32 destWidth	= static_cast<uint32>(srcWidth >> 1);
+			uint32 destHeight	= srcHeight >> 1;
 
 			mipGenCB.SrcDimension = static_cast<uint32>(((usize)srcHeight & 1) << 1 | (srcWidth & 1));
 			unsigned long mipCount = 0;
 
 			_BitScanForward(&mipCount, (destWidth == 1 ? destHeight : destWidth) | (destHeight == 1 ? destWidth : destHeight));
 
-			mipCount = std::min<unsigned long>(1, mipCount - 1);
-			mipCount = (static_cast<uint32>(srcMip) + mipCount) >= pTexture->MipLevels ? pTexture->MipLevels - srcMip - 1 : mipCount;
+			mipCount	= std::min<unsigned long>(1, mipCount - 1);
+			mipCount	= (static_cast<uint32>(srcMip) + mipCount) >= pTexture->MipLevels ? pTexture->MipLevels - srcMip - 1 : mipCount;
 
-			destWidth = std::max(1u, destWidth);
-			destHeight = std::max(1u, destHeight);
+			destWidth	= std::max(1u, destWidth);
+			destHeight	= std::max(1u, destHeight);
 
-			mipGenCB.SrcMipLevel = srcMip;
-			mipGenCB.NumMips = mipCount;
-			mipGenCB.TexelSize.x = 1.0f / (float)destWidth;
-			mipGenCB.TexelSize.y = 1.0f / (float)destHeight;
+			mipGenCB.SrcMipLevel	= srcMip;
+			mipGenCB.NumMips		= mipCount;
+			mipGenCB.TexelSize.x	= 1.0f / (float)destWidth;
+			mipGenCB.TexelSize.y	= 1.0f / (float)destHeight;
 
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 			srvDesc.Format = srcResourceDesc.Format;
@@ -490,5 +496,4 @@ namespace lde
 			m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, true);
 		}
 	}
-
 } // namespace lde

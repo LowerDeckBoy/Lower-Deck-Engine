@@ -11,8 +11,6 @@
 
 namespace lde
 {
-	//using Microsoft::WRL::ComPtr;
-	
 	class Shader
 	{
 	public:
@@ -27,9 +25,20 @@ namespace lde
 			}
 		}
 		
-		inline void* Data() const { return BinaryData->GetBufferPointer(); }
-		inline usize Size() const { return BinaryData->GetBufferSize(); }
-		inline D3D12_SHADER_BYTECODE Bytecode() { return D3D12_SHADER_BYTECODE{ BinaryData->GetBufferPointer(), BinaryData->GetBufferSize() }; }
+		inline void* Data() const 
+		{ 
+			return BinaryData->GetBufferPointer();
+		}
+
+		inline usize Size() const
+		{
+			return BinaryData->GetBufferSize();
+		}
+
+		inline D3D12_SHADER_BYTECODE Bytecode()
+		{
+			return D3D12_SHADER_BYTECODE{ BinaryData->GetBufferPointer(), BinaryData->GetBufferSize() };
+		}
 
 		IDxcBlob* BinaryData = nullptr;
 		ShaderStage Stage{};

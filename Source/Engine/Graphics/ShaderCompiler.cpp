@@ -70,6 +70,7 @@ namespace lde
 			L"-I ", parentPath.c_str(),
 			// HLSL version: 2021 is latest
 			L"-HV 2021",
+			DXC_ARG_ALL_RESOURCES_BOUND,
 	#if defined (_DEBUG)
 			DXC_ARG_DEBUG,
 			DXC_ARG_DEBUG_NAME_FOR_SOURCE,
@@ -82,7 +83,7 @@ namespace lde
 	
 		DxcBuffer buffer{ sourceBlob->GetBufferPointer(), sourceBlob->GetBufferSize(), DXC_CP_ACP };
 		IDxcResult* result = nullptr;
-		DX_CALL(m_DxcCompiler.Get()->Compile(&buffer, arguments.data(), static_cast<uint32>(arguments.size()),m_DxcIncludeHandler.Get(), IID_PPV_ARGS(&result)));
+		DX_CALL(m_DxcCompiler.Get()->Compile(&buffer, arguments.data(), static_cast<uint32>(arguments.size()), m_DxcIncludeHandler.Get(), IID_PPV_ARGS(&result)));
 	
 		IDxcBlobUtf8* errors = nullptr;
 		IDxcBlobUtf16* outputName = nullptr;

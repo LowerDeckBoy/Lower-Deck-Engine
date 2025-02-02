@@ -10,8 +10,6 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-#include <meshoptimizer/meshoptimizer.h>
-
 #define CGLTF_IMPLEMENTATION
 #include <cgltf/cgltf.h>
 
@@ -54,7 +52,7 @@ namespace lde
 			aiProcess_PreTransformVertices |
 			aiProcess_GenBoundingBoxes |
 			aiProcess_ImproveCacheLocality;
-	
+
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(Filepath.data(), (uint32)LoadFlags);
 
@@ -118,9 +116,6 @@ namespace lde
 			LOG_ERROR("Failed to validate cgltf!");
 		}
 
-		//std::vector<Vertex> verts;
-		//std::vector<uint32> indices;
-		
 		for (uint32 meshIdx = 0; meshIdx < data->meshes_count; ++meshIdx)
 		{
 			auto mesh = &data->meshes[meshIdx];
@@ -133,44 +128,14 @@ namespace lde
 			pInMesh.Submeshes.push_back(submesh);
 		}
 
-		OptimizeMesh(pInMesh.Vertices, pInMesh.Indices);
-
 		cgltf_free(data);
 
 		timer.End("cgltf load time: ");
 	}
-
-	void AssetManager::OptimizeMesh(std::vector<Vertex>& Vertices, std::vector<uint32>& Indices)
-	{
-		std::vector<Vertex> tempVertices;
-		std::vector<uint32> tempIndices;
-
-		std::vector<uint32> remap(Indices.size());
-		size_t remapSize = meshopt_generateVertexRemap(remap.data(),
-			Indices.data(), Indices.size(), 
-			Vertices.data(), Vertices.size(),
-			sizeof(Vertex));
-
-		tempIndices.resize(Indices.size());
-		tempVertices.resize(remapSize);
-
-		meshopt_remapVertexBuffer(tempVertices.data(), Vertices.data(), Vertices.size(), sizeof(Vertex), remap.data());
-		meshopt_remapIndexBuffer(tempIndices.data(), Indices.data(), Indices.size(), remap.data());
-		//meshopt_optimizeVertexCache(tempIndices.data(), tempIndices.data(), tempIndices.size(), tempVertices.size());
-		//meshopt_optimizeOverdraw(tempIndices.data(), tempIndices.data(), tempIndices.size(), &(tempVertices[0].Position.x), tempVertices.size(), sizeof(Vertex), 1.05f);
-		//meshopt_optimizeVertexFetch(tempVertices.data(), tempIndices.data(), tempIndices.size(), tempVertices.data(), remapSize, sizeof(Vertex));
-
-		//Vertices.insert(Vertices.end(), tempVertices.begin(), tempVertices.end());
-		//Indices.insert(Indices.end(), tempIndices.begin(), tempIndices.end());
-
-		Vertices = tempVertices;
-		Indices = tempIndices;
-
-	}
-
+	
 	void AssetManager::ProcessNode(const aiScene* pScene, Mesh* pInMesh, const aiNode* pNode, Node* ParentNode, DirectX::XMMATRIX ParentMatrix)
 	{
-		Node* newNode = new Node();
+		Node* newNode	= new Node();
 		newNode->Parent = ParentNode;
 		newNode->Name	= std::string(pNode->mName.C_Str());
 		newNode->Matrix = ParentMatrix;
@@ -277,13 +242,15 @@ namespace lde
 		OutIndices.reserve(OutIndices.size() + (size_t)(pMesh->mNumFaces * 3));
 		if (pMesh->HasFaces())
 		{
+			Submesh.IndexCount = 3 * pMesh->mNumFaces;
+
 			for (uint32_t i = 0; i < pMesh->mNumFaces; ++i)
 			{
 				aiFace& face = pMesh->mFaces[i];
 				for (uint32_t j = 0; j < face.mNumIndices; ++j)
 				{
 					OutIndices.push_back(face.mIndices[j]);
-					Submesh.IndexCount++;
+
 				}
 			}
 		}
@@ -453,9 +420,6 @@ namespace lde
 				{
 					for (usize i = 0; i < accessor->count; ++i)
 					{
-						//XMFLOAT4 tangent 
-						//tangents.push_back(*(DirectX::XMFLOAT3*)(data + i * accessor->stride));
-
 						DirectX::XMFLOAT4 tangent = *(DirectX::XMFLOAT4*)((size_t)data + i * accessor->stride);
 						tangents.push_back({ tangent.x, tangent.y, tangent.z });
 
@@ -489,7 +453,6 @@ namespace lde
 					.Bitangent = bitangent
 				};
 				OutVertices.push_back(vertex);
-				//Submesh.VertexCount = positions.size();
 			}
 		}
 

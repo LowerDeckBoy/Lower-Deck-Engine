@@ -42,7 +42,6 @@ namespace lde
 
 		struct
 		{
-			//Ref<ID3D12RootSignature> ComputeRS;
 			D3D12RootSignature* ComputeRS;
 
 			D3D12RootSignature* IrradianceRS;
