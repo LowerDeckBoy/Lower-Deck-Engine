@@ -13,7 +13,7 @@
 #include "D3D12Device.hpp"
 #include "D3D12Viewport.hpp"
 #include "D3D12CommandList.hpp"
-#include "D3D12DepthBuffer.hpp"
+#include "D3D12Buffer.hpp"
 #include "D3D12Fence.hpp"
 #include "D3D12Memory.hpp"
 #include "D3D12PipelineState.hpp"

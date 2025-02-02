@@ -24,7 +24,7 @@ cbuffer SpecularMapFilterSettings : register(b2, space0)
 	float roughness;
 };
 
-static const uint NumSamples = 1024;
+static const uint NumSamples = 4 * 1024;
 static const float InvNumSamples = 1.0f / float(NumSamples);
 
 // Sample i-th point from Hammersley point set of NumSamples points total.
@@ -41,12 +41,13 @@ float ndfGGX(float cosLh, float Roughness)
 	float alphaSq = alpha * alpha;
 
 	float denom = (cosLh * cosLh) * (alphaSq - 1.0) + 1.0;
+	
 	return alphaSq / (PI * denom * denom);
 }
 
 SamplerState defaultSampler : register(s0);
 
-[numthreads(DISPATCH_X, DISPATCH_Y, DISPATCH_Z)]
+[numthreads(8, 8, DISPATCH_Z)]
 void CSmain(uint3 ThreadID : SV_DispatchThreadID)
 {
 	TextureCube<float4> inputTexture = ResourceDescriptorHeap[InputIndex];

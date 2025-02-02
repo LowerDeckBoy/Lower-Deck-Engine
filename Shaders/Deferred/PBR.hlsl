@@ -30,13 +30,13 @@ struct IBLTextures
 	int SpecularBRDFIndex;
 };
 
-ConstantBuffer<CameraData>	Camera : register(b0, space0);
-ConstantBuffer<LightsData>	Lights : register(b1, space0);
-ConstantBuffer<GBuffers>	GBufferIndices : register(b2, space0);
+ConstantBuffer<CameraData> Camera : register(b0, space0);
+ConstantBuffer<LightsData> Lights : register(b1, space0);
+ConstantBuffer<GBuffers> GBufferIndices : register(b2, space0);
 ConstantBuffer<IBLTextures> IBL : register(b3, space0);
 
 ScreenQuadOutput VSmain(uint VertexID : SV_VertexID)
-{	
+{
 	ScreenQuadOutput output = (ScreenQuadOutput) 0;
 	
 	output.TexCoord = float2((VertexID << 1) & 2, VertexID & 2);
@@ -54,23 +54,21 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 	const float2 position = pin.Position.xy;
 
 	// All textures that come from GBuffer
-	Texture2D<float4> texDepth			= ResourceDescriptorHeap[GBufferIndices.DepthIndex];
-	Texture2D<float4> texBaseColor		= ResourceDescriptorHeap[GBufferIndices.BaseColorIndex];
-	Texture2D<float4> texNormal			= ResourceDescriptorHeap[GBufferIndices.NormalIndex];
+	Texture2D<float4> texDepth = ResourceDescriptorHeap[GBufferIndices.DepthIndex];
+	Texture2D<float4> texBaseColor = ResourceDescriptorHeap[GBufferIndices.BaseColorIndex];
+	Texture2D<float4> texNormal = ResourceDescriptorHeap[GBufferIndices.NormalIndex];
 	Texture2D<float4> texMetalRoughness = ResourceDescriptorHeap[GBufferIndices.MetalRoughnessIndex];
-	Texture2D<float4> texEmissive		= ResourceDescriptorHeap[GBufferIndices.EmissiveIndex];
-	Texture2D<float4> texWorldPosition	= ResourceDescriptorHeap[GBufferIndices.WorldPositionIndex];
+	Texture2D<float4> texEmissive = ResourceDescriptorHeap[GBufferIndices.EmissiveIndex];
+	Texture2D<float4> texWorldPosition = ResourceDescriptorHeap[GBufferIndices.WorldPositionIndex];
 
-	float depth			= texDepth.Load(int3(position, 0)).r;
-	float4 baseColor	= pow(texBaseColor.Load(int3(position, 0)), 2.2f);
-	float4 normal		= texNormal.Load(int3(position, 0));
-	float metalness		= texMetalRoughness.Load(int3(position, 0)).b;
-	//float roughness		= max(0.1f, texMetalRoughness.Load(int3(position, 0)).g);
-	float roughness		= texMetalRoughness.Load(int3(position, 0)).g;
-	float4 positions	= texWorldPosition.Load(int3(position, 0));
+	float depth = texDepth.Load(int3(position, 0)).r;
+	float4 baseColor = pow(texBaseColor.Load(int3(position, 0)), 2.2f);
+	float4 normal = texNormal.Load(int3(position, 0));
+	float metalness = texMetalRoughness.Load(int3(position, 0)).b;
+	float roughness = texMetalRoughness.Load(int3(position, 0)).g;
+	float4 positions = texWorldPosition.Load(int3(position, 0));
 
 	float3 ambient = float3(0.03f, 0.03f, 0.03f) * baseColor.rgb * float3(1.0f, 1.0f, 1.0f);
-	//float3 output = float3(0.0f, 0.0f, 0.0f);
 	float3 output = ambient;
 	
 	float3 N = normal.rgb;
@@ -78,7 +76,7 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 	
 	float NdotV = max(dot(N, V), 0.0f);
 	
-	float3 F0 = lerp(Fdielectric, baseColor.rgb, metalness);
+	float3 F0 = lerp(Fdielectric, baseColor.rgb, float3(metalness, metalness, metalness));
 	float3 Lo = float3(0.0f, 0.0f, 0.0f);
 	
 	for (int i = 0; i < 4; ++i)
@@ -88,8 +86,8 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 	
 		float NdotL = max(dot(N, L), 0.0f);
 			
-		float  distance = length(Lights.Light[i].Position.xyz - positions.xyz);
-		float  attenuation = 1.0f / (distance * distance + 1.0f);
+		float distance = length(Lights.Light[i].Position.xyz - positions.xyz);
+		float attenuation = 1.0f / (distance * distance + 1.0f);
 		float3 radiance = Lights.Light[i].Ambient.rgb * (attenuation * Lights.Light[i].Range);
 
 		// Cook-Torrance BRDF
@@ -97,50 +95,60 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 		float G = GetGeometrySmith(N, V, L, roughness);
 		float3 F = GetFresnelSchlick(max(dot(H, V), 0.0f), F0);
 	
-		float3 kD = lerp(float3(1.0f, 1.0f, 1.0f) - F, float3(0.0f, 0.0f, 0.0f), metalness);
+		float3 kD = lerp(float3(1.0f, 1.0f, 1.0f) - F, float3(0.0f, 0.0f, 0.0f), float3(metalness, metalness, metalness));
 		kD *= (1.0f - metalness);
 		
 		float3 numerator = NDF * G * F;
-		float  denominator = 4.0f * NdotV * NdotL;
+		float denominator = 4.0f * NdotV * NdotL;
 		float3 specular = numerator / max(denominator, Epsilon);
 		
 		Lo += Lights.Light[i].Visibility * ((kD * (baseColor.rgb / PI)) + specular) * radiance * NdotL;
 	}
 	
 	float3 directional = float3(0.0f, 0.0f, 0.0f);
-	//{
-	//	float3 L = normalize(Lights.Directional.Direction.xyz - positions.xyz);
-	//	//float3 L = -normalize(Lights.Directional.Direction.xyz);
-	//	float3 H = normalize(L + V);
-	//	
-	//	//float NdotH = max(dot(N, H), 0.0f);
-	//	float NdotL = max(dot(N, L), 0.0f);
-	//	
-	//	float NDF = GetDistributionGGX(N, H, roughness);
-	//	float G = GetGeometrySmith(N, V, L, roughness);
-	//	float3 F = GetFresnelSchlick(max(dot(H, V), 0.0f), F0);
-	//	
-	//	float3 kD = lerp(float3(1.0f, 1.0f, 1.0f) - F, float3(0.0f, 0.0f, 0.0f), metalness);
-	//	kD *= (1.0f - metalness);
-	//	
-	//	float3 numerator = NDF * G * F;
-	//	float denominator = 4.0f * NdotV * NdotL;
-	//	float3 specular = numerator / max(denominator, Epsilon);
-	//	
-	//	directional += Lights.Directional.Visibility * ((kD * baseColor.rgb) + specular) * NdotL * Lights.Directional.Ambient.rgb;
-	//}
+	{
+		float3 L = normalize(Lights.Directional.Direction.xyz - positions.xyz);
+		float3 H = normalize(L + V);
+	
+		float NdotL = max(dot(N, L), 0.0f);
+		
+		float diffuseFactor = dot(N, -Lights.Directional.Direction.xyz);
+		
+		// Cook-Torrance BRDF
+		float NDF = GetDistributionGGX(N, H, roughness);
+		float G = GetGeometrySmith(N, V, L, roughness);
+		float3 F = GetFresnelSchlick(max(dot(H, V), 0.0f), F0);
+	
+		float3 kD = lerp(float3(1.0f, 1.0f, 1.0f) - F, float3(0.0f, 0.0f, 0.0f), float3(metalness, metalness, metalness));
+		kD *= (1.0f - metalness);
+		
+		float3 numerator = NDF * G * F;
+		float denominator = 4.0f * NdotV * NdotL;
+		float3 specular = numerator / max(denominator, Epsilon);
+		
+		if (diffuseFactor > 0.0f)
+		{
+			directional += ((kD * (baseColor.rgb / PI)) + specular) * NdotL * Lights.Directional.Ambient.rgb * diffuseFactor;
+		}
+		else
+		{
+			//directional += ((kD * (baseColor.rgb / PI)) + specular) * NdotL * Lights.Directional.Ambient.rgb;
+
+		}
+
+	}
 	
 	// Reflection vector
 	float3 Lr = normalize(reflect(-V, N));
-
+	
 	float3 ambientLighting = float3(0.0f, 0.0f, 0.0f);
 	{
-		TextureCube<float4> texIrradiance	= ResourceDescriptorHeap[IBL.IrradianceIndex];
-		TextureCube<float4> texSpecular		= ResourceDescriptorHeap[IBL.SpecularIndex];
-		Texture2D<float4>   texSpecularBRDF	= ResourceDescriptorHeap[IBL.SpecularBRDFIndex];
+		TextureCube<float4> texIrradiance = ResourceDescriptorHeap[IBL.IrradianceIndex];
+		TextureCube<float4> texSpecular = ResourceDescriptorHeap[IBL.SpecularIndex];
+		Texture2D<float4> texSpecularBRDF = ResourceDescriptorHeap[IBL.SpecularBRDFIndex];
 	
-		float3 F  = GetFresnelSchlick(NdotV, F0);
-		float3 kD = lerp(float3(1.0f, 1.0f, 1.0f) - F, float3(0.0f, 0.0f, 0.0f), metalness);
+		float3 F = GetFresnelSchlick(NdotV, F0);
+		float3 kD = lerp(float3(1.0f, 1.0f, 1.0f) - F, float3(0.0f, 0.0f, 0.0f), float3(metalness, metalness, metalness));
 		kD *= (1.0f - metalness);
 
 		float3 irradiance = texIrradiance.Sample(texSampler, N).rgb;
@@ -149,10 +157,10 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 		uint width, height, mipLevels;
 		texSpecular.GetDimensions(0, width, height, mipLevels);
 		
-		float lod = roughness * mipLevels;
-		float3 specular		= texSpecular.SampleLevel(texSampler, Lr, lod).rgb;
+		const float lod = roughness * mipLevels;
+		float3 specular = texSpecular.SampleLevel(texSampler, Lr, lod).rgb;
 		float2 specularBRDF = texSpecularBRDF.Sample(spBRDFSampler, float2(NdotV, roughness)).rg;
-		float3 specularIBL	= specular * (F0 * specularBRDF.x + specularBRDF.y);
+		float3 specularIBL = specular * (F0 * specularBRDF.x + specularBRDF.y);
 
 		ambientLighting = diffuseIBL + specularIBL;
 	}

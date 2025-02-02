@@ -10,7 +10,9 @@ namespace lde
 	D3D12SwapChain::D3D12SwapChain(D3D12Device* pDevice, D3D12Queue* pQueue, uint32 Width, uint32 Height)
 	{
 		m_Device = pDevice;
-		m_Heap = std::make_unique<D3D12DescriptorHeap>(pDevice, HeapType::eRTV, FRAME_COUNT, "SwapChain RTV Heap");
+
+		m_DescriptorHeap = std::make_unique<D3D12DescriptorHeap>(pDevice, HeapType::eRTV, FRAME_COUNT, "SwapChain RTV Heap");
+
 		Initialize(pDevice, pQueue, Width, Height);
 	}
 
@@ -21,15 +23,16 @@ namespace lde
 
 	void D3D12SwapChain::Present(bool EnableVSync)
 	{
-		DX_CALL(m_SwapChain->Present(EnableVSync ? 1 : 0, EnableVSync ? 0 : DXGI_PRESENT_ALLOW_TEARING));
+		DX_CALL(m_SwapChain->Present((EnableVSync ? 1 : 0), (EnableVSync ? 0 : DXGI_PRESENT_ALLOW_TEARING)));
+		//DX_CALL(m_SwapChain->Present(3, 0));
 		FRAME_INDEX = m_SwapChain->GetCurrentBackBufferIndex();
 	}
 
-	void D3D12SwapChain::OnResize(uint32 Width, uint32 Height)
+	void D3D12SwapChain::Resize(uint32 Width, uint32 Height)
 	{
 		ReleaseBackbuffers();
 
-		DX_CALL(m_SwapChain->ResizeBuffers(FRAME_COUNT, Width, Height, m_Format, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING));
+		DX_CALL(m_SwapChain->ResizeBuffers(FRAME_COUNT, Width, Height, m_SwapChainFormat, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING));
 
 		FRAME_INDEX = 0;
 
@@ -40,7 +43,7 @@ namespace lde
 	{
 		DXGI_SWAP_CHAIN_DESC1 desc{};
 		desc.BufferCount	= FRAME_COUNT;
-		desc.Format			= DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.Format			= m_SwapChainFormat;
 		desc.BufferUsage	= DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		desc.Width			= Width;
 		desc.Height			= Height;
@@ -74,10 +77,11 @@ namespace lde
 
 	void D3D12SwapChain::CreateBackbuffers()
 	{
-		m_Heap->Reset();
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_Heap->CpuStartHandle());
+		m_DescriptorHeap->Reset();
 
-		for (uint32 i = 0; i < FRAME_COUNT; i++)
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_DescriptorHeap->CpuStartHandle());
+
+		for (uint32 i = 0; i < FRAME_COUNT; ++i)
 		{
 			DX_CALL(m_SwapChain->GetBuffer(i, IID_PPV_ARGS(m_Backbuffers.at(i).GetAddressOf())));
 
@@ -86,9 +90,8 @@ namespace lde
 			std::wstring debugName{ L"Backbuffer #" + std::to_wstring(i) };
 			m_Backbuffers.at(i).Get()->SetName(debugName.c_str());
 
-			rtvHandle.ptr += m_Heap->GetDescriptorSize();
+			rtvHandle.ptr += m_DescriptorHeap->GetDescriptorSize();
 		}
-
 	}
 
 	void D3D12SwapChain::ReleaseBackbuffers()

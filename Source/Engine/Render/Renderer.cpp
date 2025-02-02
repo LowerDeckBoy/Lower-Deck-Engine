@@ -29,7 +29,6 @@ namespace lde
 	Renderer::~Renderer()
 	{
 		Release();
-		
 	}
 
 	void Renderer::Initialize()
@@ -81,6 +80,7 @@ namespace lde
 		m_Gfx->SetPipeline(&m_MeshletPSO);
 		m_ActiveScene->DrawScene();
 	#endif
+
 		// Light Pass
 		{
 			m_Gfx->SetRootSignature(&m_LightRS);
@@ -94,14 +94,10 @@ namespace lde
 			m_Gfx->SetPipeline(&m_SkyboxPSO);
 			m_Skybox->Draw(-1, m_ActiveScene->GetCamera()); 
 		}
-		
 		m_Gfx->TransitResource(SceneImage.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
+		
 
-	#if RAYTRACING
-		RaytracingCtx->DispatchRaytrace();
-	#endif
-
-		//m_Gfx->SetViewport();
+		m_Gfx->SetViewport();
 		m_Gfx->SetMainRenderTarget();
 		m_Gfx->ClearMainRenderTarget();
 
@@ -131,9 +127,6 @@ namespace lde
 
 		m_Skybox->Create(m_Gfx, m_ActiveScene->World(), "Assets/Textures/newport_loft.hdr");
 
-	#if RAYTRACING
-		RaytracingCtx = new D3D12Raytracing(m_Gfx->Device.get(), m_ActiveScene->GetCamera());
-	#endif
 	}
 
 	void Renderer::OnResize(uint32 Width, uint32 Height)
@@ -144,7 +137,7 @@ namespace lde
 		m_LightPass->Resize(Width, Height);
 		m_SkyPass->Resize(Width, Height);
 		SceneImage.OnResize(Width, Height);
-		//m_Gfx->Device->IdleGPU();
+
 	}
 
 	void Renderer::Release()
@@ -165,17 +158,6 @@ namespace lde
 
 	void Renderer::BuildRootSignatures()
 	{
-		// GBuffer Root Signature
-		//{
-		//	
-		//	m_GBufferRS.AddCBV(0, 0); // Per object matrices
-		//	m_GBufferRS.AddConstants(2, 1); // Vertex Buffer; Index + Offset
-		//	m_GBufferRS.AddConstants(16, 2); // Texture indices
-		//	m_GBufferRS.AddStaticSampler(0, 0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
-		//	DX_CALL(m_GBufferRS.Build(m_Gfx->Device.get(), PipelineType::eGraphics), "G-Buffer Root Signature");
-		//	
-		//}
-
 		// LightPass Root Signature
 		{
 			// Scene data	
@@ -205,52 +187,18 @@ namespace lde
 			DX_CALL(m_SkyboxRS.Build(m_Gfx->Device.get(), PipelineType::eGraphics, "Skybox Root Signature"));
 		}
 
-		// Meshlets
-		// TODO:
-	#if MESH_SHADING
-		{
-			m_MeshletRS.AddCBV(0);
-			m_MeshletRS.AddCBV(1);
-			m_MeshletRS.AddSRV(0);
-			m_MeshletRS.AddSRV(1);
-			m_MeshletRS.AddSRV(2);
-			m_MeshletRS.AddSRV(3);
-			DX_CALL(m_MeshletRS.Build(m_Gfx->Device.get(), PipelineType::eGraphics, "Mesh Shading Root Signature"));
-		}
-	#endif
 	}
 
 	void Renderer::BuildPipelines()
 	{
 		D3D12PipelineStateBuilder psoBuilder(m_Gfx->Device.get());
 
-		// G-Buffer Pass
-		{
-			//psoBuilder->SetVertexShader("Shaders/GBuffer.hlsl", L"VSmain");
-			//psoBuilder->SetPixelShader("Shaders/GBuffer.hlsl", L"PSmain");
-			//psoBuilder->EnableDepth(true);
-			//m_GBufferPass->Get
-			//std::array<DXGI_FORMAT, (usize)GBuffers::COUNT> formats =
-			//{
-			//	m_RenderTargets.at(GBuffers::eDepth).GetFormat(),
-			//	m_RenderTargets.at(GBuffers::eBaseColor).GetFormat(),
-			//	m_RenderTargets.at(GBuffers::eTexCoords).GetFormat(),
-			//	m_RenderTargets.at(GBuffers::eNormal).GetFormat(),
-			//	m_RenderTargets.at(GBuffers::eMetalRoughness).GetFormat(),
-			//	m_RenderTargets.at(GBuffers::eEmissive).GetFormat(),
-			//	m_RenderTargets.at(GBuffers::eWorldPosition).GetFormat()
-			//};
-			//psoBuilder->SetRenderTargetFormats(formats);
-			//
-			//DX_CALL(psoBuilder->Build(m_PipelineState, &m_RootSignature, "GBuffer PSO"));
-			//psoBuilder->Reset();
-		}
-
 		// Light Pass
 		{
 			psoBuilder.SetVS("Shaders/Deferred/PBR.hlsl", L"VSmain");
 			psoBuilder.SetPS("Shaders/Deferred/PBR.hlsl", L"PSmain");
 			psoBuilder.EnableDepth(false);
+			psoBuilder.SetCullMode(CullMode::eNone);
 			std::array<DXGI_FORMAT, 1> formats{ DXGI_FORMAT_R32G32B32A32_FLOAT };
 			psoBuilder.SetRenderTargetFormats(formats);
 
@@ -269,22 +217,6 @@ namespace lde
 			DX_CALL(psoBuilder.Build(m_SkyboxPSO, &m_SkyboxRS));
 			psoBuilder.Reset();
 		}
-
-		// TEST
-		// Mesh shading
-	#if MESH_SHADING
-		{
-			D3D12MeshPipelineBuilder msBuilder{};
-			//msBuilder.SetAS("Shaders/Mesh/Amplification.hlsl");
-			msBuilder.SetMS("Shaders/Mesh/Mesh.hlsl");
-			msBuilder.SetPS("Shaders/Mesh/Mesh.hlsl");
-
-			std::vector<DXGI_FORMAT> formats{ DXGI_FORMAT_R32G32B32A32_FLOAT };
-			//msBuilder.SetRenderTargetFormats(formats);
-
-			DX_CALL(msBuilder.Build(m_Gfx->Device.get(), m_MeshletPSO, &m_MeshletRS));
-		}
-	#endif
 	}
 
 	uint64 Renderer::GetRenderTarget()
@@ -309,8 +241,6 @@ namespace lde
 			return m_GBufferPass->GetRenderTargets().at(GBuffers::eWorldPosition).GetSRV().GetGpuHandle().ptr;
 		case RenderOutput::eSkybox:
 			return m_SkyPass->GetRenderTexture()->GetSRV().GetGpuHandle().ptr;
-		case RenderOutput::eRaytracing:
-			return RaytracingCtx->m_SceneOutput->SRV.GetGpuHandle().ptr;
 		}
 
 		return SceneImage.GetSRV().GetGpuHandle().ptr;

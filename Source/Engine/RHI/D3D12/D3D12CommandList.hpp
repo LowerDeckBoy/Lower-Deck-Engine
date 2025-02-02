@@ -58,17 +58,11 @@ namespace lde
 
 		ID3D12GraphicsCommandList8*			Get() const		{ return m_GraphicsCommandList.Get();			}
 		ID3D12GraphicsCommandList8* const*	GetAddressOf()	{ return m_GraphicsCommandList.GetAddressOf();	}
-		ID3D12CommandAllocator*				GetAllocator()	{ return m_Allocator->Get();						}
+		ID3D12CommandAllocator*				GetAllocator()	{ return m_Allocator->Get();					}
 
 		HRESULT Open();
 		HRESULT Close();
-
-		//void Reset(D3D12CommandAllocator* pAllocator);
-
-		//void Reset() override final {}
-		// Reset Allocator only
-		//void ResetAllocator();
-		// Reset list only
+		
 		void ResetList();
 
 		void DrawIndexed(uint32 IndexCount, uint32 BaseIndex, uint32 BaseVertex) override;
@@ -95,7 +89,6 @@ namespace lde
 		D3D12CommandAllocator*			m_Allocator;
 		
 	};
-	
 	
 	// Helper
 	extern D3D12_RESOURCE_STATES StateEnumToType(ResourceState eState);

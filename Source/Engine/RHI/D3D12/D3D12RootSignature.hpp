@@ -37,10 +37,6 @@ namespace lde
 			D3D12_FILTER Filter, D3D12_TEXTURE_ADDRESS_MODE AddressMode, 
 			D3D12_COMPARISON_FUNC ComparsionFunc = D3D12_COMPARISON_FUNC_ALWAYS);
 
-		// Whether to set Local Root Signature flag.
-		// Note: for raytracing only.
-		void SetLocal();
-
 		/**
 		 * @brief Note: when adding Paramters and StaticSamplers they are being pushed to the vector;
 		 * order of Parameters is from top-to-bottom.
@@ -74,6 +70,6 @@ namespace lde
 			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
 			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS;
 
-		bool bIsLocal = false;
+		
 	};
 } // namespace lde

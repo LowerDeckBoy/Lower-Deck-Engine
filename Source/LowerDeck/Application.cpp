@@ -1,6 +1,9 @@
 #include "Application.hpp"
 #include <ImGui/imgui_impl_win32.h>
-//#include <windowsx.h>
+
+#if EDITOR_MODE
+	extern LRESULT IMGUI_API ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+#endif
 
 namespace lde
 {
@@ -28,27 +31,16 @@ namespace lde
 		m_Editor->SetScene(m_ActiveScene.get());
 #endif
 		
-		//m_ActiveScene->AddModel("Assets/Models/sponza/Sponza.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/aerith/scene.gltf");
-		m_ActiveScene->AddModel("Assets/Models/DamagedHelmet/DamagedHelmet.gltf");
+		m_ActiveScene->AddModel("Assets/Models/sponza/Sponza.gltf");
+		//m_ActiveScene->AddModel("../../../../Assets/Models/bistro_test/bistro.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/SunTemple/SunTemple.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/DamagedHelmet/DamagedHelmet.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/Bistro-gltf/BistroExterior.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/Bistro_Exterior/Bistro.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/office_girl/office_girl.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/SciFiHelmet/SciFiHelmet.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/sgd162_idle_walk_run_cycle/scene.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/Bistro/Bistro.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/MetalRoughSpheres/MetalRoughSpheres.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/cube/Cube.gltf");
-
-	#if RAYTRACING
-		for (auto& model : m_ActiveScene->GetModels())
-		{
-			m_Renderer->RaytracingCtx->AddBLAS(model.get());
-		}
-		m_Renderer->RaytracingCtx->CreateTLAS();
-		m_Renderer->RaytracingCtx->CreateSceneUAV();
-		m_Renderer->RaytracingCtx->CreateStateObject();
-		m_Renderer->RaytracingCtx->BuildShaderTable(m_ActiveScene.get());
-	#endif
+		//m_ActiveScene->AddModel("Assets/Models/luna_snow/scene.gltf");
+		//m_ActiveScene->AddModel("../../../../Assets/Models/luna_snow2/untitled.gltf");
+		//m_ActiveScene->AddModel("Assets/Models/arhi/scene.gltf");
 
 		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, false);
 	}
@@ -63,7 +55,9 @@ namespace lde
 		while (!bShouldQuit)
 		{
 			if (msg.message == WM_QUIT)
+			{
 				bShouldQuit = true;
+			}
 
 			if (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 			{
@@ -114,12 +108,16 @@ namespace lde
 		Window::Release();
 	}
 
+
+
 	LRESULT App::WindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	{
 #if EDITOR_MODE
-		extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+		
 		if (ImGui_ImplWin32_WndProcHandler(hWnd, Msg, wParam, lParam))
+		{
 			return true;
+		}
 #endif
 
 		switch (Msg)

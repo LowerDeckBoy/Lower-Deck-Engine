@@ -16,54 +16,7 @@ namespace lde
 
 		Create(pGfx, pWorld);
 
-	#if MESH_SHADING
-
-		std::vector<XMFLOAT3> pos(m_Mesh->Vertices.size());
-		for (size_t j = 0; j < m_Mesh->Vertices.size(); ++j)
-			pos[j] = m_Mesh->Vertices.at(j).Position;
-
-		DirectX::ComputeMeshlets(
-			m_Mesh->Indices.data(), m_Mesh->Indices.size() / 3,
-			pos.data(), m_Mesh->Vertices.size(),
-			UniqueIndices.data(), Meshlets, UniqueVertexIB, Triangles);
-		//nullptr, Meshlets, uniqueVb, triangles);
-
-	//const uint32* uniqueVertexIndices = reinterpret_cast<const uint32*>(uniqueVertexIB.data());
-		size_t vertIndices = UniqueVertexIB.size() / sizeof(uint32);
-		const char* msg = std::to_string(vertIndices).c_str() + '\n';
-		::OutputDebugStringA(msg);
-
-		MeshletBuffer = pGfx->Device->CreateBuffer(
-			BufferDesc{
-				BufferUsage::eStructured,
-				Meshlets.data(),
-				static_cast<uint32>(Meshlets.size()),
-				Meshlets.size() * sizeof(Meshlets.at(0)),
-				static_cast<uint32>(sizeof(Meshlets.at(0))),
-				true
-			});
-		
-		UniqueVertexIBBuffer = pGfx->Device->CreateBuffer(
-			BufferDesc{
-				BufferUsage::eStructured,
-				UniqueVertexIB.data(),
-				static_cast<uint32>(UniqueVertexIB.size()),
-				UniqueVertexIB.size() * sizeof(UniqueVertexIB.at(0)),
-				static_cast<uint32>(sizeof(UniqueVertexIB.at(0))),
-				true
-			});
-
-		TrianglesBuffer = pGfx->Device->CreateBuffer(
-			BufferDesc{
-				BufferUsage::eStructured,
-				Triangles.data(),
-				static_cast<uint32>(Triangles.size()),
-				Triangles.size() * sizeof(Triangles.at(0)),
-				static_cast<uint32>(sizeof(Triangles.at(0))),
-				true
-			});
-
-	#endif
+	
 	}
 
 	Model::~Model()
@@ -77,17 +30,12 @@ namespace lde
 
 		// Default components
 		Entity::Create(pWorld);
-		AddComponent<TagComponent>(m_Mesh->Name);
-		AddComponent<TransformComponent>();
+		Entity::AddComponent<TagComponent>(m_Mesh->Name);
+		Entity::AddComponent<TransformComponent>();
 		
 		m_Mesh->IndexView = GetIndexView(pGfx->Device->Buffers.at(m_Mesh->IndexBuffer));
 
 		m_Mesh->ConstBuffer = pGfx->GetDevice()->CreateConstantBuffer(&m_Mesh->cbData, sizeof(m_Mesh->cbData));
-	}
-
-	Mesh* Model::GetMesh()
-	{
-		return m_Mesh.get();
 	}
 
 } // namespace lde

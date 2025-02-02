@@ -55,14 +55,20 @@ namespace lde
 			&clearValue,
 			IID_PPV_ARGS(&Texture)));
 
-		//Texture->SetName(String::ToWide(DebugName).c_str());
-		Texture->SetName(L"Light Pass Render Texture");
+		if (DebugName.empty())
+		{
+			Texture->SetName(L"Light Pass Render Texture");
+		}
+		else
+		{
+			Texture->SetName(String::ToWide(DebugName).c_str());
+		}
 
 		pGfx->Device->CreateRTV(Texture.Get(), GetRTV(), Format);
 		pGfx->Device->CreateSRV(Texture.Get(), GetSRV(), 1, 1);
 
-		m_Format = Format;
-		m_Gfx = pGfx;
+		m_Format	= Format;
+		m_Gfx		= pGfx;
 
 	}
 
@@ -81,14 +87,14 @@ namespace lde
 		clearValue.Format   = Format;
 
 		D3D12_RESOURCE_DESC desc{};
-		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		desc.Format = Format;
-		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		desc.Width = static_cast<uint64>(pGfx->SceneViewport->GetViewport().Width);
-		desc.Height = static_cast<uint32>(pGfx->SceneViewport->GetViewport().Height);
-		desc.MipLevels = 1;
+		desc.Dimension		= D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		desc.Format			= Format;
+		desc.Flags			= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		desc.Width			= static_cast<uint64>(pGfx->SceneViewport->GetViewport().Width);
+		desc.Height			= static_cast<uint32>(pGfx->SceneViewport->GetViewport().Height);
+		desc.MipLevels		= 1;
 		desc.DepthOrArraySize = 1;
-		desc.SampleDesc = { 1, 0 };
+		desc.SampleDesc		= { 1, 0 };
 
 		DX_CALL(pGfx->Device->GetDevice()->CreateCommittedResource(
 			&D3D12Utility::HeapDefault,
@@ -141,8 +147,9 @@ namespace lde
 
 		Texture->SetName(L"Light Pass Render Texture");
 
-		m_Gfx->Device->CreateRTV(Texture.Get(), m_RTV, m_Format);
-		m_Gfx->Device->CreateSRV(Texture.Get(), GetSRV(), 1, 1);
+		m_Gfx->Device->CreateRTV(Texture.Get(), RTV, m_Format);
+		m_Gfx->Device->CreateSRV(Texture.Get(), SRV, 1, 1);
 
 	}
+
 } // namespace lde

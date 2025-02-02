@@ -1,16 +1,16 @@
 
-project(Editor)
+set(TARGET "Editor")
 
 file(GLOB IMGUI ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/ImGui/*.h ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/ImGui/*.cpp)
-add_library(${PROJECT_NAME} STATIC 
+add_library(${TARGET} STATIC 
 	"Editor.cpp" "Editor.hpp" 
 	"EditorTheme.hpp" "EditorColors.hpp" 
 	"Components/Components.hpp" "Components/Components.cpp" 
 	${IMGUI}
 )
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
-set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+target_compile_features(${TARGET} PUBLIC cxx_std_20)
+set_target_properties(${TARGET} PROPERTIES LINKER_LANGUAGE CXX)
 
 # MSVC is a preferable compiler
 if (MSVC)
@@ -18,13 +18,13 @@ if (MSVC)
 	string(REGEX REPLACE "/W[1-3]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 	# In order to properly set O2 and Ot flags RTC must be disabled
 	string(REGEX REPLACE "/RTC(su|[1su])" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-	target_compile_options(${PROJECT_NAME} PRIVATE /fp:fast /GA /MP /TP /O2 /Ot)
+	target_compile_options(${TARGET} PRIVATE /fp:fast /GA /MP /TP /O2 /Ot)
 elseif (CLANG) # Add Clang specific compiler flag
-	target_compile_options(${PROJECT_NAME} PUBLIC -W4 -fp:fast -GA -MP -TP -O2 -Ot -fexceptions)
+	target_compile_options(${TARGET} PUBLIC -W4 -fp:fast -GA -MP -TP -O2 -Ot -fexceptions)
 endif()
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/Source)
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies)
-target_include_directories(${PROJECT_NAME} PUBLIC Engine)
-target_link_libraries(${PROJECT_NAME} PUBLIC Engine)
+target_include_directories(${TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/Source)
+target_include_directories(${TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies)
+target_include_directories(${TARGET} PUBLIC Engine)
+target_link_libraries(${TARGET} PUBLIC Engine)

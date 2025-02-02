@@ -89,7 +89,7 @@ namespace lde
 	
 	void D3D12PipelineStateBuilder::SetPS(std::string_view Filepath, std::wstring EntryPoint)
 	{
-		m_PS.Filepath = Filepath;
+		m_PS.Filepath	= Filepath;
 		m_PS.EntryPoint = EntryPoint;
 	}
 
@@ -121,8 +121,8 @@ namespace lde
 	
 	void D3D12PipelineStateBuilder::EnableDepth(bool bEnable)
 	{
-		m_DepthDesc.DepthEnable = bEnable;
-		m_RasterizerDesc.DepthClipEnable = bEnable;
+		m_DepthDesc.DepthEnable				= bEnable;
+		m_RasterizerDesc.DepthClipEnable	= bEnable;
 	}
 	
 	void D3D12PipelineStateBuilder::SetRenderTargetFormats(const std::span<DXGI_FORMAT>& Formats)

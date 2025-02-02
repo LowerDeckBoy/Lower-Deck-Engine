@@ -92,6 +92,7 @@ float3 GetSamplingVector(uint3 ThreadID, in RWTexture2DArray<float4> OutputTextu
 			result = float3(-uv.x, uv.y, -1.0f);
 			break;
 	}
+	
 	return normalize(result);
 }
 

@@ -49,7 +49,10 @@ namespace lde
 		SAFE_RELEASE(m_Pipelines.SpecularPSO);
 		SAFE_RELEASE(m_Pipelines.DiffusePSO);
 		SAFE_RELEASE(m_Pipelines.ComputePSO);
+
 		m_Pipelines.ComputeRS->Release();
+		m_Pipelines.IrradianceRS->Release();
+		m_Pipelines.SpecularRS->Release();
 	}
 
 	void ImageBasedLighting::CreateComputeStates()
@@ -63,7 +66,28 @@ namespace lde
 			m_Pipelines.ComputeRS->AddStaticSampler(0, 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 			DX_CALL(m_Pipelines.ComputeRS->Build(m_Gfx->Device.get(), PipelineType::eCompute));
 		}
-		
+
+		// Irradiance Root Signature
+		{
+			m_Pipelines.IrradianceRS = new D3D12RootSignature();
+			m_Pipelines.IrradianceRS->AddConstants(1, BindingSlot::eSRV, 0);
+			m_Pipelines.IrradianceRS->AddConstants(1, BindingSlot::eUAV, 0);
+			m_Pipelines.IrradianceRS->AddConstants(1, BindingSlot::eSampling, 0);
+			m_Pipelines.IrradianceRS->AddStaticSampler(0, 0, D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_BORDER);
+			DX_CALL(m_Pipelines.IrradianceRS->Build(m_Gfx->Device.get(), PipelineType::eCompute));
+		}
+
+		// Specular Root Signature
+		{
+			m_Pipelines.SpecularRS = new D3D12RootSignature();
+			m_Pipelines.SpecularRS->AddConstants(1, BindingSlot::eSRV, 0);
+			m_Pipelines.SpecularRS->AddConstants(1, BindingSlot::eUAV, 0);
+			m_Pipelines.SpecularRS->AddConstants(1, BindingSlot::eSampling, 0);
+			m_Pipelines.SpecularRS->AddStaticSampler(0, 0, D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+			DX_CALL(m_Pipelines.SpecularRS->Build(m_Gfx->Device.get(), PipelineType::eCompute));
+
+		}
+
 		// Shaders
 		{
 			auto& shaderManager = ShaderCompiler::GetInstance();
@@ -84,7 +108,7 @@ namespace lde
 		// Diffuse irradiance
 		{
 			D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
-			psoDesc.pRootSignature = m_Pipelines.ComputeRS->Get();
+			psoDesc.pRootSignature = m_Pipelines.IrradianceRS->Get();
 			psoDesc.CS = m_Shaders.DiffuseIrradianceCS->Bytecode();
 			DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_Pipelines.DiffusePSO)));
 		}
@@ -92,7 +116,7 @@ namespace lde
 		// Specular
 		{
 			D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
-			psoDesc.pRootSignature = m_Pipelines.ComputeRS->Get();
+			psoDesc.pRootSignature = m_Pipelines.SpecularRS->Get();
 			psoDesc.CS = m_Shaders.SpecularCS->Bytecode();
 			DX_CALL(m_Gfx->Device->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_Pipelines.SpecularPSO)));
 		}
@@ -271,7 +295,7 @@ namespace lde
 
 	void ImageBasedLighting::CreateDiffuseTexture(Skybox* pSkybox)
 	{
-		const uint32 cubeResolution = 128; // 256
+		const uint32 cubeResolution = 256; // 256
 
 		pSkybox->DiffuseTexture = new D3D12Texture();
 
@@ -279,14 +303,14 @@ namespace lde
 		//const auto format = DXGI_FORMAT_R11G11B10_FLOAT;
 
 		D3D12_RESOURCE_DESC desc{};
-		desc.Format = format;
-		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		desc.Width = cubeResolution;
-		desc.Height = cubeResolution;
-		desc.DepthOrArraySize = 6;
-		desc.MipLevels = 1;
-		desc.SampleDesc = { 1, 0 };
-		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+		desc.Format				= format;
+		desc.Dimension			= D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		desc.Width				= cubeResolution;
+		desc.Height				= cubeResolution;
+		desc.DepthOrArraySize	= 6;
+		desc.MipLevels			= 1;
+		desc.SampleDesc			= { 1, 0 };
+		desc.Flags				= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
 		DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
 			&D3D12Utility::HeapDefault, 
@@ -302,7 +326,7 @@ namespace lde
 		
 		const auto dispatch = [&](D3D12CommandList* pCmdList) {
 			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
-			pCmdList->Get()->SetComputeRootSignature(m_Pipelines.ComputeRS->Get());
+			pCmdList->Get()->SetComputeRootSignature(m_Pipelines.IrradianceRS->Get());
 			pCmdList->Get()->SetPipelineState(m_Pipelines.DiffusePSO.Get());
 			pCmdList->Get()->SetComputeRoot32BitConstant(BindingSlot::eSRV, pSkybox->TextureCube->SRV.Index(), 0);
 			pCmdList->Get()->SetComputeRoot32BitConstant(BindingSlot::eUAV, pSkybox->DiffuseTexture->UAV.Index(), 0);
@@ -326,22 +350,23 @@ namespace lde
 		const auto format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
 		D3D12_RESOURCE_DESC desc{};
-		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		desc.Format = format;
-		desc.Width = cubeResolution;
-		desc.Height = cubeResolution;
-		desc.MipLevels = mipLevels;
+		desc.Dimension	= D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		desc.Format		= format;
+		desc.Width		= cubeResolution;
+		desc.Height		= cubeResolution;
+		desc.MipLevels	= mipLevels;
 		desc.DepthOrArraySize = 6;
-		desc.SampleDesc = { 1, 0 };
-		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+		desc.SampleDesc		= { 1, 0 };
+		desc.Flags		= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
 		DX_CALL(m_Gfx->Device->GetDevice()->CreateCommittedResource(
 			&D3D12Utility::HeapDefault,
 			D3D12_HEAP_FLAG_NONE,
 			&desc,
 			D3D12_RESOURCE_STATE_COPY_DEST,
 			nullptr,
-			IID_PPV_ARGS(&pSkybox->SpecularTexture->Texture)
-		));
+			IID_PPV_ARGS(&pSkybox->SpecularTexture->Texture)));
+
 		pSkybox->SpecularTexture->Texture->SetName(L"[Image Based Lighting] Specular Texture");
 
 		pSkybox->SpecularTexture->Width		= static_cast<uint32>(desc.Width);
@@ -352,10 +377,12 @@ namespace lde
 		for (uint32 arraySlice = 0; arraySlice < 6; ++arraySlice)
 		{
 			const uint32 subresourceIndex = D3D12CalcSubresource(0, arraySlice, 0, mipLevels, 1);
-			auto src = CD3DX12_TEXTURE_COPY_LOCATION{ pSkybox->TextureCube->Texture.Get(), subresourceIndex };
-			auto dst = CD3DX12_TEXTURE_COPY_LOCATION{ pSkybox->SpecularTexture->Texture.Get(), subresourceIndex };
+			const auto src = CD3DX12_TEXTURE_COPY_LOCATION{ pSkybox->TextureCube->Texture.Get(), subresourceIndex };
+			const auto dst = CD3DX12_TEXTURE_COPY_LOCATION{ pSkybox->SpecularTexture->Texture.Get(), subresourceIndex };
+
 			m_Gfx->Device->GetGfxCommandList()->Get()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 		}
+
 		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, true);
 		
 		m_Gfx->TransitResource(pSkybox->TextureCube->Texture, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -363,7 +390,7 @@ namespace lde
 
 		const auto dispatch = [&](D3D12CommandList* pCmdList) {
 			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
-			pCmdList->Get()->SetComputeRootSignature(m_Pipelines.ComputeRS->Get());
+			pCmdList->Get()->SetComputeRootSignature(m_Pipelines.SpecularRS->Get());
 			pCmdList->Get()->SetPipelineState(m_Pipelines.SpecularPSO.Get());
 			pCmdList->Get()->SetComputeRoot32BitConstant(BindingSlot::eSRV, pSkybox->TextureCube->SRV.Index(), 0);
 			
@@ -372,7 +399,7 @@ namespace lde
 			for (uint32 srcMip = 1; srcMip < 6; ++srcMip)
 			{
 				float sample = static_cast<float>(cubeResolution) / 2.0f;
-				//float sample = 512.0f;
+
 				const uint32 numGroups = std::max<uint32>(1, static_cast<uint32>(sample / 8.0f));
 
 				for (uint32 arraySlice = 0; arraySlice < 6; ++arraySlice)

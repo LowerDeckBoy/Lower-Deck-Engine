@@ -1,7 +1,7 @@
 #pragma once
 
-#include <AgilitySDK/d3d12.h>
 #include "Core/CoreTypes.hpp"
+#include <AgilitySDK/d3d12.h>
 
 namespace lde
 {

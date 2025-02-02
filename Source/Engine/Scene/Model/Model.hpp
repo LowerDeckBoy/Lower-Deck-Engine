@@ -1,7 +1,6 @@
 #pragma once
 #include "../Entity.hpp"
 #include "Mesh.hpp"
-#include "Meshlet.hpp"
 #include "RHI/D3D12/D3D12Buffer.hpp"
 
 namespace lde
@@ -20,24 +19,12 @@ namespace lde
 	
 		void Create(D3D12RHI* pGfx, World* pWorld);
 	
-		Mesh* GetMesh();
+		Mesh* GetMesh()
+		{
+			return m_Mesh.get();
+		}
 
 		std::string Filepath;
-
-
-#if MESH_SHADING
-		std::vector<DirectX::Meshlet>	Meshlets;
-		std::vector<uint32>				UniqueIndices;
-		std::vector<uint8>				UniqueVertexIB;
-		std::vector<MeshletTriangle>	Triangles;
-
-		BufferHandle MeshletBuffer;
-		BufferHandle UniqueVertexIBBuffer;
-		BufferHandle TrianglesBuffer;
-
-		//void Meshletize();
-
-#endif
 
 	private:
 		std::unique_ptr<Mesh> m_Mesh;

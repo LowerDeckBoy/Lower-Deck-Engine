@@ -17,7 +17,7 @@ cbuffer TextureInput : register(b1, space0)
 	uint InputIndex;
 }
 
-static const uint NumSamples = 1024;
+static const uint NumSamples = 64*1024;
 static const float InvNumSamples = 1.0f / float(NumSamples);
 
 // Sample i-th point from Hammersley point set of NumSamples points total.

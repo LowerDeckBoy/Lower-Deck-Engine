@@ -42,8 +42,11 @@ namespace lde
 
 		struct
 		{
-			//Ref<ID3D12RootSignature> ComputeRS;
 			D3D12RootSignature* ComputeRS;
+
+			D3D12RootSignature* IrradianceRS;
+			D3D12RootSignature* SpecularRS;
+
 			Ref<ID3D12PipelineState> ComputePSO;
 
 			Ref<ID3D12PipelineState> DiffusePSO;

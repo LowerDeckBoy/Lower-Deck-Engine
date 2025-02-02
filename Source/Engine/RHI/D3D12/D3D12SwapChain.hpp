@@ -27,14 +27,15 @@ namespace lde
 		D3D12SwapChain(D3D12Device* pDevice, D3D12Queue* pQueue, uint32 Width, uint32 Height);
 		~D3D12SwapChain();
 
-		IDXGISwapChain4* Get() { return m_SwapChain.Get(); }
+		IDXGISwapChain4* Get()
+		{
+			return m_SwapChain.Get();
+		}
 		
 		void Present(bool EnableVSync = false);
 
-		void OnResize(uint32 Width, uint32 Height);
+		void Resize(uint32 Width, uint32 Height);
 
-		/// @brief 
-		/// @return Backbuffer for current frame.
 		ID3D12Resource* GetBackbuffer()
 		{
 			return m_Backbuffers.at(FRAME_INDEX).Get();
@@ -42,7 +43,7 @@ namespace lde
 
 		D3D12DescriptorHeap* RTVHeap()
 		{
-			return m_Heap.get();
+			return m_DescriptorHeap.get();
 		}
 
 	private:
@@ -54,10 +55,10 @@ namespace lde
 
 		ComPtr<IDXGISwapChain4> m_SwapChain;
 		std::array<Ref<ID3D12Resource>, FRAME_COUNT> m_Backbuffers;
-		DXGI_FORMAT m_Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		DXGI_FORMAT m_SwapChainFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 		// Output render target only
-		std::unique_ptr<D3D12DescriptorHeap> m_Heap;
+		std::unique_ptr<D3D12DescriptorHeap> m_DescriptorHeap;
 
 		D3D12Device* m_Device = nullptr; /* Parent Device */
 	};

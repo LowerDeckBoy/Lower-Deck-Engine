@@ -15,20 +15,12 @@ namespace lde::Utility
 	public:
 		static float ReadRAM()
 		{
-			::MEMORYSTATUSEX mem{};
-			mem.dwLength = sizeof(::MEMORYSTATUSEX);
-			// for convertion to MB and GB
-			//constexpr DWORD dwMBFactor = 0x00100000;
+			::PROCESS_MEMORY_COUNTERS_EX2 pcmex{};
 
-			::PROCESS_MEMORY_COUNTERS_EX pcmex{};
-
-			if (!::GetProcessMemoryInfo(::GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pcmex, sizeof(::PROCESS_MEMORY_COUNTERS_EX)))
+			if (!::GetProcessMemoryInfo(::GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pcmex, sizeof(::PROCESS_MEMORY_COUNTERS_EX2)))
 				return -1.0f;
 
-			if (!::GlobalMemoryStatusEx(&mem))
-				return -1.0f;
-
-			return static_cast<float>(pcmex.WorkingSetSize / (1024.0f * 1024.0f));
+			return static_cast<float>(pcmex.PrivateWorkingSetSize / (1024.0f * 1024.0f));
 		}
 	};
 
@@ -37,8 +29,7 @@ namespace lde::Utility
 		std::chrono::time_point<std::chrono::high_resolution_clock> StartTime{};
 		std::chrono::time_point<std::chrono::high_resolution_clock> EndTime{};
 		std::chrono::duration<double> Duration{};
-
-	public:
+		
 		void Start()
 		{
 			StartTime = std::chrono::high_resolution_clock::now();

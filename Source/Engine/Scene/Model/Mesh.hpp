@@ -1,9 +1,5 @@
 #pragma once
 
-/*
-
-*/
-
 #include "RHI/D3D12/D3D12Buffer.hpp"
 #include "RHI/D3D12/D3D12Device.hpp"
 #include <Core/CoreMinimal.hpp>
@@ -32,7 +28,7 @@ namespace lde
 		uint32 MetalRoughnessIndex	= (uint32)-1;
 		uint32 EmissiveIndex		= (uint32)-1;
 	
-		float MetallicFactor		= 0.04f;
+		float MetallicFactor		= 0.0f;
 		float RoughnessFactor		= 0.5f;
 		float AlphaCutoff			= 0.5f;
 		int32 bDoubleSided			= -1;
@@ -50,7 +46,7 @@ namespace lde
 	struct Submesh
 	{
 		Material	Material;
-		//XMMATRIX	Matrix		= XMMatrixIdentity();
+
 		uint32		BaseIndex	= 0;
 		uint32		BaseVertex	= 0;
 		uint32		IndexCount	= 0;
@@ -67,11 +63,10 @@ namespace lde
 		std::vector<Vertex>		Vertices;
 		std::vector<uint32>		Indices;
 
-		//uint32	MeshID = UINT_MAX;
-
 		BufferHandle VertexBuffer = UINT32_MAX;
 		BufferHandle IndexBuffer  = UINT32_MAX;
 		BufferHandle ConstBuffer  = UINT32_MAX;
+
 		cbPerObject cbData{};
 		D3D12_INDEX_BUFFER_VIEW IndexView{};
 

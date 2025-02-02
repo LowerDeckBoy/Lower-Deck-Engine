@@ -28,7 +28,7 @@ namespace lde
 		parameter.ParameterType				= D3D12_ROOT_PARAMETER_TYPE_CBV;
 		parameter.Descriptor.ShaderRegister = RegisterSlot;
 		parameter.Descriptor.RegisterSpace	= Space;
-		parameter.Descriptor.Flags			= D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE;
+		parameter.Descriptor.Flags			= D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC;
 		parameter.ShaderVisibility			= Visibility;
 
 		m_Parameters.emplace_back(parameter);
@@ -89,11 +89,6 @@ namespace lde
 		m_StaticSamplers.emplace_back(sampler);
 	}
 
-	void D3D12RootSignature::SetLocal()
-	{
-		bIsLocal = true;
-	}
-
 	HRESULT D3D12RootSignature::Build(D3D12Device* pDevice, PipelineType eType, std::string DebugName)
 	{
 		D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc{};
@@ -102,7 +97,7 @@ namespace lde
 		desc.Desc_1_2.pParameters		= m_Parameters.data();
 		desc.Desc_1_2.NumStaticSamplers = static_cast<uint32>(m_StaticSamplers.size());
 		desc.Desc_1_2.pStaticSamplers	= m_StaticSamplers.data();
-		desc.Desc_1_2.Flags				= (bIsLocal) ? D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE : m_RootFlags;
+		desc.Desc_1_2.Flags				= m_RootFlags;
 
 		Type = eType;
 

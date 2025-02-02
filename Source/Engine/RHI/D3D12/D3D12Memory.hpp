@@ -1,10 +1,5 @@
 #pragma once
 
-/*
-	RHI/D3D12/D3D12Memory.hpp
-
-*/
-
 #include <AgilitySDK/d3d12.h>
 #include <Core/CoreMinimal.hpp>
 #include <D3D12MA/D3D12MemAlloc.h>
@@ -36,8 +31,8 @@ namespace lde
 	class D3D12Memory
 	{
 	public:
-		D3D12Memory(D3D12Device* pDevice); /* Creates Allocator */
-		~D3D12Memory();	/* Releases Allocator */
+		D3D12Memory(D3D12Device* pDevice);
+		~D3D12Memory();
 		
 		static void Allocate(AllocatedResource& ToAllocate,
 			const D3D12_RESOURCE_DESC& ResourceDesc,

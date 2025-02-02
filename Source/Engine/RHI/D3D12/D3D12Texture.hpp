@@ -41,6 +41,8 @@ namespace lde
 		uint32 Height		= 0; // 0 means invalid
 		uint16 MipLevels	= 1; // default; no mipmaps
 
+		ID3D12Resource* Get() { return Texture.Get(); }
+
 		Ref<ID3D12Resource> Texture;
 	protected:
 
@@ -55,7 +57,7 @@ namespace lde
 	public:
 		D3D12RenderTexture() = default;
 		D3D12RenderTexture(D3D12RHI* pGfx, DXGI_FORMAT Format, std::string_view DebugName = "");
-		~D3D12RenderTexture(); /* Releases Texture resource */
+		~D3D12RenderTexture(); // Releases Texture resource
 
 		void Initialize(D3D12RHI* pGfx, DXGI_FORMAT Format, std::string_view DebugName = "");
 		void InitializeDepth(D3D12RHI* pGfx, DXGI_FORMAT Format, std::string_view DebugName = "");
@@ -63,26 +65,16 @@ namespace lde
 		void OnResize(uint32 Width, uint32 Height);
 
 		D3D12Descriptor& GetSRV() { return SRV; }
-		D3D12Descriptor& GetRTV() { return m_RTV; }
-		D3D12Descriptor& GetDSV() { return m_DSV; }
+		D3D12Descriptor& GetRTV() { return RTV; }
+		D3D12Descriptor& GetDSV() { return DSV; }
 
 		DXGI_FORMAT& GetFormat() { return m_Format; }
 
-		/**
-		 * @brief 
-		 * @return Underlying texture resource.
-		 */
-		ID3D12Resource* Get() { return Texture.Get(); }
-
+		D3D12Descriptor RTV;
+		D3D12Descriptor DSV; // Shadow maps
 	private:
-		// For texture resizing
 		D3D12RHI* m_Gfx = nullptr;
-		//Ref<ID3D12Resource> m_Texture;
-		//DXGI_FORMAT m_Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-		//D3D12Descriptor m_SRV;
-		D3D12Descriptor m_RTV;
-		D3D12Descriptor m_DSV; // Shadow maps
 
 	};
 

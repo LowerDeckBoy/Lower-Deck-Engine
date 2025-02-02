@@ -20,25 +20,12 @@ namespace lde
 
 	void LightPass::Render(SceneCamera* pCamera, GBufferPass* pGBuffer, Skybox* pSkybox, Scene* pScene)
 	{
-		//m_Gfx->TransitResource(m_Texture->Get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-		//auto& depthHandle = m_Gfx->SceneDepth->DSV().GetCpuHandle();
-		//auto& rtvHandle = m_Texture->GetRTV().GetCpuHandle();
-		
-		//m_Gfx->ClearRenderTarget(rtvHandle);
-		//m_Gfx->SetRenderTarget(rtvHandle, &depthHandle);
-
 		// Send Shader data
 		m_SceneData.CameraPosition	= pCamera->GetPosition();
 		m_SceneData.View			= pCamera->GetView();
 		m_SceneData.InversedView	= XMMatrixTranspose(pCamera->GetInvView());
 		m_SceneData.Projection		= pCamera->GetProjection();
 		m_SceneData.InversedProjection = XMMatrixTranspose(pCamera->GetInvProjection());
-		// Unnecessary for now
-		//m_SceneData.zNear			= pCamera->GetZNear();
-		//m_SceneData.zFar			= pCamera->GetZFar();
-		//m_SceneData.Width			= static_cast<uint32>(m_Gfx->SceneViewport->GetViewport().Width);
-		//m_SceneData.Height			= static_cast<uint32>(m_Gfx->SceneViewport->GetViewport().Height);
 
 		auto* sceneConstBuffer = m_Gfx->Device->ConstantBuffers.at(m_SceneConstBuffer);
 		sceneConstBuffer->Update(&m_SceneData);
@@ -83,8 +70,7 @@ namespace lde
 		// m_Gfx->DrawIndexed(6, 0, 0);
 
 		m_Gfx->Draw(4);
-		
-		//m_Gfx->TransitResource(m_Texture->Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
+
 	}
 
 	void LightPass::Resize(uint32 Width, uint32 Height)
