@@ -107,7 +107,7 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 	
 	float3 directional = float3(0.0f, 0.0f, 0.0f);
 	{
-		float3 L = normalize(-Lights.Directional.Direction.xyz);
+		float3 L = normalize(Lights.Directional.Direction.xyz - positions.xyz);
 		float3 H = normalize(L + V);
 	
 		float NdotL = max(dot(N, L), 0.0f);
@@ -132,7 +132,7 @@ float4 PSmain(ScreenQuadOutput pin) : SV_TARGET
 		}
 		else
 		{
-			directional += ((kD * (baseColor.rgb / PI)) + specular) * NdotL * Lights.Directional.Ambient.rgb;
+			//directional += ((kD * (baseColor.rgb / PI)) + specular) * NdotL * Lights.Directional.Ambient.rgb;
 
 		}
 
