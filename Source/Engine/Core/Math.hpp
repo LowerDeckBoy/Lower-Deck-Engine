@@ -10,11 +10,10 @@ namespace lde
 {
 #define ALIGN(Value, Alignment) (Value + (Alignment - 1)) & ~(Alignment - 1)
 
-	constexpr const float PI		= 3.1415926535f;
-	constexpr const float TwoPI		= 2.0f * PI;
-	//constexpr const float Epsilon	= 0.000001f;
-	constexpr const float Rad2Deg	= 57.29578f;
-	constexpr const float Deg2Rad	= 0.01745329251f;
+	constexpr float PI		= 3.1415926535f;
+	constexpr float TwoPI	= 2.0f * PI;
+	constexpr float Rad2Deg	= 57.29578f;
+	constexpr float Deg2Rad	= 0.01745329251f;
 
 	static constexpr uint32 Align(uint32 Value, uint32 Alignment)
 	{
@@ -41,6 +40,4 @@ namespace lde
 		return (Value < Min) ? Min : (Value > Max) ? Max : Value;
 	}
 
-	// TODO:
-	//static constexpr Lerp();
-}
+} // namespace lde

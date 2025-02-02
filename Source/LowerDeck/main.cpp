@@ -11,12 +11,14 @@ int WinMain(HINSTANCE /* hInstance */, HINSTANCE, LPSTR, int)
 		app->Initialize();
 		app->Run();
 		app->Release();
-		delete app;
+		
 	}
 	catch (...)
 	{
-		delete app;
+		//
 	}
+
+	delete app;
 
 	return 0;
 }

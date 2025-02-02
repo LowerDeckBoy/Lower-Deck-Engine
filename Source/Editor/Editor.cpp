@@ -44,7 +44,7 @@ namespace lde::editor
 
 		ImGui::CreateContext();
 
-		ImGuiIO& IO{ ImGui::GetIO() };
+		ImGuiIO& IO = ImGui::GetIO();
 		m_EditorStyle = &ImGui::GetStyle();
 		
 		Themes::DarkTheme(*m_EditorStyle);
@@ -284,16 +284,19 @@ namespace lde::editor
 		if (ImGui::BeginMenu("File"))
 		{
 			ImGui::SeparatorText("File");
+
 			if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN" Open", "Ctrl+O"))
 			{
 
 			}
+
 			if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK" Save", "Ctrl+S"))
 			{
 				
 			}
 
 			ImGui::SeparatorText("Exit");
+
 			if (ImGui::MenuItem(ICON_FA_POWER_OFF" Save and Exit"))
 			{
 			

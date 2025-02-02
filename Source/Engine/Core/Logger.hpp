@@ -32,6 +32,10 @@ namespace lde
 	class Logger
 	{
 	public:
+
+		//template<typename... LogArgs>
+		//static void Log(LogLevel)
+
 		static std::vector<std::string> Logs;
 	};
 }
