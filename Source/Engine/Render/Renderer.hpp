@@ -20,7 +20,6 @@
 #include "RenderPass/LightPass.hpp"
 #include "RenderPass/SkyPass.hpp"
 
-
 namespace lde
 {
 	class Scene;

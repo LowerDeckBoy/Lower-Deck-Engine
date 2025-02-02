@@ -37,7 +37,7 @@ namespace lde
 			psoBuilder.SetVS("Shaders/Deferred/GBuffer.hlsl", L"VSmain");
 			psoBuilder.SetPS( "Shaders/Deferred/GBuffer.hlsl", L"PSmain");
 			psoBuilder.EnableDepth(true);
-			psoBuilder.SetCullMode(CullMode::eBack);
+			psoBuilder.SetCullMode(CullMode::eNone);
 			std::array<DXGI_FORMAT, (usize)GBuffers::COUNT> formats =
 			{
 				m_RenderTargets.at(GBuffers::eDepth).GetFormat(),
@@ -54,11 +54,11 @@ namespace lde
 			psoBuilder.Reset();
 		}
 
-		m_CommandSignature = new D3D12CommandSignature();
-		m_CommandSignature->AddCBV(0);			// 8 bytes
-		m_CommandSignature->AddConstant(1, 2);	// 8 bytes
-		m_CommandSignature->AddConstant(2, 16);	// 64 bytes
-		m_CommandSignature->AddDrawIndexed();	// 20 bytes
+		//m_CommandSignature = new D3D12CommandSignature();
+		//m_CommandSignature->AddCBV(0);			// 8 bytes
+		//m_CommandSignature->AddConstant(1, 2);	// 8 bytes
+		//m_CommandSignature->AddConstant(2, 16);	// 64 bytes
+		//m_CommandSignature->AddDrawIndexed();	// 20 bytes
 		//DX_CALL(m_CommandSignature->Create(m_Gfx->Device.get(), &m_RootSignature));
 
 	}
@@ -103,12 +103,7 @@ namespace lde
 
 	void GBufferPass::Release()
 	{
-		//for (auto& renderTarget : m_RenderTargets)
-		//{
-		//	//renderTarget.second.
-		//}
 		m_RootSignature.Release();
-		m_CommandSignature->Release();
 	}
 
 	std::array<int, 7> GBufferPass::GetTextureIndices()

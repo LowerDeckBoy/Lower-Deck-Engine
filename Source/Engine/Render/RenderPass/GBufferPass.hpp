@@ -63,7 +63,6 @@ namespace lde
 
 	private:
 		PassContent m_GBuffer{};
-		//D3D12_RENDER_PASS_RENDER_TARGET_DESC
 
 		D3D12RHI* m_Gfx = nullptr;
 		D3D12RootSignature m_RootSignature;
@@ -79,9 +78,5 @@ namespace lde
 			{ GBuffers::eEmissive,			D3D12RenderTexture() },
 			{ GBuffers::eWorldPosition,		D3D12RenderTexture() },
 		};
-
-
-		D3D12CommandSignature* m_CommandSignature;
-
 	};
 } // namespace lde
