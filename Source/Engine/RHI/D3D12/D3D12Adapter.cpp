@@ -1,15 +1,16 @@
 #include "D3D12Device.hpp"
 #include "D3D12Utility.hpp"
 #include "D3D12RootSignature.hpp"
-//#include "D3D12Memory.hpp"
+#include <AgilitySDK/d3dx12/d3dx12_check_feature_support.h>
 
-/*
+/*===========================================================================================
 	Implemets Factory, Adapter, Device, Queues and Heaps creation from D3D12Device.hpp
-*/
+===========================================================================================*/
 
 /* ===========================================  Setting AgilitySDK =========================================== */
 extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = 611;			}
 extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\";	}
+/* ===========================================  Setting AgilitySDK =========================================== */
 
 namespace lde
 {
@@ -32,8 +33,7 @@ namespace lde
 
 		DX_CALL(D3D12GetDebugInterface(IID_PPV_ARGS(&m_DebugDevices.D3DDebug)));
 		m_DebugDevices.D3DDebug->EnableDebugLayer();
-		// Investiage: resizing window while GPU validation is on causes increases in memory usage.
-		//m_DebugDevices.D3DDebug->SetEnableGPUBasedValidation(FALSE);
+
 #endif
 
 		DX_CALL(CreateDXGIFactory2(factoryFlags, IID_PPV_ARGS(&m_Factory)));
@@ -44,7 +44,7 @@ namespace lde
 		QueryShaderModel();
 		QueryFeatures();
 
-		m_Fence = std::make_unique<D3D12Fence>(this);
+		//m_Fence = std::make_unique<D3D12Fence>(this);
 
 		CreateHeaps();
 
@@ -59,6 +59,7 @@ namespace lde
 			delete m_FrameResources[i].GraphicsCommandList;
 			//delete m_FrameResources[i].ComputeCommandList;
 		}
+
 		delete GraphicsQueue;
 		//delete ComputeQueue;
 
@@ -66,7 +67,7 @@ namespace lde
 		m_DSVHeap.reset();
 		m_SRVHeap.reset();
 
-		m_Fence.reset();
+		//m_Fence.reset();
 
 		SAFE_RELEASE(m_Device);
 		SAFE_RELEASE(m_Adapter);
@@ -115,6 +116,7 @@ namespace lde
 		// Create Debug interfaces
 		DX_CALL(m_Device->QueryInterface(&m_DebugDevices.DebugDevice));
 		DX_CALL(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&m_DebugDevices.DXGIDebug)));
+		m_DebugDevices.DXGIDebug->EnableLeakTrackingForThread();
 #endif
 	}
 
@@ -143,26 +145,22 @@ namespace lde
 
 	void D3D12Device::QueryFeatures()
 	{
-		/* Gather all desired / expected features */
-		DX_CALL(m_Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS,  &Features.Features,  sizeof(Features.Features)) );
-		DX_CALL(m_Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS1, &Features.Features1, sizeof(Features.Features1)));
-		DX_CALL(m_Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS3, &Features.Features3, sizeof(Features.Features3)));
-		DX_CALL(m_Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &Features.Features5, sizeof(Features.Features5)));
-		DX_CALL(m_Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS6, &Features.Features6, sizeof(Features.Features6)));
-		DX_CALL(m_Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS7, &Features.Features7, sizeof(Features.Features7)));
+		// TODO:
+		CD3DX12FeatureSupport featureSupport{};
+		featureSupport.Init(m_Device.Get());
 
-		Capabilities.RaytracingTier = Features.Features5.RaytracingTier;
-		Capabilities.BindingTier	= Features.Features.ResourceBindingTier;
-		Capabilities.MeshShaderTier = Features.Features7.MeshShaderTier;
+		Capabilities.RaytracingTier = featureSupport.RaytracingTier();
+		Capabilities.BindingTier	= featureSupport.ResourceBindingTier();
+		Capabilities.MeshShaderTier = featureSupport.MeshShaderTier();
 		
 	}
 	
 	void D3D12Device::CreateHeaps()
 	{
 		// Needs to be bigger as is also meant for generating mip chains.
-		m_SRVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 65536, "SRV Descriptor Heap");
-		m_DSVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eDSV, 64,    "DSV Descriptor Heap");
-		m_RTVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eRTV, 64,    "RTV Descriptor Heap");
+		m_SRVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 65536, "D3D12 ShaderResourceView Descriptor Heap");
+		m_DSVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eDSV, 64,    "D3D12 DepthStencilView Descriptor Heap");
+		m_RTVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eRTV, 64,    "D3D12 RenderTargetView Descriptor Heap");
 	}
 	
 } // namespace lde

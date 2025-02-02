@@ -85,7 +85,7 @@ namespace lde
 
 		void ExecuteAllCommandLists(bool bResetAllocators = false);
 
-		D3D12Fence* GetFence() { return m_Fence.get(); }
+		//D3D12Fence* GetFence() { return m_Fence.get(); }
 		
 		// One per frame buffer
 		struct FrameResources
@@ -98,8 +98,6 @@ namespace lde
 		} m_FrameResources[FRAME_COUNT];
 
 		D3D12Queue* GraphicsQueue;
-		// TODO:
-		// https://www.codeproject.com/Articles/5341403/Getting-Started-with-Path-Tracing-using-Diligent-E
 		D3D12Queue* ComputeQueue;
 
 		void				CreateFrameResources();
@@ -136,7 +134,7 @@ namespace lde
 
 		DXGI_ADAPTER_DESC3 m_AdapterDesc{};
 
-		std::unique_ptr<D3D12Fence> m_Fence;
+		//std::unique_ptr<D3D12Fence> m_Fence;
 
 		std::unique_ptr<D3D12DescriptorHeap> m_SRVHeap;
 		std::unique_ptr<D3D12DescriptorHeap> m_DSVHeap;
@@ -166,6 +164,7 @@ namespace lde
 		D3D12Buffer*			GetBuffer(uint32 Index);
 		D3D12ConstantBuffer*	GetConstantBuffer(uint32 Index);
 		D3D12Texture*			GetTexture(uint32 Index);
+
 		/* ======================== RHI implementations ======================== */
 
 		BufferHandle	CreateBuffer(BufferDesc Desc) override final;

@@ -23,23 +23,15 @@ namespace lde
 	{
 	}
 
-	//void D3D12Fence::Signal(D3D12Queue* pQueue, uint64 Value)
-	//{
-	//}
-
 	void D3D12Fence::SetEventOnComplete()
 	{
 		m_Fence->SetEventOnCompletion(Values.at(FRAME_INDEX), m_FenceEvent);
-		//m_Fence->SetEventOnCompletion(CurrentValue, m_FenceEvent);
 	}
 	
 	void D3D12Fence::Wait()
 	{
 		SetEventOnComplete();
 		::WaitForSingleObject(m_FenceEvent, INFINITE);
-
-		//Values.at(FRAME_INDEX)++;
-		//CurrentValue++;
 	}
 
 	void D3D12Fence::WaitForComplete()
@@ -49,8 +41,6 @@ namespace lde
 			SetEventOnComplete();
 			::WaitForSingleObject(m_FenceEvent, INFINITE);
 
-			//CurrentValue++;
-			//LastSignaledValue = CurrentValue;
 			++Values.at(FRAME_INDEX);
 			SignaledValues.at(FRAME_INDEX) = Values.at(FRAME_INDEX);
 		}

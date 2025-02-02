@@ -25,7 +25,7 @@ namespace lde
 
 		void Allocate(D3D12Descriptor& Descriptor, uint32 Count = 1);
 
-		void Override(D3D12Descriptor& Descriptor, uint32 Count) const;
+		void Override(D3D12Descriptor& Descriptor) const;
 
 		ID3D12DescriptorHeap* Get();
 

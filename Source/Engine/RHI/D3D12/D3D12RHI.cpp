@@ -113,20 +113,36 @@ namespace lde
 
 	void D3D12RHI::MoveToNextFrame()
 	{
-		const uint64 currentFenceValue = Device->GetFence()->GetValue();
+		auto* queue = Device->GraphicsQueue;
 
-		Device->GetFence()->Signal(Device->GetGfxQueue(), Device->GetFence()->GetValue());
+		uint64 currentFenceValue = queue->GetFence().GetCurrentValue();
+
+		queue->SignalFence(currentFenceValue);
+
+		FRAME_INDEX = SwapChain->Get()->GetCurrentBackBufferIndex();
+
+		if (queue->GetFence().IsValueCompleted(currentFenceValue))
+		{
+			queue->Wait();
+		}
+
+		queue->SetFenceValue(currentFenceValue + 1);
+
+		/*
+		const uint64 currentFenceValue = Device->GetFence()->GetCurrentValue();
+
+		Device->GetFence()->Signal(Device->GetGfxQueue(), Device->GetFence()->GetCurrentValue());
 
 		//FRAME_INDEX = SwapChain->Get()->GetCurrentBackBufferIndex();
 
-		if (Device->GetFence()->IsValueCompleted(Device->GetFence()->GetValue()))
+		if (Device->GetFence()->IsValueCompleted(Device->GetFence()->GetCurrentValue()))
 		{
-			Device->GetFence()->SetEvent();
+			//Device->GetFence()->SetEvent();
 			Device->GetFence()->Wait();	
 		}
 
 		Device->GetFence()->UpdateValue(currentFenceValue);
-		
+		*/
 	}
 
 	void D3D12RHI::OpenList(D3D12CommandList* pCommandList)
@@ -143,11 +159,11 @@ namespace lde
 			Device->m_FrameResources[frame].GraphicsCommandList->Open();
 		}
 
-		Device->GetFence()->OnResize();
+		//Device->GetFence()->OnResize();
 
 		SceneViewport->Set(Width, Height);
-		SwapChain->OnResize(Width, Height);
-		SceneDepth->OnResize(SceneViewport);
+		SwapChain->Resize(Width, Height);
+		SceneDepth->Resize(SceneViewport);
 
 		Device->ExecuteAllCommandLists(false);
 	}
@@ -168,6 +184,7 @@ namespace lde
 		rtvHandle.ptr += static_cast<uint64>(FRAME_INDEX * SwapChain->RTVHeap()->GetDescriptorSize());
 		
 		Device->GetGfxCommandList()->Get()->ClearRenderTargetView(rtvHandle, ClearColor.data(), 0, nullptr);
+
 	}
 
 	void D3D12RHI::ClearDepthStencil()

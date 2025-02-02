@@ -7,9 +7,6 @@
 #include <Core/RefPtr.hpp>
 #include <Core/String.hpp>
 
-namespace lde
-{
-
 #define LDE_ASSERT(Condition) assert(Condition)
 
 // Releasing either ComPtr or (custom) Ref pointer.
@@ -17,15 +14,17 @@ namespace lde
 
 #define SAFE_DELETE(RawPtr) { if (RawPtr) { RawPtr->Release(); RawPtr = nullptr; } }
 
-#define DX_CALL(hResult, ...) VerifyResult(hResult, __FILE__, __LINE__, __VA_ARGS__)
+#define DX_CALL(hResult, ...) lde::VerifyResult(hResult, __FILE__, __LINE__, __VA_ARGS__)
 
+// Sets a name for given ID3D12 interface; casts given name into wide-string.
+// Decapsulates Ref<T> pointers.
+#define SET_D3D12_NAME(Interface, ...) lde::SetD3D12Name(Interface.Get(), std::string(__VA_ARGS__))
+
+namespace lde
+{
 	// TODO: Add checking for OUT_OF_MEMORY
 	extern void VerifyResult(HRESULT hResult, const char* File, int Line, std::string_view Message = "");
 	
-// Sets a name for given ID3D12 interface; casts given name into wide-string.
-// Decapsulates Ref<T> pointers.
-#define SET_D3D12_NAME(Interface, ...) SetD3D12Name(Interface.Get(), std::string(__VA_ARGS__))
-
 	extern void SetD3D12Name(ID3D12Object* pDxObject, std::string Name);
 	
 	class D3D12Utility

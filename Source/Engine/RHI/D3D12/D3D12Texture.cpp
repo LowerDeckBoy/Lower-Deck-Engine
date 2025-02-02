@@ -147,8 +147,8 @@ namespace lde
 
 		Texture->SetName(L"Light Pass Render Texture");
 
-		m_Gfx->Device->CreateRTV(Texture.Get(), m_RTV, m_Format);
-		m_Gfx->Device->CreateSRV(Texture.Get(), GetSRV(), 1, 1);
+		m_Gfx->Device->CreateRTV(Texture.Get(), RTV, m_Format);
+		m_Gfx->Device->CreateSRV(Texture.Get(), SRV, 1, 1);
 
 	}
 

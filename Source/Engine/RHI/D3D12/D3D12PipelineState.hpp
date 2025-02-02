@@ -1,9 +1,5 @@
 #pragma once
 
-/*
-	
-*/
-
 #include <AgilitySDK/d3d12.h>
 #include <Core/CoreMinimal.hpp>
 #include <Graphics/ShaderCompiler.hpp>
@@ -29,15 +25,13 @@ namespace lde
 			return PipelineState.Get();
 		}
 	
-		Ref<ID3D12PipelineState> PipelineState;
-		D3D12RootSignature* RootSignature = nullptr;
-		PipelineType Type{};
+		Ref<ID3D12PipelineState>	PipelineState;
+		D3D12RootSignature*			RootSignature = nullptr;
+		PipelineType				Type{};
 
 		Shader* VertexShader;
 		Shader* PixelShader;
-		Shader DomainShader;
-		Shader HullShader;
-		Shader GeometryShader;
+		
 	};
 
 	// Graphics Pipeline State builder class.
@@ -74,8 +68,8 @@ namespace lde
 
 		struct ShaderInfo
 		{
-			std::string_view Filepath;
-			std::wstring EntryPoint;
+			std::string_view	Filepath;
+			std::wstring		EntryPoint;
 		};
 		ShaderInfo m_VS{};
 		ShaderInfo m_PS{};

@@ -22,8 +22,6 @@ namespace lde
 
 		void SetEventOnComplete();
 
-		//void SetEvent(uint64 Value);
-
 		void Wait();
 		void WaitForComplete();
 
@@ -41,9 +39,8 @@ namespace lde
 		std::vector<uint64> Values;
 		std::vector<uint64> SignaledValues;
 
-		//uint64 CurrentValue = 0;
-		//uint64 LastSignaledValue = 0;
 		::HANDLE m_FenceEvent = nullptr;
+
 	private:
 		Ref<ID3D12Fence> m_Fence;
 

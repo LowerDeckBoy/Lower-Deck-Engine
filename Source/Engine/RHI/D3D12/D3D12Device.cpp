@@ -17,6 +17,10 @@ namespace lde
 
 	void D3D12Device::WaitForGPU(CommandType eType)
 	{
+		//GraphicsQueue->SignalFence();
+		//GraphicsQueue->WaitForComplete();
+		GraphicsQueue->SignalAndWait();
+		/*
 		switch (eType)
 		{
 		case CommandType::eGraphics:
@@ -29,6 +33,7 @@ namespace lde
 
 		m_Fence->Wait();
 		m_Fence->UpdateValue(m_Fence->GetValue());
+		*/
 	}
 
 	void D3D12Device::FlushGPU()
@@ -285,8 +290,8 @@ namespace lde
 			// TODO:
 		}
 
-		m_SRVHeap->Allocate(Descriptor, Count);
-		//Descriptor = m_SRVHeap->Allocate(Count);
+		//m_SRVHeap->Allocate(Descriptor, Count);
+		Descriptor = m_SRVHeap->Allocate(Count);
 		m_Device->CreateUnorderedAccessView(pResource, nullptr, &uavDesc, Descriptor.GetCpuHandle());
 	}
 

@@ -38,8 +38,9 @@ namespace lde
 		// First handle
 		m_AvailableCpuPtr = static_cast<uint64>(m_Heap->GetCPUDescriptorHandleForHeapStart().ptr) + m_DescriptorSize;
 		if (desc.Flags == D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE)
+		{
 			m_AvailableGpuPtr = static_cast<uint64>(m_Heap->GetGPUDescriptorHandleForHeapStart().ptr) + m_DescriptorSize;
-
+		}
 	}
 
 	D3D12DescriptorHeap::~D3D12DescriptorHeap()
@@ -84,7 +85,7 @@ namespace lde
 
 		if (Descriptor.IsValid())
 		{
-			Override(Descriptor, Count);
+			Override(Descriptor);
 			return;
 		}
 
@@ -104,7 +105,7 @@ namespace lde
 		}
 	}
 
-	void D3D12DescriptorHeap::Override(D3D12Descriptor& Descriptor, uint32) const
+	void D3D12DescriptorHeap::Override(D3D12Descriptor& Descriptor) const
 	{
 		uint32 offset = GetIndex(Descriptor);
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu = (D3D12_CPU_DESCRIPTOR_HANDLE)(CpuStartHandle().ptr + (offset * m_DescriptorSize));
@@ -159,6 +160,8 @@ namespace lde
 		m_AvailableCpuPtr = static_cast<uint64>(m_Heap->GetCPUDescriptorHandleForHeapStart().ptr) + m_DescriptorSize;
 
 		if (Type == HeapType::eSRV)
+		{
 			m_AvailableGpuPtr = static_cast<uint64>(m_Heap->GetGPUDescriptorHandleForHeapStart().ptr) + m_DescriptorSize;
+		}
 	}
 }
