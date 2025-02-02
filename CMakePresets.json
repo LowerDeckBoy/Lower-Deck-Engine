@@ -7,23 +7,23 @@
   },
   "configurePresets": [
     {
-      "name": "Windows x64",
-      "displayName": "x64 Config",
-      "description": "Default Windows MSBuild-based config",
-      "hidden": true,
-      "generator": "Visual Studio 17 2022",
-      "binaryDir": "${sourceDir}/Build/${presetName}",
-      "installDir": "${sourceDir}/Build/install/${presetName}",
-      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "cl.exe",
-        "CMAKE_CXX_COMPILER": "cl.exe"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      }
+        "name": "Windows x64",
+        "displayName": "x64 Config",
+        "description": "Default Windows MSBuild-based config",
+        "hidden": true,
+        "generator": "Visual Studio 17 2022",
+        "binaryDir": "${sourceDir}/Build/${presetName}",
+        "installDir": "${sourceDir}/Build/install/${presetName}",
+        "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "cacheVariables": {
+            "CMAKE_C_COMPILER": "cl.exe",
+            "CMAKE_CXX_COMPILER": "cl.exe"
+        },
+        "condition": {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Windows"
+        }
     },
     {
       "name": "x64 Debug",
