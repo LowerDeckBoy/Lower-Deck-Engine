@@ -90,7 +90,7 @@ GBufferOutput PSmain(VSOutput pin)
 	if (material.BaseColorIndex > INVALID_INDEX)
 	{
 		Texture2D<float4> texture = ResourceDescriptorHeap[material.BaseColorIndex];
-		output.BaseColor = texture.Sample(texSampler, pin.TexCoord) * material.BaseColorFactor;
+		output.BaseColor = texture.Sample(texSampler, pin.TexCoord);// * material.BaseColorFactor;
 		
 		if (output.BaseColor.a < material.AlphaCutoff)
 		{

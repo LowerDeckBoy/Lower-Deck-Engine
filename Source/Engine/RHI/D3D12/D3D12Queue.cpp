@@ -64,7 +64,7 @@ namespace lde
 
 	void D3D12Queue::SignalFence(uint64 Value)
 	{
-		m_Fence.Get()->Signal(Value);
+		DX_CALL(m_Fence.Get()->Signal(Value));
 	}
 
 	void D3D12Queue::WaitForComplete()

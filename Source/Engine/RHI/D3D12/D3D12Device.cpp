@@ -74,12 +74,12 @@ namespace lde
 			commandQueue = GetGfxQueue()->Get();
 			break;
 		}
-		case CommandType::eCompute:
-		{
-			commandList  = GetComputeCommandList();
-			commandQueue = GetComputeQueue()->Get();
-			break;
-		}
+		//case CommandType::eCompute:
+		//{
+		//	commandList  = GetComputeCommandList();
+		//	commandQueue = GetComputeQueue()->Get();
+		//	break;
+		//}
 		default:
 			throw std::runtime_error("");
 		}

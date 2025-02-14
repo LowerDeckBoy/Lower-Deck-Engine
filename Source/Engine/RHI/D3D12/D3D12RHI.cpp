@@ -47,11 +47,8 @@ namespace lde
 	void D3D12RHI::Present(bool bVSync)
 	{
 		TransitResource(SwapChain->GetBackbuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-
-		Device->ExecuteCommandList(CommandType::eGraphics, true);
-
-		DX_CALL(Device->GetGfxCommandList()->Close());
-
+		
+		Device->ExecuteCommandList(CommandType::eGraphics, false);
 		SwapChain->Present(bVSync);
 
 		MoveToNextFrame();
@@ -115,34 +112,19 @@ namespace lde
 	{
 		auto* queue = Device->GraphicsQueue;
 
-		uint64 currentFenceValue = queue->GetFence().GetCurrentValue();
+		const uint64 currentFenceValue = queue->GetFence().GetCurrentValue();
 
-		queue->SignalFence(currentFenceValue);
+		queue->Get()->Signal(queue->GetFence().Get(), currentFenceValue);
 
 		FRAME_INDEX = SwapChain->Get()->GetCurrentBackBufferIndex();
 
-		if (queue->GetFence().IsValueCompleted(currentFenceValue))
+		if (queue->GetFence().Get()->GetCompletedValue() < queue->GetFence().Values.at(FRAME_INDEX))
 		{
 			queue->Wait();
 		}
 
 		queue->SetFenceValue(currentFenceValue + 1);
 
-		/*
-		const uint64 currentFenceValue = Device->GetFence()->GetCurrentValue();
-
-		Device->GetFence()->Signal(Device->GetGfxQueue(), Device->GetFence()->GetCurrentValue());
-
-		//FRAME_INDEX = SwapChain->Get()->GetCurrentBackBufferIndex();
-
-		if (Device->GetFence()->IsValueCompleted(Device->GetFence()->GetCurrentValue()))
-		{
-			//Device->GetFence()->SetEvent();
-			Device->GetFence()->Wait();	
-		}
-
-		Device->GetFence()->UpdateValue(currentFenceValue);
-		*/
 	}
 
 	void D3D12RHI::OpenList(D3D12CommandList* pCommandList)

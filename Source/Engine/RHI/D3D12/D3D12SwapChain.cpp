@@ -24,8 +24,8 @@ namespace lde
 	void D3D12SwapChain::Present(bool EnableVSync)
 	{
 		DX_CALL(m_SwapChain->Present((EnableVSync ? 1 : 0), (EnableVSync ? 0 : DXGI_PRESENT_ALLOW_TEARING)));
-		//DX_CALL(m_SwapChain->Present(3, 0));
-		FRAME_INDEX = m_SwapChain->GetCurrentBackBufferIndex();
+		
+		//FRAME_INDEX = m_SwapChain->GetCurrentBackBufferIndex();
 	}
 
 	void D3D12SwapChain::Resize(uint32 Width, uint32 Height)
@@ -34,7 +34,7 @@ namespace lde
 
 		DX_CALL(m_SwapChain->ResizeBuffers(FRAME_COUNT, Width, Height, m_SwapChainFormat, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING));
 
-		FRAME_INDEX = 0;
+		//FRAME_INDEX = 0;
 
 		CreateBackbuffers();
 	}

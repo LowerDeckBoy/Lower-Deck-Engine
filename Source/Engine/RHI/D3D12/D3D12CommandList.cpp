@@ -80,7 +80,7 @@ namespace lde
 
 		if (FAILED(hResult))
 		{
-			// log
+			return hResult;
 		}
 
 		hResult = m_GraphicsCommandList->Reset(m_Allocator->Get(), nullptr);

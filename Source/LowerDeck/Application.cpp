@@ -31,16 +31,11 @@ namespace lde
 		m_Editor->SetScene(m_ActiveScene.get());
 #endif
 		
-		m_ActiveScene->AddModel("Assets/Models/sponza/Sponza.gltf");
+		m_ActiveScene->AddModel("../../../../Assets/Models/sponza/Sponza.gltf");
 		//m_ActiveScene->AddModel("../../../../Assets/Models/bistro_test/bistro.gltf");
+		//m_ActiveScene->AddModel("../../../../Assets/Models/san_miguel_gltf/untitled.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/SunTemple/SunTemple.gltf");
 		//m_ActiveScene->AddModel("Assets/Models/DamagedHelmet/DamagedHelmet.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/Bistro-gltf/BistroExterior.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/office_girl/office_girl.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/SciFiHelmet/SciFiHelmet.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/luna_snow/scene.gltf");
-		//m_ActiveScene->AddModel("../../../../Assets/Models/luna_snow2/untitled.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/arhi/scene.gltf");
 
 		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, false);
 	}

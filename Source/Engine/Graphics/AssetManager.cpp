@@ -271,7 +271,7 @@ namespace lde
 		aiMaterial* material = pScene->mMaterials[pMesh->mMaterialIndex];
 	
 		aiString materialPath{};
-		if (material->GetTexture(aiTextureType_BASE_COLOR, 0, &materialPath) == aiReturn_SUCCESS)
+		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &materialPath) == aiReturn_SUCCESS || material->GetTexture(aiTextureType_BASE_COLOR, 0, &materialPath) == aiReturn_SUCCESS)
 		{
 			auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
 

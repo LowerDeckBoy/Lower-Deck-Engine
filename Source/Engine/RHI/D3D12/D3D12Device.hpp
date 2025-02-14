@@ -93,7 +93,7 @@ namespace lde
 			D3D12CommandList*		GraphicsCommandList;
 
 			// TODO:
-			D3D12CommandList*		ComputeCommandList;
+			//D3D12CommandList*		ComputeCommandList;
 			//D3D12CommandList*		UploadCommandList;
 		} m_FrameResources[FRAME_COUNT];
 
@@ -107,7 +107,7 @@ namespace lde
 		D3D12Queue*			 GetComputeQueue()		{ return ComputeQueue;  }
 
 		D3D12CommandList*	 GetGfxCommandList()	{ return m_FrameResources[FRAME_INDEX].GraphicsCommandList; }
-		D3D12CommandList*	 GetComputeCommandList(){ return m_FrameResources[FRAME_INDEX].ComputeCommandList; }
+		//D3D12CommandList*	 GetComputeCommandList(){ return m_FrameResources[FRAME_INDEX].ComputeCommandList; }
 
 		D3D12DescriptorHeap* GetSRVHeap()			{ return m_SRVHeap.get(); }
 		D3D12DescriptorHeap* GetDSVHeap()			{ return m_DSVHeap.get(); }
