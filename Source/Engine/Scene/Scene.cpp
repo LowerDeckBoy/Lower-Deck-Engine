@@ -51,50 +51,36 @@ namespace lde
 
 	void Scene::DrawModel(Model& pModel)
 	{
-		auto* commandList = m_Gfx->Device->GetGfxCommandList();
-		commandList->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		
-		auto* indexBuffer	= m_Gfx->Device->GetBuffer(pModel.GetMesh()->IndexBuffer);
-		auto* vertexBuffer	= m_Gfx->Device->GetBuffer(pModel.GetMesh()->VertexBuffer);
-		auto* constBuffer	= m_Gfx->Device->GetConstantBuffer(pModel.GetMesh()->ConstBuffer);
+		auto* commandList	= m_Gfx->Device->GetGfxCommandList();
+		auto& transform		= pModel.GetComponent<TransformComponent>();
 
-		auto& transform = pModel.GetComponent<TransformComponent>();
+		const auto& WVP		= transform.WorldMatrix * m_Camera->GetViewProjection();
+		auto* constBuffer	= m_Gfx->Device->GetConstantBuffer(pModel.ConstBuffer);
 
-		if (indexBuffer->GetDesc().Count != 0)
-		{
-			m_Gfx->BindIndexBuffer(pModel.GetMesh()->IndexView);
-		}
+		cbPerObject update	= { DirectX::XMMatrixTranspose(WVP), DirectX::XMMatrixTranspose(transform.WorldMatrix) };
+		constBuffer->Update(&update);
 
-		struct meshVertex
-		{
-			uint32 index;
-			uint32 offset;
-		} vertex{ .index = vertexBuffer->GetSRVIndex(), .offset = 0 };
-
-		const auto WVP = transform.WorldMatrix * m_Camera->GetViewProjection();
 		m_Gfx->BindConstantBuffer(constBuffer, 0);
 
-		for (uint32 i = 0; i < pModel.GetMesh()->Submeshes.size(); i++)
+		commandList->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		for (auto& mesh : pModel.StaticMeshes)
 		{
-			auto& mesh = pModel.GetMesh()->Submeshes.at(i);
+			auto* vertexBuffer = m_Gfx->Device->GetBuffer(mesh.VertexBuffer);
 
-			//const auto WVP = mesh.Matrix * transform.WorldMatrix * m_Camera->GetViewProjection();
-
-			cbPerObject update = { XMMatrixTranspose(WVP), DirectX::XMMatrixTranspose(transform.WorldMatrix) };
-			constBuffer->Update(&update);
-
-			vertex.offset = mesh.BaseVertex;
-			commandList->PushConstants(1, 2, &vertex);
+			// Push index to current Vertex Buffer.
+			commandList->PushConstants(1, 1, &vertexBuffer->ShaderResource.m_Index);
 			// Push Material as constants; 64 bytes
 			commandList->PushConstants(2, 16, &mesh.Material, 0);
 
-			if (indexBuffer->GetDesc().Count != 0)
+			if (mesh.NumIndices != 0)
 			{
-				m_Gfx->DrawIndexed(mesh.IndexCount, mesh.BaseIndex, mesh.BaseVertex);
+				m_Gfx->BindIndexBuffer(mesh.IndexBufferView);
+				m_Gfx->DrawIndexed(mesh.NumIndices, 0, 0);
 			}
 			else // Draw non-indexed
 			{
-				m_Gfx->Draw(mesh.VertexCount);
+				m_Gfx->Draw(mesh.NumVertices);
 			}
 		}
 	}
@@ -120,7 +106,6 @@ namespace lde
 		newLight->Create(m_World);
 		newLight->AddComponent<TagComponent>(std::format("Directional Light {}", DirectionalLights.size()).c_str());
 		newLight->AddComponent<DirectionalLightComponent>(Direction);
-		//newLight->AddComponent<DirectionalLightShadowMap>();
 
 		DirectionalLights.push_back(newLight);
 	}

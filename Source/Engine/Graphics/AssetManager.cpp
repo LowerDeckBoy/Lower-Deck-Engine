@@ -2,16 +2,16 @@
 #include "RHI/D3D12/D3D12RHI.hpp"
 #include "Scene/Model/Model.hpp"
 #include "TextureManager.hpp"
-#include <Core/Logger.hpp>
-#include <Utility/FileSystem.hpp>
-#include <Utility/Utility.hpp>
+#include "Core/Logger.hpp"
+#include "Core/FileSystem.hpp"
+#include "Core/Utility.hpp"
 #include <assimp/GltfMaterial.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-#define CGLTF_IMPLEMENTATION
-#include <cgltf/cgltf.h>
+//#define CGLTF_IMPLEMENTATION
+//#include <cgltf/cgltf.h>
 
 namespace lde
 {
@@ -38,16 +38,17 @@ namespace lde
 		return *m_Instance;
 	}
 
-	void AssetManager::Import(D3D12RHI* pGfx, std::string_view Filepath, Mesh& pInMesh)
+	void AssetManager::Import(D3D12RHI* pGfx, std::string_view Filepath, std::vector<StaticMesh>& InStaticMeshes)
 	{
 		m_Gfx = pGfx;
+
 		Utility::LoadTimer timer;
 		timer.Start();
 
-		constexpr int32 LoadFlags = 
+		constexpr int32 LoadFlags =
 			aiProcess_Triangulate |
 			aiProcess_ConvertToLeftHanded |
-			aiProcess_JoinIdenticalVertices  | 
+			aiProcess_JoinIdenticalVertices |
 			aiProcess_OptimizeMeshes |
 			aiProcess_PreTransformVertices |
 			aiProcess_GenBoundingBoxes |
@@ -61,215 +62,96 @@ namespace lde
 			::MessageBoxA(nullptr, importer.GetErrorString(), "Import Error", MB_OK);
 			throw std::runtime_error(importer.GetErrorString());
 		}
-	
+
 		m_Filepath = Filepath.data();
-		
-		//ProcessNode(scene, &pInMesh, scene->mRootNode, nullptr, XMMatrixIdentity());
 
-		if (scene->mName.length != 0)
-		{
-			pInMesh.Name = scene->mName.C_Str();
-		}
-		else
-		{
-			pInMesh.Name = Files::GetFileName(Filepath).c_str();
-		}
-
-		pInMesh.Submeshes.reserve(scene->mNumMeshes);
-		for (uint32 meshIdx = 0; meshIdx < scene->mNumMeshes; ++meshIdx)
-		{
-			const auto mesh = scene->mMeshes[meshIdx];
-
-			Submesh submesh;
-			
-			ProcessGeometry(submesh, mesh, pInMesh.Vertices, pInMesh.Indices);
-			ProcessMaterials(scene, submesh, mesh);
-
-			pInMesh.Submeshes.emplace_back(submesh);	
-		}
+		LoadStaticMesh(scene, InStaticMeshes);
 
 		timer.End(Files::GetFileName(Filepath));
 
 	}
 
-	void AssetManager::ImportGLTF(D3D12RHI* /* pGfx */, std::string_view Filepath, Mesh& pInMesh)
+	void AssetManager::LoadStaticMesh(const aiScene* pScene, std::vector<StaticMesh>& InStaticMeshes)
 	{
-		Utility::LoadTimer timer;
-		timer.Start();
-
-		cgltf_options options{};
-		cgltf_data* data = nullptr;
-
-		cgltf_result result = cgltf_parse_file(&options, Filepath.data(), &data);
-		if (result != cgltf_result_success)
+		for (uint32_t i = 0; i < pScene->mNumMeshes; ++i)
 		{
-			LOG_ERROR("Failed to load via cgltf!");
-		}
+			const auto& mesh = pScene->mMeshes[i];
 
-		if (cgltf_load_buffers(&options, data, Filepath.data()) != cgltf_result_success)
-		{
-			LOG_ERROR("Failed to load buffers via cgltf!");
-		}
+			StaticMesh meshData{};
 
-		if (cgltf_validate(data) != cgltf_result_success)
-		{
-			LOG_ERROR("Failed to validate cgltf!");
-		}
+			meshData.AABB.Min = *(DirectX::XMFLOAT3*)(&mesh->mAABB.mMin);
+			meshData.AABB.Max = *(DirectX::XMFLOAT3*)(&mesh->mAABB.mMax);
 
-		for (uint32 meshIdx = 0; meshIdx < data->meshes_count; ++meshIdx)
-		{
-			auto mesh = &data->meshes[meshIdx];
+			// For later Meshlet building.
+			std::vector<DirectX::XMFLOAT3> positions;
 
-			Submesh submesh{};
-
-			//ProcessGeometry(submesh, mesh, verts, indices);
-			ProcessGeometry(mesh, pInMesh.Submeshes, pInMesh.Vertices, pInMesh.Indices);
-
-			pInMesh.Submeshes.push_back(submesh);
-		}
-
-		cgltf_free(data);
-
-		timer.End("cgltf load time: ");
-	}
-	
-	void AssetManager::ProcessNode(const aiScene* pScene, Mesh* pInMesh, const aiNode* pNode, Node* ParentNode, DirectX::XMMATRIX ParentMatrix)
-	{
-		Node* newNode	= new Node();
-		newNode->Parent = ParentNode;
-		newNode->Name	= std::string(pNode->mName.C_Str());
-		newNode->Matrix = ParentMatrix;
-
-		const auto transform = [&]() {
-			if (!pNode->mTransformation.IsIdentity())
+			for (uint32_t vertexId = 0; vertexId < mesh->mNumVertices; ++vertexId)
 			{
-				XMFLOAT4X4 temp = XMFLOAT4X4();
-				temp._11 = static_cast<float>(pNode->mTransformation.a1);
-				temp._12 = static_cast<float>(pNode->mTransformation.a2);
-				temp._13 = static_cast<float>(pNode->mTransformation.a3);
-				temp._14 = static_cast<float>(pNode->mTransformation.a4);
-				temp._21 = static_cast<float>(pNode->mTransformation.b1);
-				temp._22 = static_cast<float>(pNode->mTransformation.b2);
-				temp._23 = static_cast<float>(pNode->mTransformation.b3);
-				temp._24 = static_cast<float>(pNode->mTransformation.b4);
-				temp._31 = static_cast<float>(pNode->mTransformation.c1);
-				temp._32 = static_cast<float>(pNode->mTransformation.c2);
-				temp._33 = static_cast<float>(pNode->mTransformation.c3);
-				temp._34 = static_cast<float>(pNode->mTransformation.c4);
-				temp._41 = static_cast<float>(pNode->mTransformation.d1);
-				temp._42 = static_cast<float>(pNode->mTransformation.d2);
-				temp._43 = static_cast<float>(pNode->mTransformation.d3);
-				temp._44 = static_cast<float>(pNode->mTransformation.d4);
-				newNode->Matrix = XMLoadFloat4x4(&temp);
-			}
-			else
-			{
-				aiVector3D		translation;
-				aiQuaternion	rotation;
-				aiVector3D		scale;
-	
-				pNode->mTransformation.Decompose(scale, rotation, translation);
-				newNode->Translation	= XMFLOAT3(translation.x, translation.y, translation.z);
-				newNode->Rotation		= XMFLOAT4(rotation.x, rotation.y, rotation.z, rotation.w);
-				newNode->Scale			= XMFLOAT3(scale.x, scale.y, scale.z);
-			}
-			};
-		transform();
-	
-		XMMATRIX local = newNode->Matrix * XMMatrixScalingFromVector(XMLoadFloat3(&newNode->Scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&newNode->Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&newNode->Translation));
-		XMMATRIX next = local * ParentMatrix;
-	
-		if (pNode->mChildren)
-		{
-			for (size_t i = 0; i < pNode->mNumChildren; i++)
-			{
-				ProcessNode(pScene, pInMesh, pNode->mChildren[i], newNode, next);
-			}
-		}
-	
+				Vertex vertex{};
 
-		if (!ParentNode)
-		{
-			// push_back nodes
-		}
-		else
-		{
-			// push_back children
-		}
-
-	}
-
-	void AssetManager::ProcessGeometry(Submesh& Submesh, const aiMesh* pMesh, std::vector<Vertex>& OutVertices, std::vector<uint32>& OutIndices)
-	{
-		Submesh.BaseIndex	= static_cast<uint32>(OutIndices.size());
-		Submesh.BaseVertex	= static_cast<uint32>(OutVertices.size());
-		Submesh.VertexCount = static_cast<uint32>(pMesh->mNumVertices);
-		
-		Submesh.AABB.Min = *(XMFLOAT3*)&pMesh->mAABB.mMin;
-		Submesh.AABB.Max = *(XMFLOAT3*)&pMesh->mAABB.mMax;
-
-		OutVertices.reserve(OutVertices.size() + pMesh->mNumVertices);
-		for (uint32_t i = 0; i < pMesh->mNumVertices; ++i)
-		{
-			Vertex vertex{};
-
-			if (pMesh->HasPositions())
-			{
-				vertex.Position = *(XMFLOAT3*)(reinterpret_cast<XMFLOAT3*>(&pMesh->mVertices[i]));
-				// If right-handed
-				//vertex.Position = XMFLOAT3(pMesh->mVertices[i].z, pMesh->mVertices[i].y, pMesh->mVertices[i].x);
-			}
-
-			if (pMesh->mTextureCoords[0])
-			{
-				vertex.TexCoord = *(XMFLOAT2*)(reinterpret_cast<XMFLOAT2*>(&pMesh->mTextureCoords[0][i]));
-			}
-
-			if (pMesh->HasNormals())
-			{
-				vertex.Normal = *(XMFLOAT3*)(reinterpret_cast<XMFLOAT3*>(&pMesh->mNormals[i]));
-			}
-
-			if (pMesh->HasTangentsAndBitangents())
-			{
-				vertex.Tangent = *(XMFLOAT3*)(reinterpret_cast<XMFLOAT3*>(&pMesh->mTangents[i]));
-				vertex.Bitangent = *(XMFLOAT3*)(reinterpret_cast<XMFLOAT3*>(&pMesh->mBitangents[i]));
-			}
-
-			OutVertices.push_back(vertex);
-		}
-
-		OutIndices.reserve(OutIndices.size() + (size_t)(pMesh->mNumFaces * 3));
-		if (pMesh->HasFaces())
-		{
-			Submesh.IndexCount = 3 * pMesh->mNumFaces;
-
-			for (uint32_t i = 0; i < pMesh->mNumFaces; ++i)
-			{
-				aiFace& face = pMesh->mFaces[i];
-				for (uint32_t j = 0; j < face.mNumIndices; ++j)
+				if (mesh->HasPositions())
 				{
-					OutIndices.push_back(face.mIndices[j]);
+					vertex.Position = *(DirectX::XMFLOAT3*)(&mesh->mVertices[vertexId]);
+					//positions.push_back(vertex.Position);
+				}
 
+				if (mesh->HasTextureCoords(0))
+				{
+					vertex.TexCoord = *(DirectX::XMFLOAT2*)(&mesh->mTextureCoords[0][vertexId]);
+				}
+
+				if (mesh->HasNormals())
+				{
+					vertex.Normal = *(DirectX::XMFLOAT3*)(&mesh->mNormals[vertexId]);
+				}
+
+				if (mesh->HasTangentsAndBitangents())
+				{
+					vertex.Tangent = *(DirectX::XMFLOAT3*)(&mesh->mTangents[vertexId]);
+					vertex.Bitangent = *(DirectX::XMFLOAT3*)(&mesh->mBitangents[vertexId]);
+				}
+
+				meshData.Vertices.push_back(vertex);
+			}
+
+			if (mesh->HasFaces())
+			{
+
+				for (uint32_t faceIdx = 0; faceIdx < mesh->mNumFaces; ++faceIdx)
+				{
+					aiFace& face = mesh->mFaces[faceIdx];
+
+					for (uint32_t idx = 0; idx < face.mNumIndices; ++idx)
+					{
+						meshData.Indices.push_back(face.mIndices[idx]);
+					}
 				}
 			}
+
+			meshData.NumVertices = static_cast<uint32>(meshData.Vertices.size());
+			meshData.NumIndices	 = static_cast<uint32>(meshData.Indices.size());
+
+			LoadMaterial(pScene, mesh, meshData);
+
+			InStaticMeshes.push_back(meshData);
 		}
 	}
 
-	void AssetManager::ProcessMaterials(const aiScene* pScene, Submesh& Submesh, const aiMesh* pMesh) const
+	void AssetManager::LoadMaterial(const aiScene* pScene, const aiMesh* pMesh, StaticMesh& InStaticMesh)
 	{
 		Material newMaterial{};
-	
+
 		if (pMesh->mMaterialIndex < 0)
 		{
-			Submesh.Material = newMaterial;
+			InStaticMesh.Material = newMaterial;
+
 			return;
 		}
-	
+
 		auto& textureManager = TextureManager::GetInstance();
-	
+
 		aiMaterial* material = pScene->mMaterials[pMesh->mMaterialIndex];
-	
+
 		aiString materialPath{};
 		if (material->GetTexture(aiTextureType_BASE_COLOR, 0, &materialPath) == aiReturn_SUCCESS)
 		{
@@ -279,9 +161,9 @@ namespace lde
 
 			aiColor4D colorFactor{};
 			aiGetMaterialColor(material, AI_MATKEY_BASE_COLOR, &colorFactor);
-			newMaterial.BaseColorFactor = XMFLOAT4(colorFactor.r, colorFactor.g, colorFactor.b, colorFactor.a);
+			newMaterial.BaseColorFactor = DirectX::XMFLOAT4(colorFactor.r, colorFactor.g, colorFactor.b, colorFactor.a);
 		}
-		
+
 		if (material->GetTexture(aiTextureType_NORMALS, 0, &materialPath) == aiReturn_SUCCESS)
 		{
 			auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
@@ -295,7 +177,7 @@ namespace lde
 
 			newMaterial.MetalRoughnessIndex = textureManager.Create(m_Gfx, texPath);
 		}
-			
+
 		if (material->GetTexture(aiTextureType_EMISSIVE, 0, &materialPath) == aiReturn_SUCCESS)
 		{
 			auto texPath = Files::GetTexturePath(m_Filepath.data(), std::string(materialPath.C_Str()));
@@ -304,15 +186,58 @@ namespace lde
 
 			aiColor4D colorFactor{};
 			aiGetMaterialColor(material, AI_MATKEY_COLOR_EMISSIVE, &colorFactor);
-			newMaterial.EmissiveFactor = XMFLOAT4(colorFactor.r, colorFactor.g, colorFactor.b, colorFactor.a);
+			newMaterial.EmissiveFactor = DirectX::XMFLOAT4(colorFactor.r, colorFactor.g, colorFactor.b, colorFactor.a);
 		}
-		
-		aiGetMaterialFloat(material, AI_MATKEY_METALLIC_FACTOR,  &newMaterial.MetallicFactor);
+
+		aiGetMaterialFloat(material, AI_MATKEY_METALLIC_FACTOR, &newMaterial.MetallicFactor);
 		aiGetMaterialFloat(material, AI_MATKEY_ROUGHNESS_FACTOR, &newMaterial.RoughnessFactor);
 		aiGetMaterialFloat(material, AI_MATKEY_GLTF_ALPHACUTOFF, &newMaterial.AlphaCutoff);
-		
-		Submesh.Material = newMaterial;
+
+		InStaticMesh.Material = newMaterial;
 	}
+
+	/*
+	void AssetManager::ImportGLTF(D3D12RHI* , std::string_view Filepath, Mesh& pInMesh)
+	{
+		Utility::LoadTimer timer;
+		timer.Start();
+	
+		cgltf_options options{};
+		cgltf_data* data = nullptr;
+	
+		cgltf_result result = cgltf_parse_file(&options, Filepath.data(), &data);
+		if (result != cgltf_result_success)
+		{
+			LOG_ERROR("Failed to load via cgltf!");
+		}
+	
+		if (cgltf_load_buffers(&options, data, Filepath.data()) != cgltf_result_success)
+		{
+			LOG_ERROR("Failed to load buffers via cgltf!");
+		}
+	
+		if (cgltf_validate(data) != cgltf_result_success)
+		{
+			LOG_ERROR("Failed to validate cgltf!");
+		}
+	
+		for (uint32 meshIdx = 0; meshIdx < data->meshes_count; ++meshIdx)
+		{
+			auto mesh = &data->meshes[meshIdx];
+	
+			Submesh submesh{};
+	
+			//ProcessGeometry(submesh, mesh, verts, indices);
+			ProcessGeometry(mesh, pInMesh.Submeshes, pInMesh.Vertices, pInMesh.Indices);
+	
+			pInMesh.Submeshes.push_back(submesh);
+		}
+	
+		cgltf_free(data);
+	
+		timer.End("cgltf load time: ");
+	}
+	
 
 	void AssetManager::ProcessGeometry(const cgltf_mesh* pMesh, std::vector<Submesh>& Submeshes, std::vector<Vertex>& OutVertices, std::vector<uint32>& OutIndices)
 	{
@@ -457,5 +382,5 @@ namespace lde
 		}
 
 	}
-
+	*/
 } // namespace lde
