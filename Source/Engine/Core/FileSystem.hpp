@@ -1,9 +1,10 @@
 #pragma once
 #include <filesystem>
 
+using Filepath = std::filesystem::path;
+
 namespace lde::Files
 {
-
 	inline bool Exists(std::string_view Filename)
 	{
 		return std::filesystem::exists(Filename);
@@ -12,6 +13,11 @@ namespace lde::Files
 	inline std::string GetFileName(std::string_view Filepath)
 	{
 		return std::filesystem::path(Filepath).filename().string();
+	}
+
+	inline std::string GetExtension(Filepath File)
+	{
+		return File.extension().string();
 	}
 
 	inline std::string GetFileExtension(std::string_view Filename)
