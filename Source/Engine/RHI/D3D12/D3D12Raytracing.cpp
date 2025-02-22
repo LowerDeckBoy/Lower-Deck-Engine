@@ -256,8 +256,8 @@ namespace lde
 				InstanceData data{};
 				//data.Vertex = mesh->GetMesh()->VertexBuffer;
 				//data.Index  = mesh->GetMesh()->IndexBuffer;
-				data.Vertex = m_Device->Buffers.at(mesh->GetMesh()->VertexBuffer)->GetSRVIndex();
-				data.Index = m_Device->Buffers.at(mesh->GetMesh()->IndexBuffer)->GetSRVIndex();
+				//data.Vertex = m_Device->Buffers.at(mesh->GetMesh()->VertexBuffer)->GetShaderResourceIndex();
+				//data.Index = m_Device->Buffers.at(mesh->GetMesh()->IndexBuffer)->GetShaderResourceIndex();
 				records.emplace_back(data);
 			}
 
@@ -397,7 +397,7 @@ namespace lde
 	}
 
 	void D3D12Raytracing::AddBLAS(Model* pModel)
-	{
+	{	
 		const auto vertexBuffer = m_Device->Buffers.at(pModel->GetMesh()->VertexBuffer);
 		const auto indexBuffer  = m_Device->Buffers.at(pModel->GetMesh()->IndexBuffer);
 		
@@ -471,7 +471,6 @@ namespace lde
 		m_Device->ExecuteCommandList(CommandType::eGraphics, true);
 		
 		m_BLASes.emplace_back(blas);
-
 	}
 
 	void D3D12RaytracingTLAS::AddInstance(Ref<ID3D12Resource> pBottomLevel, DirectX::XMMATRIX Matrix, uint32 InstanceGroup, uint32 HitGroupID)

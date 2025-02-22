@@ -1,7 +1,7 @@
 #pragma once
 
 #include "RHI/D3D12/D3D12Buffer.hpp"
-#include <Scene/Entity.hpp>
+#include "Scene/Entity.hpp"
 
 namespace lde
 {

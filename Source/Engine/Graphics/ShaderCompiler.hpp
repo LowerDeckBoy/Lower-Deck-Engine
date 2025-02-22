@@ -1,12 +1,12 @@
 #pragma once
 
-/*
+/*=============================================================
 	ShaderCompiler.hpp
-	Singleton used for compiling and validating HLSL SM6.x shaders.
-*/
+	Singleton used for compiling HLSL SM6.x shaders.
+=============================================================*/
 
-#include <Core/RefPtr.hpp>
-#include <RHI/Types.hpp>
+#include "Core/RefPtr.hpp"
+#include "RHI/Types.hpp"
 #include <dxcapi.h>
 
 namespace lde
@@ -71,11 +71,6 @@ namespace lde
 		Ref<IDxcLibrary>		m_DxcLibrary;
 	
 		static ShaderCompiler* m_Instance;
-
-		// TODO:
-		//void GetWarning();
-		//void GetError();
-	
 	};
 
 } // namespace lde

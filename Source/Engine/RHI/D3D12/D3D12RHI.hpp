@@ -1,13 +1,8 @@
 #pragma once
 
-/*
-	RHI/D3D12/D3D12RHI.hpp
-
-*/
-
-#include <RHI/RHI.hpp>
-#include <RHI/RHICommon.hpp>
-#include <RHI/Types.hpp>
+#include "RHI/RHI.hpp"
+#include "RHI/RHICommon.hpp"
+#include "RHI/Types.hpp"
 
 #include "D3D12DescriptorHeap.hpp"
 #include "D3D12Device.hpp"
@@ -99,7 +94,7 @@ namespace lde
 		void CopyResource(Ref<ID3D12Resource> ppDst, Ref<ID3D12Resource> ppSrc);
 
 		void BindIndexBuffer(Buffer* pIndexBuffer) const;
-		void BindIndexBuffer(D3D12_INDEX_BUFFER_VIEW View) const;
+		void BindIndexBuffer(D3D12_INDEX_BUFFER_VIEW& View) const;
 		// For non-bindless only
 		void BindVertexBuffers(std::span<D3D12Buffer*> pIndexBuffers, uint32 StartSlot) const;
 		void BindConstantBuffer(ConstantBuffer* pConstBuffer, uint32 Slot);

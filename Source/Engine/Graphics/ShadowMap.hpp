@@ -1,6 +1,6 @@
 #pragma once
 
-#include <RHI/D3D12/D3D12Texture.hpp>
+#include "RHI/D3D12/D3D12Texture.hpp"
 
 namespace lde::RHI
 {

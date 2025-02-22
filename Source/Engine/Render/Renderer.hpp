@@ -1,9 +1,5 @@
 #pragma once
 
-/*
-
-*/
-
 #include <Core/CoreMinimal.hpp>
 
 #include "RHI/D3D12/D3D12RHI.hpp"

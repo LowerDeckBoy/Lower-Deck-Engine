@@ -1,9 +1,9 @@
 #include "Scene/SceneCamera.hpp"
 #include "Skybox.hpp"
-#include <Core/CoreTypes.hpp>
-#include <RHI/D3D12/D3D12RHI.hpp>
-#include <Graphics/TextureManager.hpp>
-#include <Scene/Components/Components.hpp>
+#include "Core/CoreTypes.hpp"
+#include "RHI/D3D12/D3D12RHI.hpp"
+#include "Graphics/TextureManager.hpp"
+#include "Scene/Components/TransformComponent.hpp"
 #include <array>
 
 namespace lde

@@ -1,17 +1,15 @@
 #include "AssetManager.hpp"
+#include "Core/FileSystem.hpp"
+#include "Core/Logger.hpp"
 #include "RHI/D3D12/D3D12RHI.hpp"
+#include "Core/Utility.hpp"
 #include "Scene/Model/Model.hpp"
 #include "TextureManager.hpp"
-#include "Core/Logger.hpp"
-#include "Core/FileSystem.hpp"
-#include "Core/Utility.hpp"
 #include <assimp/GltfMaterial.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-//#define CGLTF_IMPLEMENTATION
-//#include <cgltf/cgltf.h>
 
 namespace lde
 {
@@ -33,17 +31,16 @@ namespace lde
 		if (!m_Instance)
 		{
 			m_Instance = new AssetManager();
+
 			LOG_DEBUG("AssetManager instance recreated!.");
 		}
+
 		return *m_Instance;
 	}
 
 	void AssetManager::Import(D3D12RHI* pGfx, std::string_view Filepath, std::vector<StaticMesh>& InStaticMeshes)
 	{
 		m_Gfx = pGfx;
-
-		Utility::LoadTimer timer;
-		timer.Start();
 
 		constexpr int32 LoadFlags =
 			aiProcess_Triangulate |
@@ -66,8 +63,6 @@ namespace lde
 		m_Filepath = Filepath.data();
 
 		LoadStaticMesh(scene, InStaticMeshes);
-
-		timer.End(Files::GetFileName(Filepath));
 
 	}
 

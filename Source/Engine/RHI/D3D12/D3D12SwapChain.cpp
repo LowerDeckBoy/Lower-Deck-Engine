@@ -3,7 +3,7 @@
 #include "D3D12Queue.hpp"
 #include "D3D12SwapChain.hpp"
 #include "D3D12Utility.hpp"
-#include <Platform/Window.hpp>
+#include "Platform/Window.hpp"
 
 namespace lde
 {
@@ -21,10 +21,10 @@ namespace lde
 		Release();
 	}
 
-	void D3D12SwapChain::Present(bool EnableVSync)
+	void D3D12SwapChain::Present(uint32 SyncInterval)
 	{
-		DX_CALL(m_SwapChain->Present((EnableVSync ? 1 : 0), (EnableVSync ? 0 : DXGI_PRESENT_ALLOW_TEARING)));
-		//DX_CALL(m_SwapChain->Present(3, 0));
+		DX_CALL(m_SwapChain->Present(SyncInterval, (SyncInterval == 0 ? DXGI_PRESENT_ALLOW_TEARING : 0)));
+		
 		FRAME_INDEX = m_SwapChain->GetCurrentBackBufferIndex();
 	}
 
@@ -61,6 +61,8 @@ namespace lde
 		IDXGISwapChain1* swapChain = nullptr;
 		DX_CALL(pDevice->GetFactory()->CreateSwapChainForHwnd(pQueue->Get(), lde::Window::GetHWnd(), &desc, &fullscreenDesc, nullptr, &swapChain));
 
+		DX_CALL(pDevice->GetFactory()->MakeWindowAssociation(lde::Window::GetHWnd(), DXGI_MWA_NO_ALT_ENTER));
+
 		m_SwapChain = static_cast<IDXGISwapChain4*>(swapChain);
 		SAFE_DELETE(swapChain);
 		CreateBackbuffers();
@@ -70,7 +72,6 @@ namespace lde
 
 	void D3D12SwapChain::Release()
 	{
-		//m_SwapChain->SetFullscreenState(FALSE, nullptr);
 		ReleaseBackbuffers();
 		SAFE_RELEASE(m_SwapChain);
 	}

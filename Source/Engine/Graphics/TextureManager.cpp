@@ -4,9 +4,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 #pragma warning(pop)
-#include <Utility/FileSystem.hpp>
-#include <Core/Logger.hpp>
-#include <Core/String.hpp>
+#include "Core/FileSystem.hpp"
+#include "Core/Logger.hpp"
+#include "Core/String.hpp"
 
 namespace lde
 {
@@ -329,7 +329,7 @@ namespace lde
 
 		mipGenCB.IsSRGB = srcResourceDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB ? 1 : 0;
 		
-		auto heap = ((D3D12Device*)m_Gfx->GetDevice())->GetSRVHeap();
+		auto heap = ((D3D12Device*)m_Gfx->GetDevice())->GetShaderResourceHeap();
 		for (uint32 srcMip = 0; srcMip < (uint32)(pTexture->MipLevels - 1); ++srcMip)
 		{
 			uint64 srcWidth		= srcResourceDesc.Width >> srcMip;
@@ -414,7 +414,7 @@ namespace lde
 		ID3D12Resource* uavResource = pTexture->Texture.Get();
 
 		// Ensure that the Heap is set before mipmapping
-		m_Gfx->Device->GetGfxCommandList()->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
+		m_Gfx->Device->GetGfxCommandList()->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetShaderResourceHeap()->GetAddressOf());
 		
 		D3D12Descriptor srvResourceDesc;
 		m_Gfx->Device->Allocate(HeapType::eSRV, srvResourceDesc, 1);
@@ -475,8 +475,8 @@ namespace lde
 						{ pTexture->UAV.GetCpuHandle().ptr + ((srcMip + mip + arraySlice) * m_Gfx->Device->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV))});
 				}
 
-				cbMipData.SrcMipIndex = m_Gfx->Device->GetSRVHeap()->GetIndexFromOffset(srvResourceDesc, 0);
-				cbMipData.DestMipIndex = m_Gfx->Device->GetSRVHeap()->GetIndexFromOffset(pTexture->UAV, srcMip + arraySlice + 6);
+				cbMipData.SrcMipIndex = m_Gfx->Device->GetShaderResourceHeap()->GetIndexFromOffset(srvResourceDesc, 0);
+				cbMipData.DestMipIndex = m_Gfx->Device->GetShaderResourceHeap()->GetIndexFromOffset(pTexture->UAV, srcMip + arraySlice + 6);
 
 				m_Gfx->Device->GetGfxCommandList()->Get()->SetComputeRoot32BitConstants(0, 8, &cbMipData, 0);
 

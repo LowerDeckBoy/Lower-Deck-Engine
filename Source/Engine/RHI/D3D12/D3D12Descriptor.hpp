@@ -6,7 +6,7 @@
 */ 
 
 #include <AgilitySDK/d3d12.h>
-#include <Core/CoreTypes.hpp>
+#include "Core/CoreTypes.hpp"
 
 namespace lde
 {

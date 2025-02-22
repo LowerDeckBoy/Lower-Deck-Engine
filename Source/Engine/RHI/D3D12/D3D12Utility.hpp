@@ -4,17 +4,17 @@
 #include <cassert>
 #include <stdexcept>
 
-#include <Core/RefPtr.hpp>
-#include <Core/String.hpp>
+#include "Core/RefPtr.hpp"
+#include "Core/String.hpp"
 
 #define LDE_ASSERT(Condition) assert(Condition)
 
 // Releasing either ComPtr or (custom) Ref pointer.
-#define SAFE_RELEASE(RefPtr) { if (RefPtr.Get()) { RefPtr.Reset(); RefPtr = nullptr; } }
+#define SAFE_RELEASE(RefPtr) if (RefPtr.Get()) { RefPtr.Reset(); RefPtr = nullptr; }
 
-#define SAFE_DELETE(RawPtr) { if (RawPtr) { RawPtr->Release(); RawPtr = nullptr; } }
+#define SAFE_DELETE(RawPtr) if (RawPtr) { RawPtr->Release(); RawPtr = nullptr; }
 
-#define DX_CALL(hResult, ...) lde::VerifyResult(hResult, __FILE__, __LINE__, __VA_ARGS__)
+#define DX_CALL(hResult, ...) { HRESULT localResult = hResult; lde::VerifyResult(localResult, __FILE__, __LINE__, __VA_ARGS__); }
 
 // Sets a name for given ID3D12 interface; casts given name into wide-string.
 // Decapsulates Ref<T> pointers.

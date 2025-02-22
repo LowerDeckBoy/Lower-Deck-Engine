@@ -41,12 +41,11 @@ namespace lde
 		CreateAdapter();
 		CreateDevice();
 		
-		QueryShaderModel();
-		QueryFeatures();
+		QueryDeviceFeatures();
 
 		//m_Fence = std::make_unique<D3D12Fence>(this);
 
-		CreateHeaps();
+		CreateDescriptorHeaps();
 
 		CreateFrameResources();
 		
@@ -63,9 +62,9 @@ namespace lde
 		delete GraphicsQueue;
 		//delete ComputeQueue;
 
-		m_RTVHeap.reset();
-		m_DSVHeap.reset();
-		m_SRVHeap.reset();
+		m_DepthStencilHeap.reset();
+		m_RenderTargetHeap.reset();
+		m_ShaderResourceHeap.reset();
 
 		//m_Fence.reset();
 
@@ -77,7 +76,7 @@ namespace lde
 		// Release debug adapters. They have to be relased at the end, otherwise there will be false-positive RLO detected.
 		SAFE_RELEASE(m_DebugDevices.DebugDevice);
 		SAFE_RELEASE(m_DebugDevices.D3DDebug);
-		m_DebugDevices.DXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, (DXGI_DEBUG_RLO_FLAGS)(DXGI_DEBUG_RLO_DETAIL | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
+		m_DebugDevices.DXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, (DXGI_DEBUG_RLO_FLAGS)(DXGI_DEBUG_RLO_DETAIL | DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
 		SAFE_RELEASE(m_DebugDevices.DXGIDebug);
 #endif
 	}
@@ -120,30 +119,7 @@ namespace lde
 #endif
 	}
 
-	void D3D12Device::QueryShaderModel()
-	{
-		D3D12_FEATURE_DATA_SHADER_MODEL shaderModel{};
-		#if defined(NTDDI_WIN10_VB) && (NTDDI_VERSION >= NTDDI_WIN10_VB)
-			#define HLSL_SM6_6 1
-			shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_6;
-		#elif defined (NTDDI_WIN10_19H1) && (NTDDI_VERSION >= NTDDI_WIN10_19H1)
-			shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_5;
-		#elif defined (NTDDI_WIN10_RS5) && (NTDDI_VERSION >= NTDDI_WIN10_RS5)
-			shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_4;
-		#elif defined (NTDDI_WIN10_RS4) && (NTDDI_VERSION >= NTDDI_WIN10_RS4)
-			shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_2;
-		#elif defined (NTDDI_WIN10_RS3) && (NTDDI_VERSION >= NTDDI_WIN10_RS3)
-			shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_1;
-		#else
-			#define HLSL_USE_SM6_6 0
-			shaderModel.HighestShaderModel = D3D_SHADER_MODEL_6_0;
-		#endif
-
-		Capabilities.HighestShaderModel = shaderModel.HighestShaderModel;
-
-	}
-
-	void D3D12Device::QueryFeatures()
+	void D3D12Device::QueryDeviceFeatures()
 	{
 		// TODO:
 		CD3DX12FeatureSupport featureSupport{};
@@ -153,14 +129,16 @@ namespace lde
 		Capabilities.BindingTier	= featureSupport.ResourceBindingTier();
 		Capabilities.MeshShaderTier = featureSupport.MeshShaderTier();
 		
+		Capabilities.HighestShaderModel = featureSupport.HighestShaderModel();
+
 	}
 	
-	void D3D12Device::CreateHeaps()
+	void D3D12Device::CreateDescriptorHeaps()
 	{
 		// Needs to be bigger as is also meant for generating mip chains.
-		m_SRVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 65536, "D3D12 ShaderResourceView Descriptor Heap");
-		m_DSVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eDSV, 64,    "D3D12 DepthStencilView Descriptor Heap");
-		m_RTVHeap = std::make_unique<D3D12DescriptorHeap>(this, HeapType::eRTV, 64,    "D3D12 RenderTargetView Descriptor Heap");
+		m_ShaderResourceHeap	= std::make_unique<D3D12DescriptorHeap>(this, HeapType::eSRV, 65536, "D3D12 ShaderResourceView Descriptor Heap");
+		m_RenderTargetHeap		= std::make_unique<D3D12DescriptorHeap>(this, HeapType::eRTV, 64,    "D3D12 RenderTargetView Descriptor Heap");
+		m_DepthStencilHeap		= std::make_unique<D3D12DescriptorHeap>(this, HeapType::eDSV, 32,    "D3D12 DepthStencilView Descriptor Heap");
 	}
 	
 } // namespace lde

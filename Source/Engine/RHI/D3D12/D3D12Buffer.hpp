@@ -4,11 +4,11 @@
 	
 */
 
-#include <RHI/Buffer.hpp>
+#include "RHI/Buffer.hpp"
 #include "D3D12Descriptor.hpp"
 #include "D3D12Memory.hpp"
 #include "RHI/RHICommon.hpp"
-#include <Core/CoreMinimal.hpp>
+#include "Core/CoreMinimal.hpp"
 #include <DirectXMath.h>
 
 namespace lde
@@ -33,28 +33,22 @@ namespace lde
 
 		D3D12Descriptor Descriptor() const;
 
-		void Release() override final;
+		void Release();
 
-		[[maybe_unused]]
-		void* GetCpuAddress() const override final;
-		uint64 GetGpuAddress() const override final;
+		uint64 GetGpuAddress() const override;
 
-		void Map(void* pMappedData) override final;
-		void Unmap()  override final;
-
-		uint32 GetSRVIndex() override final;
-		//virtual uint32 GetUAVIndex()  override final;
+		uint32 GetShaderResourceIndex();
 
 		ID3D12Resource* Get() const
 		{
 			return m_Buffer.Resource.Get();
 		}
 
+		// Used for bindless access to this resource.
+		D3D12Descriptor ShaderResource;
 		
 	private:
 		AllocatedResource m_Buffer;
-
-		D3D12Descriptor m_Descriptor; /* For Bindless usage */
 
 	};
 

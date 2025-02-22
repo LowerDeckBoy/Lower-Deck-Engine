@@ -17,23 +17,16 @@ namespace lde
 
 	void D3D12Device::WaitForGPU(CommandType eType)
 	{
-		//GraphicsQueue->SignalFence();
-		//GraphicsQueue->WaitForComplete();
-		GraphicsQueue->SignalAndWait();
-		/*
+		//GraphicsQueue->SignalAndWait();
+		
 		switch (eType)
 		{
 		case CommandType::eGraphics:
-			m_Fence->Signal(GetGfxQueue(), m_Fence->GetValue());
+			GraphicsQueue->SignalAndWait();
 			break;
 		case CommandType::eCompute:
-			m_Fence->Signal(GetComputeQueue(), m_Fence->GetValue());
 			break;
 		}
-
-		m_Fence->Wait();
-		m_Fence->UpdateValue(m_Fence->GetValue());
-		*/
 	}
 
 	void D3D12Device::FlushGPU()
@@ -143,13 +136,13 @@ namespace lde
 		switch (eType)
 		{
 		case lde::HeapType::eSRV: 
-			m_SRVHeap->Allocate(Descriptor, Count);
+			m_ShaderResourceHeap->Allocate(Descriptor, Count);
 			break;
 		case lde::HeapType::eRTV:
-			m_RTVHeap->Allocate(Descriptor, Count);
+			m_RenderTargetHeap->Allocate(Descriptor, Count);
 			break;
 		case lde::HeapType::eDSV:
-			m_DSVHeap->Allocate(Descriptor, Count);
+			m_DepthStencilHeap->Allocate(Descriptor, Count);
 			break;
 		}
 	}
@@ -256,7 +249,7 @@ namespace lde
 			// TODO:
 		}
 
-		m_SRVHeap->Allocate(Descriptor, Count);
+		m_ShaderResourceHeap->Allocate(Descriptor, Count);
 		m_Device->CreateShaderResourceView(pResource, &srvDesc, Descriptor.GetCpuHandle());
 	}
 	
@@ -290,8 +283,8 @@ namespace lde
 			// TODO:
 		}
 
-		//m_SRVHeap->Allocate(Descriptor, Count);
-		Descriptor = m_SRVHeap->Allocate(Count);
+		//m_ShaderResourceHeap->Allocate(Descriptor, Count);
+		Descriptor = m_ShaderResourceHeap->Allocate(Count);
 		m_Device->CreateUnorderedAccessView(pResource, nullptr, &uavDesc, Descriptor.GetCpuHandle());
 	}
 
@@ -303,7 +296,7 @@ namespace lde
 		rtvDesc.Texture2D.MipSlice		= 0;
 		rtvDesc.Texture2D.PlaneSlice	= 0;
 
-		m_RTVHeap->Allocate(Descriptor);
+		m_RenderTargetHeap->Allocate(Descriptor);
 		m_Device->CreateRenderTargetView(pResource, &rtvDesc, Descriptor.GetCpuHandle());
 	}
 
@@ -315,7 +308,7 @@ namespace lde
 		dsvDesc.Texture2D.MipSlice	= 0;
 		dsvDesc.Flags				= D3D12_DSV_FLAG_NONE;
 
-		m_DSVHeap->Allocate(Descriptor);
+		m_DepthStencilHeap->Allocate(Descriptor);
 		m_Device->CreateDepthStencilView(pResource, &dsvDesc, Descriptor.GetCpuHandle());
 	}
 

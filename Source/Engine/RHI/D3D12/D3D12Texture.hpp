@@ -1,12 +1,8 @@
 #pragma once
 
-/*
-
-*/
-
-#include <RHI/Texture.hpp>
+#include "RHI/Texture.hpp"
 #include "D3D12Descriptor.hpp"
-#include <Core/CoreMinimal.hpp>
+#include "Core/CoreMinimal.hpp"
 
 namespace lde
 {

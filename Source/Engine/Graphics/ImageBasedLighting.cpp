@@ -5,8 +5,8 @@
 #include "Skybox.hpp"
 #include "TextureManager.hpp"
 #include <AgilitySDK/d3dx12/d3dx12_resource_helpers.h>
-#include <Core/Logger.hpp>
-#include <Core/Math.hpp>
+#include "Core/Logger.hpp"
+#include "Core/Math.hpp"
 #include <stb/stb_image.h>
 
 namespace lde
@@ -28,7 +28,7 @@ namespace lde
 	{
 		CreateComputeStates();
 		
-		m_Gfx->Device->GetGfxCommandList()->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
+		m_Gfx->Device->GetGfxCommandList()->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetShaderResourceHeap()->GetAddressOf());
 
 		CreateHDRTexture(Filepath, pSkybox);
 		CreateTextureCube(pSkybox);
@@ -234,7 +234,7 @@ namespace lde
 		m_Gfx->TransitResource(tempCube, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		
 		auto dispatch([&](D3D12CommandList* pCmdList) {
-			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
+			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetShaderResourceHeap()->GetAddressOf());
 			pCmdList->Get()->SetComputeRootSignature(m_Pipelines.ComputeRS->Get());
 			pCmdList->Get()->SetPipelineState(m_Pipelines.ComputePSO.Get());
 			pCmdList->Get()->SetComputeRoot32BitConstant(BindingSlot::eSRV, pSkybox->Texture->SRV.Index(), 0);
@@ -325,7 +325,7 @@ namespace lde
 		m_Gfx->Device->CreateUAV(pSkybox->DiffuseTexture->Texture.Get(), pSkybox->DiffuseTexture->UAV, 0, 1);
 		
 		const auto dispatch = [&](D3D12CommandList* pCmdList) {
-			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
+			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetShaderResourceHeap()->GetAddressOf());
 			pCmdList->Get()->SetComputeRootSignature(m_Pipelines.IrradianceRS->Get());
 			pCmdList->Get()->SetPipelineState(m_Pipelines.DiffusePSO.Get());
 			pCmdList->Get()->SetComputeRoot32BitConstant(BindingSlot::eSRV, pSkybox->TextureCube->SRV.Index(), 0);
@@ -389,7 +389,7 @@ namespace lde
 		m_Gfx->TransitResource(pSkybox->SpecularTexture->Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 		const auto dispatch = [&](D3D12CommandList* pCmdList) {
-			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetSRVHeap()->GetAddressOf());
+			pCmdList->Get()->SetDescriptorHeaps(1, m_Gfx->Device->GetShaderResourceHeap()->GetAddressOf());
 			pCmdList->Get()->SetComputeRootSignature(m_Pipelines.SpecularRS->Get());
 			pCmdList->Get()->SetPipelineState(m_Pipelines.SpecularPSO.Get());
 			pCmdList->Get()->SetComputeRoot32BitConstant(BindingSlot::eSRV, pSkybox->TextureCube->SRV.Index(), 0);
@@ -408,7 +408,7 @@ namespace lde
 					pCmdList->Get()->SetComputeRoot32BitConstants(BindingSlot::eSampling, 1, &spmapRoughness, 0);
 					
 					m_Gfx->Device->CreateUAV(pSkybox->SpecularTexture->Texture.Get(), pSkybox->SpecularTexture->UAV, srcMip, 6);
-					uint32 index = m_Gfx->Device->GetSRVHeap()->GetIndexFromOffset(pSkybox->SpecularTexture->UAV, arraySlice + 6);
+					uint32 index = m_Gfx->Device->GetShaderResourceHeap()->GetIndexFromOffset(pSkybox->SpecularTexture->UAV, arraySlice + 6);
 					pCmdList->Get()->SetComputeRoot32BitConstant(BindingSlot::eUAV, index, 0);
 					pCmdList->Get()->Dispatch(numGroups, numGroups, 6);
 

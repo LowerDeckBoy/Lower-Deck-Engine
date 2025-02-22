@@ -1,7 +1,6 @@
 #pragma once
-#define _CRT_SECURE_NO_WARNINGS
-#include <Core/CoreTypes.hpp>
-#include <Core/String.hpp>
+#include "Core/CoreTypes.hpp"
+#include "Core/String.hpp"
 #include <DirectXMath.h>
 #include <vector>
 
