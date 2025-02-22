@@ -1,6 +1,7 @@
 #pragma once
-#include "EditorColors.hpp"
+#include "Colors.hpp"
 #include <Engine/Platform/Window.hpp>
+#include <dwmapi.h>
 
 namespace lde::editor
 {
@@ -8,15 +9,15 @@ namespace lde::editor
 	// Window caption color needs to be change in both Themes.
 	// Otherwise, switching between themes leaves only one color.
 
-	struct Themes
+	struct EditorThemes
 	{
 		static void DarkTheme(ImGuiStyle& InStyle)
 		{
-			const BOOL bDarkMode{ TRUE };
+			const BOOL bDarkMode = TRUE;
 			::DwmSetWindowAttribute(lde::Window::GetHWnd(), DWMWA_USE_IMMERSIVE_DARK_MODE, &bDarkMode, sizeof(bDarkMode));
-			
+		
 			COLORREF captionColor{ RGB(32, 32, 32) };
-			DwmSetWindowAttribute(lde::Window::GetHWnd(), DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &captionColor, sizeof(captionColor));
+			::DwmSetWindowAttribute(lde::Window::GetHWnd(), DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &captionColor, sizeof(captionColor));
 		
 			ImGui::StyleColorsDark();
 			InStyle.WindowRounding		= 0.0f;
@@ -64,11 +65,11 @@ namespace lde::editor
 
 		static void LightTheme(ImGuiStyle& InStyle)
 		{
-			const BOOL bDarkMode{ FALSE };
+			const BOOL bDarkMode = FALSE;
 			::DwmSetWindowAttribute(lde::Window::GetHWnd(), DWMWA_USE_IMMERSIVE_DARK_MODE, &bDarkMode, sizeof(bDarkMode));
 			
-			COLORREF captionColor{ RGB(255, 236, 225) };
-			DwmSetWindowAttribute(lde::Window::GetHWnd(), DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &captionColor, sizeof(captionColor));
+			COLORREF captionColor = RGB(255, 236, 225);
+			::DwmSetWindowAttribute(lde::Window::GetHWnd(), DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &captionColor, sizeof(captionColor));
 		
 			ImGui::StyleColorsLight();
 		

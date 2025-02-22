@@ -1,7 +1,7 @@
+#include "Defines.hpp"
 #include "Logger.hpp"
-#include <Core/CoreDefines.hpp>
-#include <Core/String.hpp>
-#include <Platform/Platform.hpp>
+#include "Platform/Platform.hpp"
+#include "String.hpp"
 
 namespace lde
 {

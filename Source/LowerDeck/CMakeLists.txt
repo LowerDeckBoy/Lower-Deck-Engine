@@ -2,9 +2,9 @@
 set(TARGET "LowerDeck")
 
 add_executable(${TARGET} 
-	"main.cpp"
-	"Application.cpp" 
-	"Application.hpp"
+	main.cpp
+	Application.cpp 
+	Application.hpp
 )
 
 target_compile_features(${TARGET} PUBLIC cxx_std_20)
@@ -27,6 +27,14 @@ set_target_properties(${EXECUTABLE_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
 target_include_directories(${TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/Source)
 target_include_directories(${TARGET} PUBLIC Editor)
 target_include_directories(${TARGET} PUBLIC Engine)
+
 target_link_libraries(${TARGET} PUBLIC Editor)
 target_link_libraries(${TARGET} PUBLIC Engine)
 
+add_custom_command(POST_BUILD
+	TARGET ${TARGET}
+	COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+	
+	${CMAKE_SOURCE_DIR}/Assets/Fonts
+	${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/Assets/Fonts
+)

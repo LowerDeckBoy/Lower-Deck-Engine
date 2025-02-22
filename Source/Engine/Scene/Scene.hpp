@@ -38,21 +38,15 @@ namespace lde
 		void DrawScene();
 
 		void DrawModel(Model& pModel);
-	
-		const std::vector<std::unique_ptr<Model>>& GetModels() const
-		{
-			return m_Models;
-		}
 
 		SceneCamera* GetCamera()
 		{
-			return m_Camera.get();
+			return Camera.get();
 		}
-	
-		void AddModel(std::string_view Filepath);
-		
+
 		std::string SceneName = "Default scene";
-		std::unique_ptr<SceneCamera> m_Camera;
+
+		std::unique_ptr<SceneCamera> Camera;
 		
 		std::vector<Entity*> PointLights;
 		std::vector<Entity*> DirectionalLights;
@@ -60,11 +54,10 @@ namespace lde
 		void AddPointLight(DirectX::XMFLOAT3 Position = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f));
 		void AddDirectionalLight(DirectX::XMFLOAT3 Direction = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f));
 
+		std::vector<Model> Models;
+
 	private:
 		lde::World* m_World = nullptr;
-	
-		std::vector<std::unique_ptr<Model>> m_Models;
-	
 		D3D12RHI* m_Gfx = nullptr;
 
 	};

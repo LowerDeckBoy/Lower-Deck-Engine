@@ -3,6 +3,8 @@
 cmake_minimum_required (VERSION 3.5.0)
 project("Lower Deck Engine")
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 add_definitions(-DUNICODE -D_UNICODE -DNOMINMAX)
 add_definitions(-DRHI_D3D12)
 
@@ -14,6 +16,5 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIR}/Debug/Lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIR}/Debug)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIR}/Debug)
 
-add_subdirectory(Shaders)
 add_subdirectory(Third-party)
 add_subdirectory(Source)

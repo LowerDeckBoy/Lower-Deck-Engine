@@ -1,10 +1,6 @@
 #pragma once
 
-/*
-	Editor/Components.hpp
-	
-*/
-
+#include <Engine/Core/String.hpp>
 #include <Engine/Scene/Components/LightComponent.hpp>
 
 namespace lde

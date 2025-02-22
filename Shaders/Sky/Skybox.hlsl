@@ -62,6 +62,7 @@ float2 SampleSphericalMap(float3 v)
 float4 PSmain(VS_OUTPUT pin) : SV_TARGET
 {
 	float3 skyTexture = float3(0.0f, 0.0f, 0.0f);
+	
 	if (Textures.SkyboxTexture != -1)
 	{
 		// Note: normalize TexCoords in pixel shader. Normalizing only in Vertex shader will not do.

@@ -1,12 +1,9 @@
 #pragma once
 
-/*
-
-*/
-
 #include <ImGui/imgui.h>
 #include <ImGui/imgui_impl_dx12.h>
 #include <ImGui/imgui_impl_win32.h>
+#include <memory>
 
 namespace lde
 {
@@ -21,7 +18,7 @@ namespace lde
 
 namespace lde::editor
 {
-	enum class Theme
+	enum class EditorTheme
 	{
 		eDark,
 		eLight
@@ -47,6 +44,8 @@ namespace lde::editor
 		void DrawProperty();
 		void DrawContent();
 		void DrawLogs();
+
+		void DrawSceneProperties();
 	
 	private:
 		void Initialize(D3D12RHI* pGfx, Timer* pTimer);
@@ -73,7 +72,7 @@ namespace lde::editor
 		ImFont*			m_EditorFont = nullptr;
 		ImGuiViewport*	m_EditorViewport = nullptr;
 	
-		Theme m_CurrentTheme{ Theme::eDark };
+		EditorTheme m_CurrentTheme = EditorTheme::eDark;
 	
 		static bool bSceneOnly;
 

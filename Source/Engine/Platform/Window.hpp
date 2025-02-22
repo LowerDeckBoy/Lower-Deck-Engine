@@ -1,14 +1,16 @@
 #pragma once
 
 #include "Platform.hpp"
-#include <Core/String.hpp>
+#include "Core/CoreTypes.hpp"
+#include "Core/String.hpp"
+
 
 namespace lde
 {
 	struct WindowParameters
 	{
-		unsigned int Width;
-		unsigned int Height;
+		uint32 Width;
+		uint32 Height;
 
 		bool bMaximize;
 	};
@@ -25,11 +27,13 @@ namespace lde
 
 		void Release();
 
-		virtual LRESULT WindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) = 0;
+		virtual LRESULT WindowProc(::HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) = 0;
 
 		inline static unsigned int Width	= 1280;
 		inline static unsigned int Height	= 720;
 		inline static float AspectRatio		= static_cast<float>(Width) / static_cast<float>(Height);
+
+		void ProcessMessages();
 
 		static void OnCursorShow();
 		static void OnCursorHide();
@@ -37,12 +41,12 @@ namespace lde
 		static bool bCursorVisible;
 		static bool bShouldQuit;
 
-		static HINSTANCE GetHInstance()
+		static ::HINSTANCE GetHInstance()
 		{
 			return s_hInstance;
 		}
 
-		static HWND GetHWnd()
+		static ::HWND GetHWnd()
 		{
 			return s_hWnd;
 		}
@@ -53,10 +57,10 @@ namespace lde
 		}
 		
 	protected:
-		static HINSTANCE s_hInstance;
-		static HWND s_hWnd;
+		static ::HINSTANCE s_hInstance;
+		static ::HWND s_hWnd;
 
-		RECT m_WindowRect{};
+		::RECT m_WindowRect{};
 
 		LPCWSTR m_WindowClass	= L"Lower Deck Engine";
 		std::string m_Title		= "Lower Deck Engine";

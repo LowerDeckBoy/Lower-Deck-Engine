@@ -1,6 +1,8 @@
 #include "Application.hpp"
 #include <ImGui/imgui_impl_win32.h>
 
+#include <Engine/Scene/SceneLoader.hpp>
+
 #if EDITOR_MODE
 	extern LRESULT IMGUI_API ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 #endif
@@ -10,12 +12,10 @@ namespace lde
 	App::App(WindowParameters StartUp)
 		: Window(StartUp)
 	{
-		m_AppTimer = std::make_unique<Timer>();
+
 	}
 
-	App::~App()
-	{
-	}
+	App::~App() = default;
 
 	void App::Initialize()
 	{
@@ -27,20 +27,12 @@ namespace lde
 		m_Renderer = std::make_unique<Renderer>(m_Gfx.get(), m_ActiveScene.get());
 
 #if EDITOR_MODE
-		m_Editor = std::make_unique<editor::Editor>(m_Gfx.get(), m_Renderer.get(), m_AppTimer.get());
+		m_Editor = std::make_unique<editor::Editor>(m_Gfx.get(), m_Renderer.get(), &m_AppTimer);
 		m_Editor->SetScene(m_ActiveScene.get());
 #endif
 		
-		m_ActiveScene->AddModel("Assets/Models/sponza/Sponza.gltf");
-		//m_ActiveScene->AddModel("../../../../Assets/Models/bistro_test/bistro.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/SunTemple/SunTemple.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/DamagedHelmet/DamagedHelmet.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/Bistro-gltf/BistroExterior.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/office_girl/office_girl.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/SciFiHelmet/SciFiHelmet.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/luna_snow/scene.gltf");
-		//m_ActiveScene->AddModel("../../../../Assets/Models/luna_snow2/untitled.gltf");
-		//m_ActiveScene->AddModel("Assets/Models/arhi/scene.gltf");
+		SceneLoader::Load(m_Gfx.get(), m_ActiveScene.get(), "sample_scene.json");
+		//SceneLoader::Load(m_Gfx.get(), m_ActiveScene.get(), "sample_scene2.json");
 
 		m_Gfx->Device->ExecuteCommandList(CommandType::eGraphics, false);
 	}
@@ -49,29 +41,20 @@ namespace lde
 	{
 		Window::OnShow();
 		
-		::MSG msg{};
-		m_AppTimer->Reset();
+		m_AppTimer.Reset();
 
 		while (!bShouldQuit)
 		{
-			if (msg.message == WM_QUIT)
-			{
-				bShouldQuit = true;
-			}
+			Window::ProcessMessages();
 
-			if (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-			{
-				::TranslateMessage(&msg);
-				::DispatchMessage(&msg);
-			}
-
-			m_AppTimer->Tick();
+			m_AppTimer.Tick();
 
 			// Render
 			if (!bAppPaused)
 			{
-				m_AppTimer->GetFrameStats();
-				m_ActiveScene->GetCamera()->ProcessInputs(m_AppTimer->DeltaTime());
+				m_AppTimer.GetFrameStats();
+				m_ActiveScene->GetCamera()->ProcessInputs(m_AppTimer.DeltaTime());
+				m_ActiveScene->Camera->Update();
 
 #if EDITOR_MODE
 				m_Editor->OnBeginFrame();
@@ -83,8 +66,6 @@ namespace lde
 				m_Renderer->Render();
 #endif
 				m_Renderer->Present();
-				m_ActiveScene->m_Camera->Update();
-				
 			}
 		}
 
@@ -94,7 +75,7 @@ namespace lde
 	void App::OnResize()
 	{
 		m_Renderer->OnResize(Window::Width, Window::Height);
-		m_ActiveScene->OnResize(static_cast<float>((float)Window::Width / (float)Window::Height));
+		m_ActiveScene->OnResize(static_cast<float>((float)Window::Width / Window::Height));
 	}
 
 	void App::Release()
@@ -127,12 +108,12 @@ namespace lde
 			if (LOWORD(wParam) == WA_INACTIVE)
 			{
 				bAppPaused = true;
-				m_AppTimer->Stop();
+				m_AppTimer.Stop();
 			}
 			else
 			{
 				bAppPaused = false;
-				m_AppTimer->Start();
+				m_AppTimer.Start();
 			}
 			
 			return 0;
@@ -177,7 +158,7 @@ namespace lde
 		{
 			bAppPaused = true;
 			bIsResizing = true;
-			m_AppTimer->Stop();
+			m_AppTimer.Stop();
 
 			return 0;
 		}
@@ -185,7 +166,7 @@ namespace lde
 		{
 			bAppPaused = false;
 			bIsResizing = false;
-			m_AppTimer->Start();
+			m_AppTimer.Start();
 
 			return 0;
 		}
@@ -203,7 +184,7 @@ namespace lde
 			}
 			return 0;
 		case WM_QUIT:
-			
+			[[fallthrough]];
 		case WM_DESTROY:
 			::PostQuitMessage(0);
 			return 0;
@@ -211,5 +192,4 @@ namespace lde
 
 		return ::DefWindowProc(hWnd, Msg, wParam, lParam);
 	}
-
-}
+} // namespace lde

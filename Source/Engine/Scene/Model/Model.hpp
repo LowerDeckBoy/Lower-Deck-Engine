@@ -1,4 +1,5 @@
 #pragma once
+
 #include "../Entity.hpp"
 #include "Mesh.hpp"
 #include "RHI/D3D12/D3D12Buffer.hpp"
@@ -11,9 +12,8 @@ namespace lde
 	class Model : public Entity
 	{
 	public:
-		Model() {}
-		Model(D3D12RHI* pGfx, std::string_view Filepath, World* pWorld);
-		~Model();
+		Model() = default;
+		~Model() = default;
 	
 		void Create(D3D12RHI* pGfx, World* pWorld);
 	

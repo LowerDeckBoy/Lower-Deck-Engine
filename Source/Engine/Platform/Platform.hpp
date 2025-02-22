@@ -5,9 +5,12 @@
 	#define WIN32_LEAN_AND_MEAN
 	#endif
 	#include <Windows.h>
-	#include <dwmapi.h>
+	#include "Core/Utility.hpp"
+	//#include <dwmapi.h>
 #endif
+
 #include "Timer.hpp"
+
 
 #if defined (_WIN64) || (_WINDOWS)
 	#define PLATFORM_WIN64 1

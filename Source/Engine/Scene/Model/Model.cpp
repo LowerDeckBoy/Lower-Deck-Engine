@@ -1,27 +1,15 @@
-#include "../Components/Components.hpp"
+#include "../Components/TransformComponent.hpp"
+#include "../Components/NameComponent.hpp"
 #include "Graphics/AssetManager.hpp"
 #include "RHI/D3D12/D3D12RHI.hpp"
 #include "Model.hpp"
 
 namespace lde
 {
-	Model::Model(D3D12RHI* pGfx, std::string_view Filepath, World* pWorld)
-	{
-		AssetManager::GetInstance().Import(pGfx, Filepath, StaticMeshes);
-
-		Create(pGfx, pWorld);
-	}
-
-	Model::~Model()
-	{
-
-	}
-
 	void Model::Create(D3D12RHI* pGfx, World* pWorld)
 	{
 		// Default components
 		Entity::Create(pWorld);
-		Entity::AddComponent<TagComponent>("");
 		Entity::AddComponent<TransformComponent>();
 		
 		ConstBuffer = pGfx->GetDevice()->CreateConstantBuffer(&cbData, sizeof(cbData));

@@ -1,9 +1,9 @@
 #pragma once
 
-/*
+/*=============================================================
 	Core/Singleton.hpp
 	Singleton wrapper for manager-like classes.
-*/
+=============================================================*/
 
 namespace lde
 {

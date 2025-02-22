@@ -1,4 +1,5 @@
-#include "Components/Components.hpp"
+#include "Components/TransformComponent.hpp"
+#include "Components/NameComponent.hpp"
 #include "Graphics/AssetManager.hpp"
 #include "RHI/D3D12/D3D12RHI.hpp"
 #include "Scene.hpp"
@@ -13,17 +14,13 @@ namespace lde
 
 	Scene::~Scene()
 	{
-		for (auto& model : m_Models)
-		{
-			model.reset();
-		}
+
 	}
 	
 	void Scene::Initialize(uint32 Width, uint32 Height, D3D12RHI* pGfx)
 	{
 		m_World = new lde::World();
-		m_Camera = std::make_unique<SceneCamera>(m_World, static_cast<float>((float)Width / (float)Height));
-		m_Camera->InitializeInputs();
+		Camera = std::make_unique<SceneCamera>(m_World, static_cast<float>(Width / Height));
 		m_Gfx = pGfx;
 		
 		PointLights.reserve(4);
@@ -38,14 +35,14 @@ namespace lde
 
 	void Scene::OnResize(float AspectRatio)
 	{
-		m_Camera->OnAspectRatioChange(AspectRatio);
+		Camera->OnAspectRatioChange(AspectRatio);
 	}
 	
 	void Scene::DrawScene()
 	{
-		for (auto& model : m_Models)
+		for (auto& model : Models)
 		{
-			DrawModel(*model);
+			DrawModel(model);
 		}
 	}
 
@@ -54,7 +51,7 @@ namespace lde
 		auto* commandList	= m_Gfx->Device->GetGfxCommandList();
 		auto& transform		= pModel.GetComponent<TransformComponent>();
 
-		const auto& WVP		= transform.WorldMatrix * m_Camera->GetViewProjection();
+		const auto& WVP		= transform.WorldMatrix * Camera->GetViewProjection();
 		auto* constBuffer	= m_Gfx->Device->GetConstantBuffer(pModel.ConstBuffer);
 
 		cbPerObject update	= { DirectX::XMMatrixTranspose(WVP), DirectX::XMMatrixTranspose(transform.WorldMatrix) };
@@ -85,16 +82,11 @@ namespace lde
 		}
 	}
 	
-	void Scene::AddModel(std::string_view Filepath)
-	{
-		m_Models.emplace_back(std::make_unique<Model>(m_Gfx, Filepath, m_World));
-	}
-
 	void Scene::AddPointLight(XMFLOAT3 Position)
 	{
 		Entity* newLight = new Entity();
 		newLight->Create(m_World);
-		newLight->AddComponent<TagComponent>(std::format("Point Light {}", PointLights.size()).c_str());
+		newLight->AddComponent<NameComponent>(std::format("Point Light {}", PointLights.size()).c_str());
 		newLight->AddComponent<PointLightComponent>(Position);
 		
 		PointLights.push_back(newLight);
@@ -104,7 +96,7 @@ namespace lde
 	{
 		Entity* newLight = new Entity();
 		newLight->Create(m_World);
-		newLight->AddComponent<TagComponent>(std::format("Directional Light {}", DirectionalLights.size()).c_str());
+		newLight->AddComponent<NameComponent>(std::format("Directional Light {}", DirectionalLights.size()).c_str());
 		newLight->AddComponent<DirectionalLightComponent>(Direction);
 
 		DirectionalLights.push_back(newLight);

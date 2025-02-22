@@ -3,4 +3,4 @@
 namespace lde
 {
 
-}
+} // namespace lde

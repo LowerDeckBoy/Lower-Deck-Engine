@@ -1,10 +1,5 @@
 #pragma once
 
-/*
-	Core/String.hpp
-	String based utility functions.
-*/
-
 #include <format>
 #include <string>
 

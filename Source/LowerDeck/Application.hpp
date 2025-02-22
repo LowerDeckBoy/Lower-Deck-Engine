@@ -1,9 +1,5 @@
 #pragma once
 
-/*
-	
-*/
-
 #include <Engine/Core/CoreMinimal.hpp>
 #include <Engine/Platform/Window.hpp>
 
@@ -36,7 +32,7 @@ namespace lde
 		LRESULT WindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) final;
 
 	private:
-		std::unique_ptr<Timer> m_AppTimer;
+		Timer m_AppTimer;
 
 		std::unique_ptr<D3D12RHI>	m_Gfx;
 		std::unique_ptr<RHI>		m_RHI;
