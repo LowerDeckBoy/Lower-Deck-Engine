@@ -2,8 +2,8 @@
 #include "D3D12RHI.hpp"
 #include "D3D12Texture.hpp"
 #include <AgilitySDK/d3dx12/d3dx12.h>
-#include <Core/Logger.hpp>
-#include <Platform/Window.hpp>
+#include "Core/Logger.hpp"
+#include "Platform/Window.hpp"
 
 namespace lde
 {
@@ -24,7 +24,7 @@ namespace lde
 		TransitResource(SwapChain->GetBackbuffer(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		SetViewport();
 
-		Device->GetGfxCommandList()->Get()->SetDescriptorHeaps(1, Device->GetSRVHeap()->GetAddressOf());
+		Device->GetGfxCommandList()->Get()->SetDescriptorHeaps(1, Device->GetShaderResourceHeap()->GetAddressOf());
 	}
 
 	void D3D12RHI::RecordCommandLists()
@@ -84,12 +84,12 @@ namespace lde
 			texture->Release();
 			delete texture;
 		}
-		for (auto* buffer : Device->ConstantBuffers)
+		for (auto& buffer : Device->ConstantBuffers)
 		{
 			buffer->Release();
 			delete buffer;
 		}
-		for (auto* buffer : Device->Buffers)
+		for (auto& buffer : Device->Buffers)
 		{
 			buffer->Release();
 			delete buffer;
@@ -103,7 +103,7 @@ namespace lde
 	uint32 D3D12RHI::QueryAdapterMemory() const
 	{
 		DXGI_QUERY_VIDEO_MEMORY_INFO memoryInfo{};
-		Device->GetAdapter()->QueryVideoMemoryInfo(DEVICE_NODE, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &memoryInfo);
+		Device->GetAdapter()->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &memoryInfo);
 		
 		return static_cast<uint32>(memoryInfo.CurrentUsage / 1024 / 1024);
 	}
@@ -272,7 +272,7 @@ namespace lde
 		Device->GetGfxCommandList()->Get()->IASetIndexBuffer(&view);
 	}
 
-	void D3D12RHI::BindIndexBuffer(D3D12_INDEX_BUFFER_VIEW View) const
+	void D3D12RHI::BindIndexBuffer(D3D12_INDEX_BUFFER_VIEW& View) const
 	{
 		Device->GetGfxCommandList()->Get()->IASetIndexBuffer(&View);
 	}

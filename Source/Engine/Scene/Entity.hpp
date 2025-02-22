@@ -9,6 +9,7 @@ namespace lde
 
 	class Entity
 	{
+		friend class World;
 	public:
 		Entity() = default;
 		Entity(World* pWorld) : m_World(pWorld)

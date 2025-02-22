@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Core/CoreMinimal.hpp>
+#include "Core/CoreMinimal.hpp"
 #include "D3D12Descriptor.hpp"
 
 namespace lde

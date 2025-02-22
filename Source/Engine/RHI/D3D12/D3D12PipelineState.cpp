@@ -25,7 +25,7 @@ namespace lde
 	HRESULT D3D12PipelineStateBuilder::Build(D3D12PipelineState& OutPipeline, D3D12RootSignature* pRootSignature)
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC desc{};
-		desc.NodeMask = DEVICE_NODE;
+		desc.NodeMask = m_Device->NodeMask;
 		desc.pRootSignature = pRootSignature->Get();
 		
 		// States
@@ -209,7 +209,7 @@ namespace lde
 
 		Desc.pRootSignature = pRootSignature->Get();
 
-		Desc.NodeMask = DEVICE_NODE;
+		Desc.NodeMask = pDevice->NodeMask;
 		Desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
 		Desc.RasterizerState = m_RasterizerDesc;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <AgilitySDK/d3d12.h>
-#include <Core/CoreMinimal.hpp>
-#include <RHI/Types.hpp>
+#include "Core/CoreMinimal.hpp"
+#include "RHI/Types.hpp"
 #include <span>
 #include <vector>
 
@@ -48,12 +48,10 @@ namespace lde
 		 */
 		HRESULT Build(D3D12Device* pDevice, PipelineType eType, std::string DebugName = "");
 
+		// TODO:
 		// Build RootSignature based on given Shader
 		// Note: if building this way - don't set neither Paramters nor StaticSamplers
 		void Build(D3D12Device* pDevice, PipelineType eType, Shader* pShader, std::string DebugName = "");
-
-		//HRESULT BuildFromShader(D3D12Device* pDevice, D3D12Shader* pShader, PipelineType eType);
-
 
 		void Release();
 	

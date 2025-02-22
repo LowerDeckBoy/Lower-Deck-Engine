@@ -1,6 +1,7 @@
 #include "Window.hpp"
-#include <Core/CoreDefines.hpp>
+#include "Core/Defines.hpp"
 
+#include <dwmapi.h>
 #pragma comment(lib, "dwmapi")
 
 namespace lde
@@ -104,6 +105,21 @@ namespace lde
 		if (s_hInstance)
 		{
 			s_hInstance = nullptr;
+		}
+	}
+
+	void Window::ProcessMessages()
+	{
+		::MSG msg{};
+		if (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		{
+			::TranslateMessage(&msg);
+			::DispatchMessage(&msg);
+		}
+
+		if (msg.message == WM_QUIT)
+		{
+			bShouldQuit = true;
 		}
 	}
 

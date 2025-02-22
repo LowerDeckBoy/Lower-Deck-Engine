@@ -9,7 +9,7 @@ namespace lde
 		: m_Fence(pDevice)
 	{
 		D3D12_COMMAND_QUEUE_DESC desc{};
-		desc.NodeMask = DEVICE_NODE;
+		desc.NodeMask = pDevice->NodeMask;
 		desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 		desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
 
@@ -102,7 +102,7 @@ namespace lde
 	D3D12Queue::D3D12Queue(D3D12Device* pDevice, CommandType eType, std::string_view DebugName)
 	{
 		D3D12_COMMAND_QUEUE_DESC desc{};
-		desc.NodeMask = DEVICE_NODE;
+		desc.NodeMask = pDevice->NodeMask;
 		desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 		desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
 

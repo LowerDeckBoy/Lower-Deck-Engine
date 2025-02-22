@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Core/CoreTypes.hpp>
+#include "Core/CoreTypes.hpp"
 #include <DirectXMath.h>
 
 namespace lde

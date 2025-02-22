@@ -2,19 +2,18 @@
 
 #include <AgilitySDK/d3d12.h>
 #include <AgilitySDK/d3d12sdklayers.h>
-#include <RHI/Device.hpp>
+#include "RHI/Device.hpp"
 #include <dxgi1_6.h>
 
-#include <Core/CoreMinimal.hpp>
+#include "Core/CoreMinimal.hpp"
 
-#include <RHI/D3D12/D3D12CommandList.hpp>
-#include <RHI/D3D12/D3D12DescriptorHeap.hpp>
-#include <RHI/D3D12/D3D12Fence.hpp>
-#include <RHI/D3D12/D3D12Memory.hpp>
-#include <RHI/D3D12/D3D12Queue.hpp>
-#include <RHI/D3D12/D3D12Texture.hpp>
-#include <RHI/Types.hpp>
-#include <unordered_map>
+#include "RHI/D3D12/D3D12CommandList.hpp"
+#include "RHI/D3D12/D3D12DescriptorHeap.hpp"
+#include "RHI/D3D12/D3D12Fence.hpp"
+#include "RHI/D3D12/D3D12Memory.hpp"
+#include "RHI/D3D12/D3D12Queue.hpp"
+#include "RHI/D3D12/D3D12Texture.hpp"
+#include "RHI/Types.hpp"
 
 #if DEBUG_MODE
 	#include <dxgidebug.h>
@@ -22,9 +21,6 @@
 
 namespace lde
 {
-	// Since running single GPU, node stays as 0.
-	constexpr uint32 DEVICE_NODE = 0;
-
 	class D3D12Texture;
 	class D3D12Buffer;
 	class D3D12ConstantBuffer;
@@ -64,6 +60,9 @@ namespace lde
 		IDXGIAdapter4* GetAdapter() { return m_Adapter.Get(); }
 		ID3D12Device8* GetDevice()  { return m_Device.Get();  }
 		
+		// Since running single GPU, node stays as 0.
+		uint32 NodeMask = 0;
+
 		// Default; Graphics Queue
 		//void WaitForGPU();
 
@@ -109,12 +108,9 @@ namespace lde
 		D3D12CommandList*	 GetGfxCommandList()	{ return m_FrameResources[FRAME_INDEX].GraphicsCommandList; }
 		//D3D12CommandList*	 GetComputeCommandList(){ return m_FrameResources[FRAME_INDEX].ComputeCommandList; }
 
-		D3D12DescriptorHeap* GetSRVHeap()			{ return m_SRVHeap.get(); }
-		D3D12DescriptorHeap* GetDSVHeap()			{ return m_DSVHeap.get(); }
-		D3D12DescriptorHeap* GetRTVHeap()			{ return m_RTVHeap.get(); }
-
-		// TEST
-		D3D12CommandSignature* m_CommandSignature;
+		D3D12DescriptorHeap* GetShaderResourceHeap()	{ return m_ShaderResourceHeap.get(); }
+		D3D12DescriptorHeap* GetRenderTargetHeap()		{ return m_RenderTargetHeap.get(); }
+		D3D12DescriptorHeap* GetDepthStencilHeap()		{ return m_DepthStencilHeap.get(); }
 
 		/**
 		 * @brief				Allocate given Descriptor from the Heap of given enum type.
@@ -136,9 +132,9 @@ namespace lde
 
 		//std::unique_ptr<D3D12Fence> m_Fence;
 
-		std::unique_ptr<D3D12DescriptorHeap> m_SRVHeap;
-		std::unique_ptr<D3D12DescriptorHeap> m_DSVHeap;
-		std::unique_ptr<D3D12DescriptorHeap> m_RTVHeap;
+		std::unique_ptr<D3D12DescriptorHeap> m_ShaderResourceHeap;
+		std::unique_ptr<D3D12DescriptorHeap> m_RenderTargetHeap;
+		std::unique_ptr<D3D12DescriptorHeap> m_DepthStencilHeap;
 
 	private:
 		void Create();
@@ -147,10 +143,9 @@ namespace lde
 		void CreateAdapter();
 		void CreateDevice();
 
-		void QueryShaderModel();
-		void QueryFeatures();
+		void QueryDeviceFeatures();
 		
-		void CreateHeaps();
+		void CreateDescriptorHeaps();
 
 #if DEBUG_MODE
 		D3D12Debug m_DebugDevices;
@@ -165,6 +160,13 @@ namespace lde
 		D3D12ConstantBuffer*	GetConstantBuffer(uint32 Index);
 		D3D12Texture*			GetTexture(uint32 Index);
 
+
+		void CreateSRV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 Mips, uint32 Count);
+		void CreateUAV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 MipSlice, uint32 Count);
+		void CreateRTV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, DXGI_FORMAT Format);
+		void CreateDSV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, DXGI_FORMAT Format = DXGI_FORMAT_D32_FLOAT);
+
+
 		/* ======================== RHI implementations ======================== */
 
 		BufferHandle	CreateBuffer(BufferDesc Desc) override final;
@@ -177,14 +179,8 @@ namespace lde
 		void			DestroyConstantBuffer(BufferHandle Handle);
 		void			DestroyTexture(TextureHandle Handle);
 
-
-		void CreateSRV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 Mips, uint32 Count);
-		void CreateUAV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, uint32 MipSlice, uint32 Count);
-		void CreateRTV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, DXGI_FORMAT Format);
-		void CreateDSV(ID3D12Resource* pResource, D3D12Descriptor& Descriptor, DXGI_FORMAT Format = DXGI_FORMAT_D32_FLOAT);
-
-		void CreateTlasSRV();
-
+		
+		
 	private:
 
 	};

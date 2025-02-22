@@ -124,7 +124,7 @@ namespace lde
 		clearValue.Color[0] = ClearColor.at(0);
 		clearValue.Color[1] = ClearColor.at(1);
 		clearValue.Color[2] = ClearColor.at(2);
-		clearValue.Color[3] = 1.0f;
+		clearValue.Color[3] = ClearColor.at(3);
 		clearValue.Format = m_Format;
 
 		D3D12_RESOURCE_DESC desc{};

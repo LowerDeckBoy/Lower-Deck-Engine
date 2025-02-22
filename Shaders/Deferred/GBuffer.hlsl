@@ -12,7 +12,6 @@ cbuffer cbPerObject : register(b0, space0)
 struct Vertex
 {
 	uint VertexIndex;
-	uint VertexOffset;
 };
 
 ConstantBuffer<Vertex> vertexBuffer : register(b1, space0);
@@ -45,10 +44,18 @@ float3 GetBitangent(float4 WorldPos, float2 UV)
 	return cross(pos_dx, pos_dy);
 }
 
-VSOutput VSmain(uint VertexID : SV_VertexID)
+// Load Vertex for current SV_VertexID.
+VSInput LoadVertex(uint Location)
 {
 	StructuredBuffer<VSInput> buffer = ResourceDescriptorHeap[vertexBuffer.VertexIndex];
-	VSInput vertex = buffer.Load(vertexBuffer.VertexOffset + VertexID);
+	VSInput vertex = buffer.Load(Location);
+	
+	return vertex;
+}
+
+VSOutput VSmain(uint VertexID : SV_VertexID)
+{
+	VSInput vertex = LoadVertex(VertexID);
 	
 	VSOutput output = (VSOutput) 0;
 	output.Position			= mul(WVP, float4(vertex.Position, 1.0f));
@@ -99,7 +106,7 @@ GBufferOutput PSmain(VSOutput pin)
 	}
 	else
 	{
-		output.BaseColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
+		output.BaseColor = float4(material.BaseColorFactor.xyz, 1.0f);
 	}
 	
 	// Load and transform Normal texture
@@ -140,7 +147,7 @@ GBufferOutput PSmain(VSOutput pin)
 	}
 	else
 	{
-		output.Emissive = float4(0.0f, 0.0f, 0.0f, 1.0f);
+		output.Emissive = float4(material.EmissiveFactor);
 	}
 	
 	return output;

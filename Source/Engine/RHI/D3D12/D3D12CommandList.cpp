@@ -50,7 +50,7 @@ namespace lde
 		D3D12_COMMAND_LIST_TYPE type = GetCommandType(eType);
 
 		m_Allocator = new D3D12CommandAllocator(pDevice, eType);
-		DX_CALL(pDevice->GetDevice()->CreateCommandList1(DEVICE_NODE, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&m_GraphicsCommandList)));
+		DX_CALL(pDevice->GetDevice()->CreateCommandList1(pDevice->NodeMask, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&m_GraphicsCommandList)));
 
 		SET_D3D12_NAME(m_GraphicsCommandList, DebugName);
 		//SET_D3D12_NAME(*m_Allocator, (DebugName + ": Allocator"));
@@ -218,7 +218,7 @@ namespace lde
 	HRESULT D3D12CommandSignature::Create(D3D12Device* pDevice, D3D12RootSignature* pRootSignature)
 	{
 		D3D12_COMMAND_SIGNATURE_DESC desc{};
-		desc.NodeMask			= DEVICE_NODE;
+		desc.NodeMask			= pDevice->NodeMask;
 		desc.NumArgumentDescs	= static_cast<uint32>(m_Arguments.size());
 		desc.pArgumentDescs		= m_Arguments.data();
 		desc.ByteStride			= m_Stride;

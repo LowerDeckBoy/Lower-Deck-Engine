@@ -1,24 +1,25 @@
-// Forwards
 #include <Engine/Platform/Window.hpp>
 #include <Engine/RHI/D3D12/D3D12RHI.hpp>
 #include <Engine/Render/Renderer.hpp>
 #include <Engine/Scene/Scene.hpp>
 #include "Editor.hpp"
-#include "EditorColors.hpp"
-#include "EditorTheme.hpp"
+
 #include "Components/Components.hpp"
-#include <Engine/RHI/RHICommon.hpp>
-#include <ImGui/imgui_internal.h>
+#include "Colors.hpp"
+#include "EditorTheme.hpp"
 #include <Engine/Core/Logger.hpp>
-#include <Engine/Utility/Utility.hpp>
-#include <Engine/Scene/Components/Components.hpp>
+#include <Engine/Core/Utility.hpp>
+#include <Engine/RHI/RHICommon.hpp>
 #include <Engine/Scene/Components/CameraComponent.hpp>
+#include <Engine/Scene/Components/NameComponent.hpp>
+#include <Engine/Scene/Components/TransformComponent.hpp>
 #include <FontAwesome/IconsFontAwesome6.h>
+#include <ImGui/imgui_internal.h>
+
+#include <Engine/Config.hpp>
 
 namespace lde::editor 
 {
-	//using namespace RHI;
-
 	bool Editor::bSceneOnly = true;
 
 	constexpr auto EDITOR_FONT		= "Assets/Fonts/CascadiaCode-SemiBold.ttf";
@@ -47,7 +48,7 @@ namespace lde::editor
 		ImGuiIO& IO = ImGui::GetIO();
 		m_EditorStyle = &ImGui::GetStyle();
 		
-		Themes::DarkTheme(*m_EditorStyle);
+		EditorThemes::DarkTheme(*m_EditorStyle);
 
 		// Enable Docking
 		IO.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;
@@ -55,25 +56,23 @@ namespace lde::editor
 		IO.ConfigFlags	|= ImGuiConfigFlags_DockingEnable;
 		IO.ConfigFlags	|= ImGuiConfigFlags_ViewportsEnable;
 		
-		//m_EditorHeap = std::make_unique<D3D12DescriptorHeap>(m_Gfx->Device.get(), HeapType::eSRV, 32768, "Editor SRV Heap");
-
 		ImGui_ImplWin32_Init(lde::Window::GetHWnd());
 		ImGui_ImplDX12_Init(m_Gfx->Device->GetDevice(),
 			FRAME_COUNT,
 			DXGI_FORMAT_R8G8B8A8_UNORM,
-			m_Gfx->Device->GetSRVHeap()->Get(),
-			m_Gfx->Device->GetSRVHeap()->Get()->GetCPUDescriptorHandleForHeapStart(),
-			m_Gfx->Device->GetSRVHeap()->Get()->GetGPUDescriptorHandleForHeapStart());
+			m_Gfx->Device->GetShaderResourceHeap()->Get(),
+			m_Gfx->Device->GetShaderResourceHeap()->Get()->GetCPUDescriptorHandleForHeapStart(),
+			m_Gfx->Device->GetShaderResourceHeap()->Get()->GetGPUDescriptorHandleForHeapStart());
 
 		// Main font
 		{
-			constexpr float fontSize{ 15.0f };
+			constexpr float fontSize = 15.0f;
 			m_EditorFont = IO.Fonts->AddFontFromFileTTF(EDITOR_FONT, fontSize);
 		}
 		
 		// Icons font
 		{
-			constexpr float iconsSize{ 18 * 2.0f / 3.0f };
+			constexpr float iconsSize = 18 * 2.0f / 3.0f;
 			static const ImWchar iconsRanges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
 			ImFontConfig iconsConfig;
 			iconsConfig.MergeMode = true;
@@ -110,36 +109,30 @@ namespace lde::editor
 		if (!Entity.IsValid())
 		{
 			LOG_WARN("Invalid Entity");
+
 			return;
 		}
 
-		auto& tag = m_ActiveScene->World()->Registry()->get<TagComponent>(Entity.ID());
+		auto& name = m_ActiveScene->World()->Registry()->get<NameComponent>(Entity.ID());
+
+		if (name.Name.empty())
+		{
+			return;
+		}
 
 		ImGuiTreeNodeFlags flags = ((m_SelectedEntity == Entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_FramePadding;
-		bool opened = ImGui::TreeNodeEx((void*)(uint64)(uint32)Entity.ID(), flags, tag.Name.c_str());
+
+		bool opened = ImGui::TreeNodeEx((void*)(uint64)(uint32)Entity.ID(), flags, name.Name.c_str());
+
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 		{
 			m_SelectedEntity = Entity;
-		}
-
-		if (opened)
-		{
-			ImGui::Bullet();
-			ImGui::Text("Extended");
-			flags = ImGuiTreeNodeFlags_OpenOnArrow;
-		
-			ImGui::TreePop();
 		}
 	}
 
 	void Editor::DrawComponentsData(Entity& Entity)
 	{
-		if (!Entity.HasComponent<TagComponent>())
-		{
-			return;
-		}
-		
-		auto& tag{ Entity.GetComponent<TagComponent>() };
+		auto& tag = Entity.GetComponent<NameComponent>();
 		ImGui::Text(tag.Name.c_str());
 		ImGui::Separator();
 
@@ -205,14 +198,6 @@ namespace lde::editor
 				ImGui::SameLine();
 				ImGui::SliderFloat("##Visibility", &Component.Visibility, 0.0f, 1.0f);
 				ImGui::Text("Casts shadows");
-				ImGui::SameLine();
-				ImGui::Checkbox("##Casts shadows", &Component.bCastShadows);
-
-				if (Component.bCastShadows)
-				{
-					ImGui::Text("Shadow map lookup...");
-					//ImGui::Image((ImTextureID))
-				}
 			});
 	}
 
@@ -220,7 +205,9 @@ namespace lde::editor
 	void Editor::DrawProperties(Entity& Entity, UI ui)
 	{
 		if (!Entity.HasComponent<T>())
+		{
 			return;
+		}
 
 		auto& component = Entity.GetComponent<T>();
 
@@ -315,12 +302,12 @@ namespace lde::editor
 			{
 				if (ImGui::MenuItem(ICON_FA_MOON" Dark Theme"))
 				{
-					Themes::DarkTheme(*m_EditorStyle);
+					EditorThemes::DarkTheme(*m_EditorStyle);
 					LOG_INFO("Switched Editor Theme to Dark mode.");
 				}
 				if (ImGui::MenuItem(ICON_FA_SUN" Light Theme"))
 				{
-					Themes::LightTheme(*m_EditorStyle);
+					EditorThemes::LightTheme(*m_EditorStyle);
 					LOG_INFO("Switched Editor Theme to Light mode.");
 				}
 
@@ -395,7 +382,7 @@ namespace lde::editor
 			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 350.0f);
 			ImGui::Text("%d FPS %.2f ms", m_Timer->FPS, m_Timer->Miliseconds);
 			ImGui::SameLine();
-			ImGui::Text("RAM: %.2fMB", Utility::MemoryUsage::ReadRAM());
+			ImGui::Text("RAM: %.2fMB", Utility::ReadRAM());
 			ImGui::SameLine();
 			ImGui::Text("VRAM: %d MB", m_Gfx->QueryAdapterMemory());
 			ImGui::SameLine();
@@ -420,27 +407,16 @@ namespace lde::editor
 	{
 		ImGui::Begin("Hierarchy");
 
-		auto view = m_ActiveScene->Registry()->view<TagComponent>();
+		DrawSceneProperties(); 
+		ImGui::Separator();
+
+		auto view = m_ActiveScene->Registry()->view<NameComponent>();
 		for (auto [entity, tag] : view.each())
 		{
 			Entity e(m_ActiveScene->World(), entity);
 			DrawNode(e);
 			ImGui::Separator();
 		}
-
-		// Scene Lighting here
-
-		//auto light = m_ActiveScene->Registry()->view<PointLightComponent>();
-		//for (auto [entity, comp] : light.each())
-		//{
-		//	Entity e(m_ActiveScene->World(), entity);
-		//	DrawNode(e);
-		//	ImGui::Separator();
-		//}
-
-		//m_ActiveScene->Registry()->view<DirectionalLightComponent>();
-		//m_ActiveScene->Registry()->view<PointLightComponent>();
-		//m_ActiveScene->Registry()->view<SpotLightComponent>();
 
 		ImGui::End();
 	}
@@ -470,6 +446,39 @@ namespace lde::editor
 		ClearLogs();
 		PrintLogs();
 		ImGui::End();
+	}
+
+	void Editor::DrawSceneProperties()
+	{
+		if (ImGui::TreeNodeEx("Scene", ImGuiTreeNodeFlags_FramePadding))
+		{
+			ImGui::SeparatorText("Config");
+
+			auto& config = Config::Get();
+
+			int32& sync = (int32&)config.SyncInterval;
+
+			if (ImGui::BeginTable("##data", 2))
+			{
+				// Row 0
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("V-Sync:");
+				static const char* intervals[]{ "Off", "On", "Half" };
+				ImGui::TableNextColumn();
+				ImGui::Combo("##Sync interval:", &sync, intervals, IM_ARRAYSIZE(intervals));
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				ImGui::EndTable();
+			}
+
+			ImGui::TreePop();
+		}
+
 	}
 
 	void Editor::PrintLogs()

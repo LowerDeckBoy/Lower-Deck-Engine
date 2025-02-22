@@ -1,12 +1,7 @@
 #pragma once
 
-/**
- * @file ImageBasedLighting.hpp
- * @brief 
- */
-
-#include <Core/CoreMinimal.hpp>
-#include <RHI/D3D12/D3D12RHI.hpp>
+#include "Core/CoreMinimal.hpp"
+#include "RHI/D3D12/D3D12RHI.hpp"
 
 namespace lde
 {

@@ -1,7 +1,7 @@
-#include <Engine/Core/String.hpp>
+#include "../Colors.hpp"
 #include "Components.hpp"
+#include <Engine/Core/String.hpp>
 #include <ImGui/imgui_internal.h>
-#include "../EditorColors.hpp"
 
 namespace lde::editor
 {
@@ -10,6 +10,7 @@ namespace lde::editor
 		if (ImGui::BeginTable("XYZ", 2, ImGuiTableFlags_BordersInner | ImGuiTableFlags_Resizable))
 		{
 			ImGui::PushID(Label.data());
+
 			ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_IndentDisable | ImGuiTableColumnFlags_WidthFixed, 90.0f);
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
@@ -24,7 +25,9 @@ namespace lde::editor
 				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
 				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
 				if (ImGui::Button("X"))
+				{
 					Float3.x = ResetValue;
+				}
 
 				ImGui::PopStyleColor(3);
 
@@ -39,7 +42,9 @@ namespace lde::editor
 				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
 				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
 				if (ImGui::Button("Y"))
+				{
 					Float3.y = ResetValue;
+				}
 
 				ImGui::PopStyleColor(3);
 
@@ -54,7 +59,9 @@ namespace lde::editor
 				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
 				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
 				if (ImGui::Button("Z"))
+				{
 					Float3.z = ResetValue;
+				}
 
 				ImGui::PopStyleColor(3);
 

@@ -1,12 +1,7 @@
 #pragma once
 
-/*
-	RHI/Types.hpp
-	
-*/
-
-#include <Core/CoreTypes.hpp>
-#include <Core/String.hpp>
+#include "Core/CoreTypes.hpp"
+#include "Core/String.hpp"
 
 namespace lde
 {

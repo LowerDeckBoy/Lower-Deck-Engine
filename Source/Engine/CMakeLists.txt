@@ -7,12 +7,15 @@ set(CORE
 	Core/CoreDefines.hpp
 	Core/CoreMinimal.hpp
 	Core/CoreTypes.hpp
+	Core/FileSystem.cpp
+	Core/FileSystem.hpp
 	Core/Logger.cpp
 	Core/Logger.hpp
 	Core/Math.hpp
 	Core/RefPtr.hpp
 	Core/Singleton.hpp
 	Core/String.hpp
+	Core/Utility.hpp
 )
 
 set(GRAPHICS 
@@ -63,8 +66,6 @@ set(RHI
 	RHI/D3D12/D3D12PipelineState.hpp
 	RHI/D3D12/D3D12Queue.cpp
 	RHI/D3D12/D3D12Queue.hpp
-	RHI/D3D12/D3D12Raytracing.cpp
-	RHI/D3D12/D3D12Raytracing.hpp
 	RHI/D3D12/D3D12Resource.cpp
 	RHI/D3D12/D3D12Resource.hpp
 	RHI/D3D12/D3D12RHI.cpp
@@ -102,6 +103,8 @@ set(SCENE
 	Scene/Scene.hpp
 	Scene/SceneCamera.cpp
 	Scene/SceneCamera.hpp
+	Scene/SceneLoader.cpp
+	Scene/SceneLoader.hpp
 	Scene/World.cpp
 	Scene/World.hpp
 
@@ -112,12 +115,6 @@ set(SCENE
 	Scene/Model/Mesh.hpp
 	Scene/Model/Model.cpp
 	Scene/Model/Model.hpp
-)
-
-set(UTILITY 
-	Utility/FileSystem.cpp
-	Utility/FileSystem.hpp
-	Utility/Utility.hpp
 )
 
 set(PLATFORM
@@ -134,7 +131,6 @@ target_sources(${TARGET}
 	${RENDER}
 	${RHI}
 	${SCENE}
-	${UTILITY}
 	${PLATFORM}
 	"${CMAKE_SOURCE_DIR}/Third-party/D3D12MA/D3D12MemAlloc.cpp"
 	"${CMAKE_SOURCE_DIR}/Third-party/D3D12MA/D3D12MemAlloc.h"

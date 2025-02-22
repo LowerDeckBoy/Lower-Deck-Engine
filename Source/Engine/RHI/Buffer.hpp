@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BufferConstants.hpp"
-#include <RHI/Types.hpp>
+#include "RHI/Types.hpp"
 
 using BufferHandle  = uint32;
 using TextureHandle = uint32;
@@ -35,16 +35,12 @@ namespace lde
 	public:
 		~Buffer() { }
 
-		virtual void Release() = 0;
+		virtual void Release() {}
 
-		virtual void*  GetCpuAddress() const = 0;
 		virtual uint64 GetGpuAddress() const = 0;
 
-		virtual void Map(void* pMappedData) = 0;
-		virtual void Unmap() = 0;
-
-		virtual uint32 GetSRVIndex() = 0;
-		//virtual uint32 GetUAVIndex() = 0;
+		virtual void Map(void* /* pMappedData */) {}
+		virtual void Unmap() {}
 
 		BufferDesc GetDesc() const
 		{

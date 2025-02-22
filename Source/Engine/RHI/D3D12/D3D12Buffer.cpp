@@ -1,6 +1,6 @@
 #include "D3D12Buffer.hpp"
 #include "D3D12RHI.hpp"
-#include <Core/Logger.hpp>
+#include "Core/Logger.hpp"
 #include "D3D12DescriptorHeap.hpp"
 #include "D3D12Utility.hpp"
 #include "D3D12Viewport.hpp"
@@ -24,7 +24,7 @@ namespace lde
 
 	D3D12Descriptor D3D12Buffer::Descriptor() const
 	{
-		return m_Descriptor;
+		return ShaderResource;
 	}
 
 	D3D12Buffer::D3D12Buffer(D3D12Device* pDevice, BufferDesc Desc)
@@ -85,9 +85,9 @@ namespace lde
 
 		if (Desc.bBindless)
 		{
-			pDevice->GetSRVHeap()->Allocate(m_Descriptor);
+			pDevice->GetShaderResourceHeap()->Allocate(ShaderResource);
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = CreateBufferSRVDesc(Desc);
-			pDevice->GetDevice()->CreateShaderResourceView(m_Buffer.Resource.Get(), &srvDesc, m_Descriptor.GetCpuHandle());
+			pDevice->GetDevice()->CreateShaderResourceView(m_Buffer.Resource.Get(), &srvDesc, ShaderResource.GetCpuHandle());
 		}
 	}
 	
@@ -97,27 +97,14 @@ namespace lde
 		SAFE_RELEASE(m_Buffer.Resource);
 	}
 
-	void* D3D12Buffer::GetCpuAddress() const
-	{
-		return nullptr;
-	}
-
 	uint64 D3D12Buffer::GetGpuAddress() const
 	{
 		return m_Buffer.Resource->GetGPUVirtualAddress();
 	}
 
-	void D3D12Buffer::Map(void* /* pMappedData */)
+	uint32 D3D12Buffer::GetShaderResourceIndex()
 	{
-	}
-
-	void D3D12Buffer::Unmap()
-	{
-	}
-
-	uint32 D3D12Buffer::GetSRVIndex()
-	{
-		return m_Descriptor.Index();
+		return ShaderResource.Index();
 	}
 
 	D3D12_INDEX_BUFFER_VIEW GetIndexView(D3D12Buffer* pBuffer)
@@ -183,7 +170,7 @@ namespace lde
 	void D3D12ConstantBuffer::Create(void* pData, usize Size)
 	{
 		// Align data to 256 bytes
-		m_Size = ALIGN(Size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);;
+		m_Size = ALIGN(Size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 		
 		D3D12_RESOURCE_DESC desc = CreateBufferDesc(m_Size);
 

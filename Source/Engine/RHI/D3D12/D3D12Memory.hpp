@@ -1,7 +1,7 @@
 #pragma once
 
 #include <AgilitySDK/d3d12.h>
-#include <Core/CoreMinimal.hpp>
+#include "Core/CoreMinimal.hpp"
 #include <D3D12MA/D3D12MemAlloc.h>
 #include <vector>
 

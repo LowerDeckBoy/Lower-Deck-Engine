@@ -16,6 +16,5 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIR}/Debug/Lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIR}/Debug)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIR}/Debug)
 
-add_subdirectory(Shaders)
 add_subdirectory(Third-party)
 add_subdirectory(Source)

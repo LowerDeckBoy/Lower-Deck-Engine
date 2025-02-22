@@ -1,6 +1,6 @@
 #pragma once
 
-#include <RHI/Types.hpp>
+#include "RHI/Types.hpp"
 #include <span>
 
 namespace lde

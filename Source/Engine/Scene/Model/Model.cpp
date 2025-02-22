@@ -1,41 +1,43 @@
-#include "../Components/Components.hpp"
+#include "../Components/TransformComponent.hpp"
+#include "../Components/NameComponent.hpp"
 #include "Graphics/AssetManager.hpp"
 #include "RHI/D3D12/D3D12RHI.hpp"
 #include "Model.hpp"
 
 namespace lde
 {
-	Model::Model(RHI* pRHI, std::string_view Filepath, World* pWorld)
-	{
-		m_Mesh = std::make_unique<Mesh>();
-	
-		auto pGfx = (D3D12RHI*)pRHI;
-		// TODO: Test loading times.
-		AssetManager::GetInstance().Import(pGfx, Filepath, *m_Mesh.get());
-		//AssetManager::GetInstance().ImportGLTF(pGfx, Filepath, *m_Mesh.get());
-
-		Create(pGfx, pWorld);
-
-	
-	}
-
-	Model::~Model()
-	{
-
-	}
-
 	void Model::Create(D3D12RHI* pGfx, World* pWorld)
 	{
-		m_Mesh->Create(pGfx->Device.get());
-
 		// Default components
 		Entity::Create(pWorld);
-		Entity::AddComponent<TagComponent>(m_Mesh->Name);
 		Entity::AddComponent<TransformComponent>();
 		
-		m_Mesh->IndexView = GetIndexView(pGfx->Device->Buffers.at(m_Mesh->IndexBuffer));
+		ConstBuffer = pGfx->GetDevice()->CreateConstantBuffer(&cbData, sizeof(cbData));
 
-		m_Mesh->ConstBuffer = pGfx->GetDevice()->CreateConstantBuffer(&m_Mesh->cbData, sizeof(m_Mesh->cbData));
+		for (auto& mesh : StaticMeshes)
+		{
+			mesh.VertexBuffer = pGfx->Device->CreateBuffer(
+				BufferDesc{
+					BufferUsage::eStructured,
+					mesh.Vertices.data(),
+					mesh.NumVertices,
+					mesh.NumVertices * sizeof(mesh.Vertices.at(0)),
+					static_cast<uint32>(sizeof(mesh.Vertices.at(0))),
+					true
+				});
+
+			mesh.IndexBuffer = pGfx->Device->CreateBuffer(
+				BufferDesc{
+					BufferUsage::eIndex,
+					mesh.Indices.data(),
+					mesh.NumIndices,
+					mesh.NumIndices * sizeof(mesh.Indices.at(0)),
+					static_cast<uint32>(sizeof(mesh.Indices.at(0)))
+				});
+
+			mesh.IndexBufferView = GetIndexView(pGfx->Device->Buffers.at(mesh.IndexBuffer));
+		}
+
 	}
 
 } // namespace lde

@@ -6,9 +6,9 @@
 */
 
 #include <AgilitySDK/d3d12.h>
-#include <Core/CoreMinimal.hpp>
-#include <RHI/CommandList.hpp>
-#include <RHI/RHICommon.hpp>
+#include "Core/CoreMinimal.hpp"
+#include "RHI/CommandList.hpp"
+#include "RHI/RHICommon.hpp"
 
 namespace lde
 {
@@ -73,8 +73,8 @@ namespace lde
 		void DispatchRays(const D3D12_DISPATCH_RAYS_DESC& Desc);
 		void DispatchMesh(uint32 DispatchX, uint32 DispatchY, uint32 DispatchZ);
 
-		void BindVertexBuffer(Buffer* pBuffer) override final;
-		void BindIndexBuffer(Buffer* pBuffer) override final;
+		void BindVertexBuffer(Buffer* pBuffer) override;
+		void BindIndexBuffer(Buffer* pBuffer) override;
 		void BindConstantBuffer(uint32 Slot, ConstantBuffer* pBuffer) override;
 
 		void PushConstants(uint32 Slot, uint32 Count, void* pData, uint32 Offset = 0) override;

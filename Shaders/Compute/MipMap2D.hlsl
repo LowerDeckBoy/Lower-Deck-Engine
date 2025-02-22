@@ -1,11 +1,6 @@
 #ifndef MIPMAP2D_HLSL
 #define MIPMAP2D_HLSL
 
-// https://github.com/mateeeeeee/Adria-DX12/blob/master/Adria/Resources/Shaders/Other/GenerateMips.hlsl
-// https://github.com/CHCTW/DirectX12-Framework-/blob/master/GraphicsTechniques/ImageBasedLighting/ImagedBasedLighting.cpp#L626
-// https://github.com/Eclmist/Ether/tree/develop/include
-// https://github.com/pkurth/D3D12Renderer/blob/master/shaders/post_processing/blit_cs.hlsl
-
 #define BLOCK_SIZE 8
 #define GROUP_SIZE BLOCK_SIZE * BLOCK_SIZE
 
@@ -16,13 +11,13 @@
 
 struct MipGenerationData
 {
-	uint SrcMipIndex; // The source texture index in the descriptor heap
-	uint DestMipIndex; // The destination texture index in the descriptor heap
-	uint SrcMipLevel; // The level of the source mip
-	uint NumMips; // Number of mips to generate in current dispatch
-	uint SrcDimension; // Bitmask to specify if source mip is odd in width and/or height
-	bool IsSRGB; // Is the texture in SRGB color space? Apply gamma correction
-	float2 TexelSize; // 1.0 / OutMip0.Dimensions
+	uint	SrcMipIndex;
+	uint	DestMipIndex;
+	uint	SrcMipLevel;
+	uint	NumMips;
+	uint	SrcDimension;
+	bool	IsSRGB;
+	float2	TexelSize;
 };
 
 ConstantBuffer<MipGenerationData> MipGenData : register(b0);
@@ -73,10 +68,10 @@ float4 PackColor(float4 color)
 
 struct ComputeShaderInput
 {
-	uint3 GroupID : SV_GroupID;
-	uint3 GroupThreadID : SV_GroupThreadID;
-	uint3 DispatchThreadID : SV_DispatchThreadID;
-	uint GroupIndex : SV_GroupIndex;
+	uint3 GroupID			: SV_GroupID;
+	uint3 GroupThreadID		: SV_GroupThreadID;
+	uint3 DispatchThreadID	: SV_DispatchThreadID;
+	uint GroupIndex			: SV_GroupIndex;
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]

@@ -1,4 +1,5 @@
 #include "Components/CameraComponent.hpp"
+#include "Components/NameComponent.hpp"
 #include "Components/Components.hpp"
 #include "RHI/D3D12/D3D12Utility.hpp"
 #include "SceneCamera.hpp"
@@ -21,11 +22,11 @@ namespace lde
 	void SceneCamera::Initialize(World* pWorld, float AspectRatio)
 	{
 		Entity::Create(pWorld);
-	
+
 		// Defaulting positions on startup
-		m_Position = m_DefaultPosition;
-		m_Target = m_DefaultTarget;
-		m_Up = m_DefaultUp;
+		m_Position	= m_DefaultPosition;
+		m_Target	= m_DefaultTarget;
+		m_Up		= m_DefaultUp;
 	
 		m_AspectRatio = AspectRatio;
 		XMStoreFloat4x4(&m_View, XMMatrixLookAtLH(GetPosition(), GetTarget(), GetUp()));
@@ -33,8 +34,10 @@ namespace lde
 	
 		CameraSlider = { m_Position.x, m_Position.y, m_Position.z };
 	
-		AddComponent<TagComponent>("Scene Camera");
+		AddComponent<NameComponent>("Scene Camera");
 		AddComponent<CameraComponent>();
+
+		InitializeInputs();
 	}
 
 	void SceneCamera::Update()

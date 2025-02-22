@@ -1,9 +1,9 @@
 #pragma once
 
 #include <AgilitySDK/d3d12.h>
-#include <Core/CoreMinimal.hpp>
-#include <Graphics/ShaderCompiler.hpp>
-#include <RHI/Types.hpp>
+#include "Core/CoreMinimal.hpp"
+#include "Graphics/ShaderCompiler.hpp"
+#include "RHI/Types.hpp"
 #include <span>
 #include <vector>
 #include <AgilitySDK/d3dx12/d3dx12_pipeline_state_stream.h>

@@ -75,12 +75,6 @@ namespace lde
 		m_Gfx->SetRenderTarget(SceneImage.GetRTV().GetCpuHandle(), &m_Gfx->SceneDepth->DSV().GetCpuHandle());
 		m_Gfx->ClearRenderTarget(SceneImage.GetRTV().GetCpuHandle());
 
-	#if MESH_SHADING
-		m_Gfx->SetRootSignature(&m_MeshletRS);
-		m_Gfx->SetPipeline(&m_MeshletPSO);
-		m_ActiveScene->DrawScene();
-	#endif
-
 		// Light Pass
 		{
 			m_Gfx->SetRootSignature(&m_LightRS);
@@ -118,7 +112,7 @@ namespace lde
 
 	void Renderer::Present()
 	{
-		m_Gfx->Present(bVSync);
+		m_Gfx->Present(Config::Get().SyncInterval);
 	}
 
 	void Renderer::SetScene(Scene* pScene)
@@ -142,10 +136,6 @@ namespace lde
 
 	void Renderer::Release()
 	{
-	#if RAYTRACING
-		delete RaytracingCtx;
-	#endif
-
 		delete m_SkyPass;
 		delete m_LightPass;
 		delete m_GBufferPass;
