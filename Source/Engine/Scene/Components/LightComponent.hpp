@@ -15,10 +15,6 @@ namespace lde
 		// Range [0.0, 1.0] - [not visible; fully visible]
 		float				Visibility = 1.0f;
 		DirectX::XMFLOAT4	Ambient = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-		DirectX::XMFLOAT4	Diffuse = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-		bool				bCastShadows = false;
-		DirectX::XMFLOAT3	padding{};
-		
 	};
 
 	struct PointLightComponent

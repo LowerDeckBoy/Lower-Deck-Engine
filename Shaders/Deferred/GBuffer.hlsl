@@ -63,7 +63,7 @@ VSOutput VSmain(uint VertexID : SV_VertexID)
 	output.TexCoord			= vertex.TexCoord;
 	output.Normal			= normalize(mul((float3x3) World, vertex.Normal));
 	
-	float3x3 TBN = float3x3(vertex.Tangent, vertex.Bitangent, output.Normal);
+	float3x3 TBN = float3x3(vertex.Tangent, vertex.Bitangent, vertex.Normal);
 	output.TBN = mul((float3x3)World, transpose(TBN));
 
 	return output;
@@ -86,46 +86,37 @@ GBufferOutput PSmain(VSOutput pin)
 {
 	GBufferOutput output = (GBufferOutput) 0;
 
-	output.TexCoords = float4(pin.TexCoord, 0.0f, 1.0f);
+	output.TexCoords = float4(pin.TexCoord, 0.0f, 0.0f);
 	
-	//const float z = pin.Position.z / pin.Position.w;
 	const float z = 1.0f - (pin.Position.z / pin.Position.w);
 	output.Depth = float4(z, z, z, 1.0f);
 		
 	output.WorldPosition = pin.WorldPosition;
 	
+	output.BaseColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	if (material.BaseColorIndex > INVALID_INDEX)
 	{
 		Texture2D<float4> texture = ResourceDescriptorHeap[material.BaseColorIndex];
-		output.BaseColor = texture.Sample(texSampler, pin.TexCoord);// * material.BaseColorFactor;
+		output.BaseColor = material.BaseColorFactor * texture.Sample(texSampler, pin.TexCoord);
 		
 		if (output.BaseColor.a < material.AlphaCutoff)
 		{
 			discard;
 		}
 	}
-	else
-	{
-		output.BaseColor = float4(material.BaseColorFactor.xyz, 1.0f);
-	}
 	
 	// Load and transform Normal texture
+	output.Normal = float4(pin.Normal, 1.0f);
 	if (material.NormalIndex > INVALID_INDEX)
 	{
 		Texture2D<float4> normalTexture = ResourceDescriptorHeap[material.NormalIndex];
 		float4 normalMap = normalize(2.0f * normalTexture.Sample(texSampler, pin.TexCoord) - float4(1.0f, 1.0f, 1.0f, 1.0f));
 		output.Normal = float4(normalize(mul(pin.TBN, normalMap.xyz)), normalMap.w);
-		
-		//float3 bitangent = normalize(GetBitangent(pin.WorldPosition, pin.TexCoord));
-		//float3x3 TBN = float3x3(pin.Tangent, bitangent, pin.Normal);
-		//TBN = mul((float3x3) World, transpose(TBN));
-	}
-	else
-	{
-		output.Normal = float4(pin.Normal, 1.0f);
+	
 	}
 	
 	// Load MetalRoughness texture
+	output.MetalRoughness = float4(0.0f, material.RoughnessFactor, material.MetallicFactor, 1.0f);
 	if (material.MetalRoughnessIndex > INVALID_INDEX)
 	{
 		Texture2D<float4> metalRoughnessTex = ResourceDescriptorHeap[material.MetalRoughnessIndex];
@@ -134,22 +125,16 @@ GBufferOutput PSmain(VSOutput pin)
 		metallic.g *= material.RoughnessFactor;
 		output.MetalRoughness = metallic;
 	}
-	else
-	{
-		output.MetalRoughness = float4(0.0f, material.RoughnessFactor, material.MetallicFactor, 1.0f);
-	}
 	
 	// Load Emissive texture.
+	output.Emissive = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	if (material.EmissiveIndex > INVALID_INDEX)
 	{
 		Texture2D<float4> emissiveTex = ResourceDescriptorHeap[material.EmissiveIndex];
-		output.Emissive = material.EmissiveFactor * emissiveTex.Sample(texSampler, pin.TexCoord);
+		output.Emissive = emissiveTex.Sample(texSampler, pin.TexCoord) * material.EmissiveFactor;
+
 	}
-	else
-	{
-		output.Emissive = float4(material.EmissiveFactor);
-	}
-	
+
 	return output;
 }
 

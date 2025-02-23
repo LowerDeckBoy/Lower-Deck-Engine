@@ -7,7 +7,7 @@ add_executable(${TARGET}
 	Application.hpp
 )
 
-target_compile_features(${TARGET} PUBLIC cxx_std_20)
+target_compile_features(${TARGET} PUBLIC cxx_std_23)
 
 # MSVC is a preferable compiler
 if (MSVC)
@@ -37,4 +37,20 @@ add_custom_command(POST_BUILD
 	
 	${CMAKE_SOURCE_DIR}/Assets/Fonts
 	${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/Assets/Fonts
+)
+
+add_custom_command(POST_BUILD
+	TARGET ${TARGET}
+	COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+	
+	${CMAKE_SOURCE_DIR}/Assets/Textures
+	${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/Assets/Textures
+)
+
+add_custom_command(POST_BUILD
+	TARGET ${TARGET}
+	COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+	
+	${CMAKE_SOURCE_DIR}/Shaders
+	${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/Shaders
 )

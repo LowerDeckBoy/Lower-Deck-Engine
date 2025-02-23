@@ -2,14 +2,18 @@
 set(TARGET "Editor")
 
 file(GLOB IMGUI ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/ImGui/*.h ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/ImGui/*.cpp)
+
 add_library(${TARGET} STATIC 
-	"Editor.cpp" "Editor.hpp" 
-	"EditorTheme.hpp" "EditorColors.hpp" 
-	"Components/Components.hpp" "Components/Components.cpp" 
+	Editor.cpp
+	Editor.hpp
+	EditorTheme.hpp
+	Colors.hpp
+	Components/Components.hpp
+	Components/Components.cpp
 	${IMGUI}
 )
 
-target_compile_features(${TARGET} PUBLIC cxx_std_20)
+target_compile_features(${TARGET} PUBLIC cxx_std_23)
 set_target_properties(${TARGET} PROPERTIES LINKER_LANGUAGE CXX)
 
 # MSVC is a preferable compiler

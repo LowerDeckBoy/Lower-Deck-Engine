@@ -8,15 +8,15 @@
 
 struct CameraData
 {
-	float4		Position;
-	float4x4	View;
-	float4x4	Projection;
+	float4				Position;
+	float4x4			View;
+	float4x4			Projection;
 	row_major float4x4	InversedView;
 	row_major float4x4	InversedProjection;
-	uint		Width;
-	uint		Height;
-	float		zNear;
-	float		zFar;
+	uint				Width;
+	uint				Height;
+	float				zNear;
+	float				zFar;
 };
 
 static const float3 FORWARD_VECTOR	= float3(0.0f, 0.0f, 1.0f);

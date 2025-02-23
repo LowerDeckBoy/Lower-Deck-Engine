@@ -15,5 +15,5 @@ _deps
 /Assets/
 /Build/
 TODOs.md
-#vcpkg.json
+vcpkg.json
 vcpkg-configuration.json

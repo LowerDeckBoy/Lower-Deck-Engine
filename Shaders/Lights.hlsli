@@ -11,9 +11,6 @@ struct DirectionalLight
 	float3	Direction;
 	float	Visibility;
 	float4	Ambient;
-	float4	Diffuse;
-	int		bCastShadows;
-	float3	padding;
 };
 
 struct PointLight

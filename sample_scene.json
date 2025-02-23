@@ -2,12 +2,8 @@
 	"scene": {
 		"models": [
 			{
-				"name": "DamagedHelmet",
-				"path": "../../Assets/Models/DamagedHelmet/DamagedHelmet.gltf"
-			},
-			{
-				"name": "cube",
-				"path": "../../Assets/Models/cube/Cube.gltf"
+				"name": "Sponza",
+				"path": "../../../../Assets/Models/Sponza/Sponza.gltf"
 			}
 		],
 		"lights": [

@@ -4,7 +4,7 @@ set(TARGET "Engine")
 add_library(${TARGET} STATIC)
 
 set(CORE
-	Core/CoreDefines.hpp
+	Core/Defines.hpp
 	Core/CoreMinimal.hpp
 	Core/CoreTypes.hpp
 	Core/FileSystem.cpp
@@ -126,6 +126,7 @@ set(PLATFORM
 
 target_sources(${TARGET}
 	PRIVATE
+	Config.hpp
 	${CORE}
 	${GRAPHICS}
 	${RENDER}
@@ -136,7 +137,7 @@ target_sources(${TARGET}
 	"${CMAKE_SOURCE_DIR}/Third-party/D3D12MA/D3D12MemAlloc.h"
 )
 
-target_compile_features(${TARGET} PUBLIC cxx_std_20)
+target_compile_features(${TARGET} PUBLIC cxx_std_23)
 set_target_properties(${TARGET} PROPERTIES LINKER_LANGUAGE CXX)
 
 # MSVC is a preferable compiler

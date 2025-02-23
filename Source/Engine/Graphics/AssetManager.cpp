@@ -156,7 +156,7 @@ namespace lde
 
 			aiColor4D colorFactor{};
 			aiGetMaterialColor(material, AI_MATKEY_BASE_COLOR, &colorFactor);
-			newMaterial.BaseColorFactor = DirectX::XMFLOAT4(colorFactor.r, colorFactor.g, colorFactor.b, colorFactor.a);
+			newMaterial.BaseColorFactor = *(DirectX::XMFLOAT4*)(&colorFactor);
 		}
 
 		if (material->GetTexture(aiTextureType_NORMALS, 0, &materialPath) == aiReturn_SUCCESS)
@@ -181,13 +181,13 @@ namespace lde
 
 			aiColor4D colorFactor{};
 			aiGetMaterialColor(material, AI_MATKEY_COLOR_EMISSIVE, &colorFactor);
-			newMaterial.EmissiveFactor = DirectX::XMFLOAT4(colorFactor.r, colorFactor.g, colorFactor.b, colorFactor.a);
+			newMaterial.EmissiveFactor = *(DirectX::XMFLOAT4*)(&colorFactor);
 		}
 
 		aiGetMaterialFloat(material, AI_MATKEY_METALLIC_FACTOR, &newMaterial.MetallicFactor);
 		aiGetMaterialFloat(material, AI_MATKEY_ROUGHNESS_FACTOR, &newMaterial.RoughnessFactor);
 		aiGetMaterialFloat(material, AI_MATKEY_GLTF_ALPHACUTOFF, &newMaterial.AlphaCutoff);
-
+		
 		InStaticMesh.Material = newMaterial;
 	}
 

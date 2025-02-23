@@ -34,7 +34,7 @@ namespace lde
 		 * @param bGenerateMipMaps Texture object.
 		 * @return Index of the newly create Texture. -1 if not created.
 		 */
-		int32 Create(D3D12RHI* pGfx, std::string_view Filepath, bool bGenerateMipMaps = false);
+		int32 Create(D3D12RHI* pGfx, std::string_view Filepath, bool bGenerateMipMaps = true);
 
 		//int32 CreateFromDesc(D3D12RHI* pGfx, std::string_view Filepath, D3D12_RESOURCE_DESC& Desc);
 		
